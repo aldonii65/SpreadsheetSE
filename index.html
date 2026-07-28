@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoring Status Toko</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        .filter-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            align-items: flex-end;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            flex: 1;
+            min-width: 200px;
+        }
+        label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+        select, input[type="text"] {
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background-color: #fff;
+            font-size: 14px;
+            outline: none;
+        }
+        select:focus, input[type="text"]:focus {
+            border-color: #3182ce;
+        }
+        .btn-reset {
+            padding: 8px 16px;
+            background-color: #e2e8f0;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #4a5568;
+            cursor: pointer;
+            height: 38px;
+        }
+        .btn-reset:hover {
+            background-color: #cbd5e1;
+        }
+        #ringkasan-parameter-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .table-responsive {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 14px;
+        }
+        th, td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e2e8f0;
+            white-space: nowrap;
+        }
+        th {
+            background-color: #edf2f7;
+            color: #4a5568;
+            font-weight: 600;
+        }
+        tr:hover {
+            background-color: #f8fafc;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .status-ok {
+            background-color: #c6f6d5;
+            color: #22543d;
+        }
+        .status-problem {
+            background-color: #fed7d7;
+            color: #742a2a;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="filter-container">
+        <div class="filter-group">
+            <label for="filter-edp">Pilih Kode Toko:</label>
+            <select id="filter-edp" onchange="jalankanFilter()">
+                <option value="semua">-- Semua Kode Toko --</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="filter-nama-edp">Pilih Nama EDP:</label>
+            <select id="filter-nama-edp" onchange="jalankanFilter()">
+                <option value="semua">-- Semua Nama EDP --</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="filter-tanggal">Pilih Tanggal Report:</label>
+            <select id="filter-tanggal" onchange="jalankanFilter()">
+                <option value="semua">-- Semua Tanggal --</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="search-text">Cari Toko / Nama:</label>
+            <input type="text" id="search-text" placeholder="Ketik kode/nama toko..." onkeyup="jalankanFilter()">
+        </div>
+        <div>
+            <button class="btn-reset" onclick="resetFilter()">Reset Filter</button>
+        </div>
+    </div>
+
+    <!-- Ringkasan Persentase Parameter -->
+    <div id="ringkasan-parameter-container">
+        <!-- Card persentase akan di-generate secara dinamis di sini -->
+    </div>
+
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Kode Toko</th>
+                    <th>Nama Toko</th>
+                    <th>Station</th>
+                    <th>Status LAN Speed</th>
+                    <th>Status Suhu</th>
+                    <th>Status Boot Time</th>
+                    <th>Status EDC BCA</th>
+                    <th>Status EDC Mandiri</th>
+                    <th>Status BSOD</th>
+                    <th>Status UPS</th>
+                </tr>
+            </thead>
+            <tbody id="isi-tabel">
+                <tr><td colspan="10" style="text-align: center;">Memuat data dari Google Spreadsheet...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const apiUrl = "https://script.google.com/macros/s/AKfycbwYl6ZyllSOZM7naRIdXVnKGH0vtiXzGg8hwXwO4Rt4egh8iH4c67hHF4m1_-qJj04p/exec";
+        let semuaData = [];
+
+        let KOLOM_EDP = "";
+        let KOLOM_NAMA_EDP = "";
+        let KOLOM_TANGGAL = "";
+        let KOLOM_STATION = "";
+        let KOLOM_KODE_TOKO = "";
+        let KOLOM_NAMA_TOKO = "";
+        let KOLOM_LAN_SPEED = "";
+        let KOLOM_SUHU = "";
+        let KOLOM_BOOT_TIME = "";
+        let KOLOM_EDC_BCA = "";
+        let KOLOM_EDC_MANDIRI = "";
+        let KOLOM_BSOD = "";
+        let KOLOM_UPS = "";
+
+        async function ambilData() {
+            try {
+                const response = await fetch(apiUrl);
+                semuaData = await response.json();
+                                
+                if (semuaData.length > 0) {
+                    petakanNamaKolom(semuaData[0]);
+                    buatDropdownEDP(semuaData);
+                    buatDropdownTanggal();
+                    buatDropdownNamaEdp();
+                    tampilkanData(semuaData);
+                } else {
+                    document.getElementById("isi-tabel").innerHTML = "<tr><td colspan='10' style='text-align: center;'>Spreadsheet terdeteksi kosong.</td></tr>";
+                }
+            } catch (error) {
+                console.error("Detail Error:", error);
+                document.getElementById("isi-tabel").innerHTML = "<tr><td colspan='10' style='text-align: center; color: red;'>Gagal memuat data dari API. Pastikan status Google Sheet diset publik.</td></tr>";
+            }
+        }
+
+        function petakanNamaKolom(sampelBaris) {
+            const keys = Object.keys(sampelBaris);
+            const cariKey = (kataKunci) => keys.find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '').includes(kataKunci)) || "";
+
+            KOLOM_EDP          = cariKey("kdtk") || "KDTK";
+            KOLOM_NAMA_EDP     = cariKey("nama edp") || cariKey("edp") || keys[57] || "NAMA EDP";
+            KOLOM_TANGGAL      = cariKey("tanggalrespon") || cariKey("listener") || "TANGGAL RESPON IDM LISTENER";
+            KOLOM_STATION      = cariKey("station") || "station";
+            KOLOM_KODE_TOKO    = cariKey("kdtk") || cariKey("kode") || "KDTK";
+            KOLOM_NAMA_TOKO    = cariKey("nama") || "NAMA";
+            KOLOM_LAN_SPEED    = cariKey("status lan speed") || "STATUS LAN SPEED";
+            KOLOM_SUHU         = cariKey("status suhu") || "STATUS SUHU";
+            KOLOM_BOOT_TIME    = cariKey("status boot time") || "STATUS BOOT TIME";
+            KOLOM_EDC_BCA      = cariKey("status edc bca") || "STATUS EDC BCA";
+            KOLOM_EDC_MANDIRI  = cariKey("status edc mti") || "STATUS EDC MTI";
+            KOLOM_BSOD         = cariKey("status bsod") || "STATUS BSOD";
+            KOLOM_UPS          = cariKey("status ups") || "STATUS UPS";
+        }
+
+        function buatDropdownEDP(dataSumber) {
+            const dropdown = document.getElementById("filter-edp");
+            const nilaiTerpilihSebelumnya = dropdown.value;
+            
+            dropdown.innerHTML = '<option value="semua">-- Semua Kode Toko --</option>';
+            const daftarEDP = [...new Set(dataSumber.map(item => item[KOLOM_KODE_TOKO]))].filter(Boolean).sort();
+                        
+            daftarEDP.forEach(edp => {
+                const opsi = document.createElement("option");
+                opsi.value = edp;
+                opsi.textContent = edp;
+                dropdown.appendChild(opsi);
+            });
+
+            if (daftarEDP.includes(nilaiTerpilihSebelumnya)) {
+                dropdown.value = nilaiTerpilihSebelumnya;
+            } else {
+                dropdown.value = "semua";
+            }
+        }
+
+        function buatDropdownNamaEdp() {
+            const dropdown = document.getElementById("filter-nama-edp");
+            dropdown.innerHTML = '<option value="semua">-- Semua Nama EDP --</option>';
+            const daftarNamaEdp = [...new Set(semuaData.map(item => item[KOLOM_NAMA_EDP]))].filter(Boolean).sort();
+                
+            daftarNamaEdp.forEach(nama => {
+                const opsi = document.createElement("option");
+                opsi.value = nama;
+                opsi.textContent = nama;
+                dropdown.appendChild(opsi);
+            });
+        }
+
+        function buatDropdownTanggal() {
+            const dropdown = document.getElementById("filter-tanggal");
+            dropdown.innerHTML = '<option value="semua">-- Semua Tanggal --</option>';
+            const daftarTanggal = [...new Set(semuaData.map(item => item[KOLOM_TANGGAL]))].filter(Boolean).sort((a, b) => new Date(b) - new Date(a));
+                        
+            daftarTanggal.forEach(tgl => {
+                const opsi = document.createElement("option");
+                opsi.value = tgl;
+                opsi.textContent = tgl;
+                dropdown.appendChild(opsi);
+            });
+        }
+
+        function formatStatus(nilai) {
+            if (!nilai) return '-';
+            const teks = nilai.toString().trim().toUpperCase();
+            if (teks === 'OK' || teks === 'NORMAL' || teks === 'ONLINE') {
+                return `<span class="status-badge status-ok">${teks}</span>`;
+            } else if (teks === 'PROBLEM' || teks === 'TIDAK 1 GB' || teks === 'SUHU TINGGI' || teks === 'PINDAHKAN KE STATION INDUK' || teks === 'KONEKSI MATI' || teks === 'NOK' || teks === 'TIDAK' || teks === 'ERROR' || teks === 'OFFLINE' || teks === 'BSOD') {
+                return `<span class="status-badge status-problem">${teks}</span>`;
+            }
+            return teks;
+        }
+
+        function isAman(nilai) {
+            if (!nilai) return false;
+            const teks = nilai.toString().trim().toUpperCase();
+            return (teks === 'OK' || teks === 'NORMAL' || teks === 'ONLINE');
+        }
+
+        function hitungPersentaseParameter(dataYangDigunakan) {
+            const container = document.getElementById("ringkasan-parameter-container");
+            container.innerHTML = "";
+
+            if (dataYangDigunakan.length === 0) return;
+
+            const totalData = dataYangDigunakan.length;
+            const statistik = { suhu: 0, bsod: 0, lanSpeed: 0, edcBca: 0, edcMandiri: 0, ups: 0 };
+
+            dataYangDigunakan.forEach(item => {
+                if (isAman(item[KOLOM_SUHU])) statistik.suhu++;
+                if (isAman(item[KOLOM_BSOD])) statistik.bsod++;
+                if (isAman(item[KOLOM_LAN_SPEED])) statistik.lanSpeed++;
+                if (isAman(item[KOLOM_EDC_BCA])) statistik.edcBca++;
+                if (isAman(item[KOLOM_EDC_MANDIRI])) statistik.edcMandiri++;
+                if (isAman(item[KOLOM_UPS])) statistik.ups++;
+            });
+
+            const daftarParameter = [
+                { label: "Suhu Normal", count: statistik.suhu, warna: "#3182ce" },
+                { label: "BSOD Aman", count: statistik.bsod, warna: "#38a169" },
+                { label: "LAN Speed Normal", count: statistik.lanSpeed, warna: "#d69e2e" },
+                { label: "EDC BCA Normal", count: statistik.edcBca, warna: "#805ad5" },
+                { label: "EDC Mandiri Normal", count: statistik.edcMandiri, warna: "#e53e3e" },
+                { label: "UPS Normal", count: statistik.ups, warna: "#319795" }
+            ];
+
+            daftarParameter.forEach(param => {
+                const persentase = ((param.count / totalData) * 100).toFixed(1);
+                const card = document.createElement("div");
+                card.style.cssText = `background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 5px solid ${param.warna};`;
+                card.innerHTML = `
+                    <div style="font-size: 13px; color: #64748b; font-weight: 600;">${param.label}</div>
+                    <div style="font-size: 22px; font-weight: bold; color: #1e293b; margin: 5px 0;">${persentase}%</div>
+                    <div style="font-size: 12px; color: #64748b;">(${param.count} dari ${totalData})</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function tampilkanData(data) {
+            const tbody = document.getElementById("isi-tabel");
+            let htmlContent = "";
+
+            if(data.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='10' style='text-align: center;'>Tidak ada data monitoring ditemukan.</td></tr>";
+                document.getElementById("ringkasan-parameter-container").innerHTML = "";
+                return;
+            }
+
+            // Sorting bertingkat: Kode Toko (A-Z) lalu Station
+            data.sort((a, b) => {
+                const kodeA = (a[KOLOM_KODE_TOKO] || "").toString();
+                const kodeB = (b[KOLOM_KODE_TOKO] || "").toString();
+                let hasilSort = kodeA.localeCompare(kodeB, undefined, { numeric: true });
+                if (hasilSort === 0) {
+                    const stationA = (a[KOLOM_STATION] || "").toString();
+                    const stationB = (b[KOLOM_STATION] || "").toString();
+                    hasilSort = stationA.localeCompare(stationB, undefined, { numeric: true });
+                }
+                return hasilSort;
+            });
+
+            hitungPersentaseParameter(data);
+
+            data.forEach(item => {
+                htmlContent += `
+                    <tr>
+                        <td><strong>${item[KOLOM_KODE_TOKO] || '-'}</strong></td>
+                        <td>${item[KOLOM_NAMA_TOKO] || '-'}</td>
+                        <td>${item[KOLOM_STATION] || '-'} </td>
+                        <td>${formatStatus(item[KOLOM_LAN_SPEED])}</td>
+                        <td>${formatStatus(item[KOLOM_SUHU])}</td>
+                        <td>${formatStatus(item[KOLOM_BOOT_TIME])}</td>
+                        <td>${formatStatus(item[KOLOM_EDC_BCA])}</td>
+                        <td>${formatStatus(item[KOLOM_EDC_MANDIRI])}</td>
+                        <td>${formatStatus(item[KOLOM_BSOD])}</td>
+                        <td>${formatStatus(item[KOLOM_UPS])}</td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = htmlContent;
+        }
+
+        function jalankanFilter() {
+            const edpTerpilih = document.getElementById("filter-edp").value;
+            const tanggalTerpilih = document.getElementById("filter-tanggal").value;
+            const namaEdpTerpilih = document.getElementById("filter-nama-edp").value;
+            const keywordSearch = document.getElementById("search-text").value.toLowerCase();
+            
+            let dataHasilFilter = semuaData;
+
+            if (tanggalTerpilih !== "semua") {
+                dataHasilFilter = dataHasilFilter.filter(item => item[KOLOM_TANGGAL] === tanggalTerpilih);
+            }
+            if (namaEdpTerpilih !== "semua") {
+                dataHasilFilter = dataHasilFilter.filter(item => item[KOLOM_NAMA_EDP] === namaEdpTerpilih);
+            }
+
+            // Update dropdown Kode Toko secara dinamis sesuai Nama EDP atau Tanggal yang dipilih
+            buatDropdownEDP(dataHasilFilter);
+
+            if (edpTerpilih !== "semua") {
+                dataHasilFilter = dataHasilFilter.filter(item => item[KOLOM_KODE_TOKO] === edpTerpilih);
+            }
+            if (keywordSearch.trim() !== "") {
+                dataHasilFilter = dataHasilFilter.filter(item => {
+                    const kode = (item[KOLOM_KODE_TOKO] || "").toLowerCase();
+                    const nama = (item[KOLOM_NAMA_TOKO] || "").toLowerCase();
+                    return kode.includes(keywordSearch) || nama.includes(keywordSearch);
+                });
+            }
+
+            tampilkanData(dataHasilFilter);
+        }
+
+        function resetFilter() {
+            document.getElementById("filter-edp").value = "semua";
+            document.getElementById("filter-nama-edp").value = "semua";
+            document.getElementById("filter-tanggal").value = "semua";
+            document.getElementById("search-text").value = "";
+            
+            buatDropdownEDP(semuaData);
+            tampilkanData(semuaData);
+        }
+
+        ambilData();
+    </script>
+</body>
+</html>
