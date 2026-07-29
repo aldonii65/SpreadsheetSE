@@ -157,6 +157,10 @@
                     <th>Status EDC Mandiri</th>
                     <th>Status BSOD</th>
                     <th>Status UPS</th>
+                    <th>IP DVR</th>
+                    <th>IP DVR2</th>
+                    <th>Status Network</th>
+                    <th>Status Aktivasi</th>
                 </tr>
             </thead>
             <tbody id="isi-tabel">
@@ -175,6 +179,7 @@
         let KOLOM_STATION = "";
         let KOLOM_KODE_TOKO = "";
         let KOLOM_NAMA_TOKO = "";
+        let KOLOM_AKTIVASI = "";
         let KOLOM_LAN_SPEED = "";
         let KOLOM_SUHU = "";
         let KOLOM_BOOT_TIME = "";
@@ -182,6 +187,12 @@
         let KOLOM_EDC_MANDIRI = "";
         let KOLOM_BSOD = "";
         let KOLOM_UPS = "";
+        let KOLOM_IP_DVR = "IP_DVR";
+        let KOLOM_DVR = "DVR";
+        let KOLOM_DVR2 = "DVR2";
+        let KOLOM_STATUS_NETWORK = "STATUS_NETWORK";
+        let KOLOM_LISTENER = "";
+        
 
         async function ambilData() {
             try {
@@ -364,6 +375,10 @@
                         <td>${formatStatus(item[KOLOM_EDC_MANDIRI])}</td>
                         <td>${formatStatus(item[KOLOM_BSOD])}</td>
                         <td>${formatStatus(item[KOLOM_UPS])}</td>
+                        <td>${formatStatus(item[KOLOM_AKTIVASI])}</td>
+                        <td>${formatStatus(item[KOLOM_IP_DVR])}</td>
+                        <td>${formatStatus(item[KOLOM_DVR])}</td>
+                        <td>${formatStatus(item[KOLOM_DVR2])}</td>
                     </tr>
                 `;
             });
