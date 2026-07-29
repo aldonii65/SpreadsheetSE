@@ -111,16 +111,17 @@
 <body>
 
     <div class="filter-container">
-        <div class="filter-group">
-            <label for="filter-edp">Pilih Kode Toko:</label>
-            <select id="filter-edp" onchange="jalankanFilter()">
-                <option value="semua">-- Semua Kode Toko --</option>
-            </select>
-        </div>
+        <!-- Urutan Filter: Nama EDP terlebih dahulu -->
         <div class="filter-group">
             <label for="filter-nama-edp">Pilih Nama EDP:</label>
             <select id="filter-nama-edp" onchange="jalankanFilter()">
                 <option value="semua">-- Semua Nama EDP --</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="filter-edp">Pilih Kode Toko:</label>
+            <select id="filter-edp" onchange="jalankanFilter()">
+                <option value="semua">-- Semua Kode Toko --</option>
             </select>
         </div>
         <div class="filter-group">
@@ -151,27 +152,28 @@
                     <th>Nama Toko</th>
                     <th>Station</th>
                     <th>Status LAN Speed</th>
+                    <th>Status Durasi Start MySQL</th>
                     <th>Status Suhu</th>
                     <th>Status Boot Time</th>
+                    <th>Status Aktivasi</th>
+                    <th>Status Listener</th>
                     <th>Status EDC BCA</th>
-                    <th>Status EDC Mandiri</th>
+                    <th>Status EDC MTI</th>
                     <th>Status BSOD</th>
                     <th>Status UPS</th>
-                    <th>Status Aktivasi</th>
                     <th>IP DVR</th>
-                    <th>DVR</th>
-                    <th>DVR2</th>
-                    <th>Status Network</th>
+                    <th>STATUS DVR</th>
+                    <th>STATUS DVR2</th>
                 </tr>
             </thead>
             <tbody id="isi-tabel">
-                <tr><td colspan="15" style="text-align: center;">Memuat data dari Google Spreadsheet...</td></tr>
+                <tr><td colspan="16" style="text-align: center;">Memuat data dari Google Spreadsheet...</td></tr>
             </tbody>
         </table>
     </div>
 
     <script>
-        const apiUrl = "https://script.google.com/macros/s/AKfycbzJp2oZSSIxjJ_LIZKH2hNQCfFORarxBUzIDcbGs0ggWZBPcpcuF72zDlee57yUlTKvZg/exec";
+        const apiUrl = "https://script.google.com/macros/s/AKfycbyaIgi8vy49pUhnnqSGUhXC8PD76nYNtm7YjEuKzoDmDPpQt0jt6WG2Rb0acITe4YaTYg/exec";
         let semuaData = [];
 
         let KOLOM_EDP = "";
@@ -182,18 +184,18 @@
         let KOLOM_NAMA_TOKO = "";
         let KOLOM_AKTIVASI = "";
         let KOLOM_LAN_SPEED = "";
+        let KOLOM_MYSQL = "";
         let KOLOM_SUHU = "";
         let KOLOM_BOOT_TIME = "";
+        let KOLOM_LISTENER = "";
         let KOLOM_EDC_BCA = "";
         let KOLOM_EDC_MANDIRI = "";
         let KOLOM_BSOD = "";
         let KOLOM_UPS = "";
+        let KOLOM_HARI_TERLAMBAT = "HARI TERLAMBAT IDM LISTENER";
         let KOLOM_IP_DVR = "IP_DVR";
         let KOLOM_DVR = "DVR";
         let KOLOM_DVR2 = "DVR2";
-        let KOLOM_STATUS_NETWORK = "STATUS_NETWORK";
-        let KOLOM_LISTENER = "";
-        
 
         async function ambilData() {
             try {
@@ -202,16 +204,16 @@
                                 
                 if (semuaData.length > 0) {
                     petakanNamaKolom(semuaData[0]);
+                    buatDropdownNamaEdp();
                     buatDropdownEDP(semuaData);
                     buatDropdownTanggal();
-                    buatDropdownNamaEdp();
                     tampilkanData(semuaData);
                 } else {
-                    document.getElementById("isi-tabel").innerHTML = "<tr><td colspan='15' style='text-align: center;'>Spreadsheet terdeteksi kosong.</td></tr>";
+                    document.getElementById("isi-tabel").innerHTML = "<tr><td colspan='16' style='text-align: center;'>Spreadsheet terdeteksi kosong.</td></tr>";
                 }
             } catch (error) {
                 console.error("Detail Error:", error);
-                document.getElementById("isi-tabel").innerHTML = "<tr><td colspan='15' style='text-align: center; color: red;'>Gagal memuat data dari API. Pastikan status Google Sheet diset publik.</td></tr>";
+                document.getElementById("isi-tabel").innerHTML = "<tr><td colspan='16' style='text-align: center; color: red;'>Gagal memuat data dari API. Pastikan status Google Sheet diset publik.</td></tr>";
             }
         }
 
@@ -226,13 +228,33 @@
             KOLOM_KODE_TOKO    = cariKey("kdtk") || cariKey("kode") || "KDTK";
             KOLOM_NAMA_TOKO    = cariKey("nama") || "NAMA";
             KOLOM_LAN_SPEED    = cariKey("status lan speed") || "STATUS LAN SPEED";
+            KOLOM_MYSQL        = cariKey("durasi start mysql") || cariKey("mysql") || "STATUS DURASI START MYSQL";
             KOLOM_SUHU         = cariKey("status suhu") || "STATUS SUHU";
             KOLOM_BOOT_TIME    = cariKey("status boot time") || "STATUS BOOT TIME";
+            KOLOM_AKTIVASI     = cariKey("status aktivasi") || "STATUS AKTIVASI";
+            KOLOM_LISTENER     = cariKey("STATUS LISTENER") || cariKey("STATUS LISTENER") || "STATUS LISTENER";
             KOLOM_EDC_BCA      = cariKey("status edc bca") || "STATUS EDC BCA";
-            KOLOM_EDC_MANDIRI  = cariKey("status edc mti") || "STATUS EDC MTI";
+            KOLOM_EDC_MANDIRI  = cariKey("status edc mti") || cariKey("status edc mandiri") || "STATUS EDC MTI";
             KOLOM_BSOD         = cariKey("status bsod") || "STATUS BSOD";
             KOLOM_UPS          = cariKey("status ups") || "STATUS UPS";
-            KOLOM_AKTIVASI     = cariKey("aktivasi") || "STATUS AKTIVASI";
+            KOLOM_HARI_TERLAMBAT = cariKey("HARI TERLAMBAT IDM LISTENER") || "HARI TERLAMBAT IDM LISTENER";
+            
+            KOLOM_IP_DVR       = keys.find(k => k.toUpperCase().includes("IP_DVR") || k.toUpperCase() === "IP DVR") || "IP_DVR";
+            KOLOM_DVR          = keys.find(k => k.toUpperCase() === "DVR" || k.toUpperCase() === "STATUS_DVR1") || "DVR";
+            KOLOM_DVR2         = keys.find(k => k.toUpperCase() === "DVR2" || k.toUpperCase() === "STATUS_DVR2") || "DVR2";
+        }
+
+        function buatDropdownNamaEdp() {
+            const dropdown = document.getElementById("filter-nama-edp");
+            dropdown.innerHTML = '<option value="semua">-- Semua Nama EDP --</option>';
+            const daftarNamaEdp = [...new Set(semuaData.map(item => item[KOLOM_NAMA_EDP]))].filter(Boolean).sort();
+                
+            daftarNamaEdp.forEach(nama => {
+                const opsi = document.createElement("option");
+                opsi.value = nama;
+                opsi.textContent = nama;
+                dropdown.appendChild(opsi);
+            });
         }
 
         function buatDropdownEDP(dataSumber) {
@@ -256,19 +278,6 @@
             }
         }
 
-        function buatDropdownNamaEdp() {
-            const dropdown = document.getElementById("filter-nama-edp");
-            dropdown.innerHTML = '<option value="semua">-- Semua Nama EDP --</option>';
-            const daftarNamaEdp = [...new Set(semuaData.map(item => item[KOLOM_NAMA_EDP]))].filter(Boolean).sort();
-                
-            daftarNamaEdp.forEach(nama => {
-                const opsi = document.createElement("option");
-                opsi.value = nama;
-                opsi.textContent = nama;
-                dropdown.appendChild(opsi);
-            });
-        }
-
         function buatDropdownTanggal() {
             const dropdown = document.getElementById("filter-tanggal");
             dropdown.innerHTML = '<option value="semua">-- Semua Tanggal --</option>';
@@ -283,11 +292,11 @@
         }
 
         function formatStatus(nilai) {
-            if (!nilai) return '-';
+            if (!nilai || nilai === '-') return '-';
             const teks = nilai.toString().trim().toUpperCase();
-            if (teks === 'OK' || teks === 'NORMAL' || teks === 'ONLINE') {
+            if (teks === 'OK' || teks === 'NORMAL' || teks === 'ONLINE' || teks === 'UP') {
                 return `<span class="status-badge status-ok">${teks}</span>`;
-            } else if (teks === 'PROBLEM' || teks === 'TIDAK 1 GB' || teks === 'SUHU TINGGI' || teks === 'PINDAHKAN KE STATION INDUK' || teks === 'KONEKSI MATI' || teks === 'NOK' || teks === 'TIDAK' || teks === 'ERROR' || teks === 'OFFLINE' || teks === 'BSOD') {
+            } else if (teks === 'PROBLEM' || teks === 'TIDAK 1 GB' || teks === 'SUHU TINGGI' || teks === 'PINDAHKAN KE STATION INDUK' || teks === 'KONEKSI MATI' || teks === 'NOK' || teks === 'TIDAK' || teks === 'ERROR' || teks === 'OFFLINE' || teks === 'BSOD' || teks === 'DOWN' || teks === 'OFF') {
                 return `<span class="status-badge status-problem">${teks}</span>`;
             }
             return teks;
@@ -306,7 +315,18 @@
             if (dataYangDigunakan.length === 0) return;
 
             const totalData = dataYangDigunakan.length;
-            const statistik = { suhu: 0, bsod: 0, lanSpeed: 0, edcBca: 0, edcMandiri: 0, ups: 0 };
+            const statistik = { 
+                suhu: 0, 
+                bsod: 0, 
+                lanSpeed: 0, 
+                edcBca: 0, 
+                edcMandiri: 0, 
+                ups: 0, 
+                mysql: 0, 
+                listener: 0,
+                bootTime: 0,
+                aktivasi: 0
+            };
 
             dataYangDigunakan.forEach(item => {
                 if (isAman(item[KOLOM_SUHU])) statistik.suhu++;
@@ -315,12 +335,21 @@
                 if (isAman(item[KOLOM_EDC_BCA])) statistik.edcBca++;
                 if (isAman(item[KOLOM_EDC_MANDIRI])) statistik.edcMandiri++;
                 if (isAman(item[KOLOM_UPS])) statistik.ups++;
+                if (isAman(item[KOLOM_MYSQL])) statistik.mysql++;
+                if (isAman(item[KOLOM_LISTENER])) statistik.listener++;
+                if (isAman(item[KOLOM_BOOT_TIME])) statistik.bootTime++;
+                if (isAman(item[KOLOM_AKTIVASI])) statistik.aktivasi++;
             });
 
+            // Daftar parameter lengkap termasuk Status Listener, Boot Time, dan Aktivasi
             const daftarParameter = [
-                { label: "Suhu Normal", count: statistik.suhu, warna: "#3182ce" },
-                { label: "BSOD Aman", count: statistik.bsod, warna: "#38a169" },
                 { label: "LAN Speed Normal", count: statistik.lanSpeed, warna: "#d69e2e" },
+                { label: "MySQL Normal", count: statistik.mysql, warna: "#319795" },
+                { label: "Suhu Normal", count: statistik.suhu, warna: "#3182ce" },
+                { label: "Listener Normal", count: statistik.listener, warna: "#805ad5" },
+                { label: "Boot Time Normal", count: statistik.bootTime, warna: "#dd6b20" },
+                { label: "Aktivasi Aman", count: statistik.aktivasi, warna: "#319795" },
+                { label: "BSOD Aman", count: statistik.bsod, warna: "#38a169" },
                 { label: "EDC BCA Normal", count: statistik.edcBca, warna: "#805ad5" },
                 { label: "EDC Mandiri Normal", count: statistik.edcMandiri, warna: "#e53e3e" },
                 { label: "UPS Normal", count: statistik.ups, warna: "#319795" }
@@ -344,7 +373,7 @@
             let htmlContent = "";
 
             if(data.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='15' style='text-align: center;'>Tidak ada data monitoring ditemukan.</td></tr>";
+                tbody.innerHTML = "<tr><td colspan='16' style='text-align: center;'>Tidak ada data monitoring ditemukan.</td></tr>";
                 document.getElementById("ringkasan-parameter-container").innerHTML = "";
                 return;
             }
@@ -365,23 +394,35 @@
             hitungPersentaseParameter(data);
 
             data.forEach(item => {
+                const ipDvrVal = (item[KOLOM_IP_DVR] !== undefined && item[KOLOM_IP_DVR] !== "") ? item[KOLOM_IP_DVR] : (item['IP_DVR'] || '-');
+                const dvrVal1  = (item[KOLOM_DVR] !== undefined && item[KOLOM_DVR] !== "") ? item[KOLOM_DVR] : (item['DVR'] || '-');
+                const dvrVal2  = (item[KOLOM_DVR2] !== undefined && item[KOLOM_DVR2] !== "") ? item[KOLOM_DVR2] : (item['DVR2'] || '-');
+
+                // Jika ingin menampilkan hari terlambat pada status listener atau kolom terpisah, kita bisa format:
+                let statusListenerVal = formatStatus(item[KOLOM_LISTENER]);
+                const hariTerlambat = item[KOLOM_HARI_TERLAMBAT];
+                if (hariTerlambat !== undefined && hariTerlambat !== "" && hariTerlambat !== "OK" && hariTerlambat !== 0 && hariTerlambat !== "0") {
+                    statusListenerVal += ` <span style="font-size:11px; color:#e53e3e;">(Terlambat ${hariTerlambat} hr)</span>`;
+                }
+
                 htmlContent += `
                     <tr>
                         <td><strong>${item[KOLOM_KODE_TOKO] || '-'}</strong></td>
                         <td>${item[KOLOM_NAMA_TOKO] || '-'}</td>
                         <td>${item[KOLOM_STATION] || '-'} </td>
                         <td>${formatStatus(item[KOLOM_LAN_SPEED])}</td>
+                        <td>${formatStatus(item[KOLOM_MYSQL])}</td>
                         <td>${formatStatus(item[KOLOM_SUHU])}</td>
                         <td>${formatStatus(item[KOLOM_BOOT_TIME])}</td>
+                        <td>${formatStatus(item[KOLOM_AKTIVASI])}</td>
+                        <td>${formatStatus(item[KOLOM_LISTENER])}</td>
                         <td>${formatStatus(item[KOLOM_EDC_BCA])}</td>
                         <td>${formatStatus(item[KOLOM_EDC_MANDIRI])}</td>
                         <td>${formatStatus(item[KOLOM_BSOD])}</td>
                         <td>${formatStatus(item[KOLOM_UPS])}</td>
-                        <td>${formatStatus(item[KOLOM_AKTIVASI])}</td>
-                        <td>${item[KOLOM_IP_DVR] || '-'}</td>
-                        <td>${item[KOLOM_DVR] || '-'}</td>
-                        <td>${item[KOLOM_DVR2] || '-'}</td>
-                        <td>${formatStatus(item[KOLOM_STATUS_NETWORK])}</td>
+                        <td>${ipDvrVal}</td>
+                        <td>${formatStatus(dvrVal1)}</td>
+                        <td>${formatStatus(dvrVal2)}</td>
                     </tr>
                 `;
             });
@@ -389,22 +430,24 @@
         }
 
         function jalankanFilter() {
+            const namaEdpTerpilih = document.getElementById("filter-nama-edp").value;
             const edpTerpilih = document.getElementById("filter-edp").value;
             const tanggalTerpilih = document.getElementById("filter-tanggal").value;
-            const namaEdpTerpilih = document.getElementById("filter-nama-edp").value;
             const keywordSearch = document.getElementById("search-text").value.toLowerCase();
             
             let dataHasilFilter = semuaData;
 
-            if (tanggalTerpilih !== "semua") {
-                dataHasilFilter = dataHasilFilter.filter(item => item[KOLOM_TANGGAL] === tanggalTerpilih);
-            }
+            // 1. Filter Nama EDP terlebih dahulu
             if (namaEdpTerpilih !== "semua") {
                 dataHasilFilter = dataHasilFilter.filter(item => item[KOLOM_NAMA_EDP] === namaEdpTerpilih);
             }
 
+            // Perbarui dropdown kode toko berdasarkan EDP yang dipilih
             buatDropdownEDP(dataHasilFilter);
 
+            if (tanggalTerpilih !== "semua") {
+                dataHasilFilter = dataHasilFilter.filter(item => item[KOLOM_TANGGAL] === tanggalTerpilih);
+            }
             if (edpTerpilih !== "semua") {
                 dataHasilFilter = dataHasilFilter.filter(item => item[KOLOM_KODE_TOKO] === edpTerpilih);
             }
@@ -420,8 +463,8 @@
         }
 
         function resetFilter() {
-            document.getElementById("filter-edp").value = "semua";
             document.getElementById("filter-nama-edp").value = "semua";
+            document.getElementById("filter-edp").value = "semua";
             document.getElementById("filter-tanggal").value = "semua";
             document.getElementById("search-text").value = "";
             
