@@ -157,14 +157,15 @@
                     <th>Status EDC Mandiri</th>
                     <th>Status BSOD</th>
                     <th>Status UPS</th>
-                    <th>IP DVR</th>
-                    <th>IP DVR2</th>
-                    <th>Status Network</th>
                     <th>Status Aktivasi</th>
+                    <th>IP DVR</th>
+                    <th>DVR</th>
+                    <th>DVR2</th>
+                    <th>Status Network</th>
                 </tr>
             </thead>
             <tbody id="isi-tabel">
-                <tr><td colspan="10" style="text-align: center;">Memuat data dari Google Spreadsheet...</td></tr>
+                <tr><td colspan="15" style="text-align: center;">Memuat data dari Google Spreadsheet...</td></tr>
             </tbody>
         </table>
     </div>
@@ -206,34 +207,32 @@
                     buatDropdownNamaEdp();
                     tampilkanData(semuaData);
                 } else {
-                    document.getElementById("isi-tabel").innerHTML = "<tr><td colspan='14' style='text-align: center;'>Spreadsheet terdeteksi kosong.</td></tr>";
+                    document.getElementById("isi-tabel").innerHTML = "<tr><td colspan='15' style='text-align: center;'>Spreadsheet terdeteksi kosong.</td></tr>";
                 }
             } catch (error) {
                 console.error("Detail Error:", error);
-                document.getElementById("isi-tabel").innerHTML = "<tr><td colspan='10' style='text-align: center; color: red;'>Gagal memuat data dari API. Pastikan status Google Sheet diset publik.</td></tr>";
+                document.getElementById("isi-tabel").innerHTML = "<tr><td colspan='15' style='text-align: center; color: red;'>Gagal memuat data dari API. Pastikan status Google Sheet diset publik.</td></tr>";
             }
         }
 
-data.forEach(item => {
-    htmlContent += `
-        <tr>
-            <td><strong>${item[KOLOM_KODE_TOKO] || '-'}</strong></td>
-            <td>${item[KOLOM_NAMA_TOKO] || '-'}</td>
-            <td>${item[KOLOM_STATION] || '-'} </td>
-            <td>${formatStatus(item[KOLOM_LAN_SPEED])}</td>
-            <td>${formatStatus(item[KOLOM_SUHU])}</td>
-            <td>${formatStatus(item[KOLOM_BOOT_TIME])}</td>
-            <td>${formatStatus(item[KOLOM_EDC_BCA])}</td>
-            <td>${formatStatus(item[KOLOM_EDC_MANDIRI])}</td>
-            <td>${formatStatus(item[KOLOM_BSOD])}</td>
-            <td>${formatStatus(item[KOLOM_UPS])}</td>
-            <td>${item[KOLOM_IP_DVR] || '-'}</td>
-            <td>${item[KOLOM_DVR2] || '-'}</td>
-            <td>${formatStatus(item[KOLOM_STATUS_NETWORK])}</td>
-            <td>${formatStatus(item[KOLOM_AKTIVASI])}</td>
-        </tr>
-    `;
-});
+        function petakanNamaKolom(sampelBaris) {
+            const keys = Object.keys(sampelBaris);
+            const cariKey = (kataKunci) => keys.find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '').includes(kataKunci)) || "";
+
+            KOLOM_EDP          = cariKey("kdtk") || "KDTK";
+            KOLOM_NAMA_EDP     = cariKey("nama edp") || cariKey("edp") || keys[57] || "NAMA EDP";
+            KOLOM_TANGGAL      = cariKey("tanggalrespon") || cariKey("listener") || "TANGGAL RESPON IDM LISTENER";
+            KOLOM_STATION      = cariKey("station") || "station";
+            KOLOM_KODE_TOKO    = cariKey("kdtk") || cariKey("kode") || "KDTK";
+            KOLOM_NAMA_TOKO    = cariKey("nama") || "NAMA";
+            KOLOM_LAN_SPEED    = cariKey("status lan speed") || "STATUS LAN SPEED";
+            KOLOM_SUHU         = cariKey("status suhu") || "STATUS SUHU";
+            KOLOM_BOOT_TIME    = cariKey("status boot time") || "STATUS BOOT TIME";
+            KOLOM_EDC_BCA      = cariKey("status edc bca") || "STATUS EDC BCA";
+            KOLOM_EDC_MANDIRI  = cariKey("status edc mti") || "STATUS EDC MTI";
+            KOLOM_BSOD         = cariKey("status bsod") || "STATUS BSOD";
+            KOLOM_UPS          = cariKey("status ups") || "STATUS UPS";
+            KOLOM_AKTIVASI     = cariKey("aktivasi") || "STATUS AKTIVASI";
         }
 
         function buatDropdownEDP(dataSumber) {
@@ -345,7 +344,7 @@ data.forEach(item => {
             let htmlContent = "";
 
             if(data.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='10' style='text-align: center;'>Tidak ada data monitoring ditemukan.</td></tr>";
+                tbody.innerHTML = "<tr><td colspan='15' style='text-align: center;'>Tidak ada data monitoring ditemukan.</td></tr>";
                 document.getElementById("ringkasan-parameter-container").innerHTML = "";
                 return;
             }
@@ -379,9 +378,10 @@ data.forEach(item => {
                         <td>${formatStatus(item[KOLOM_BSOD])}</td>
                         <td>${formatStatus(item[KOLOM_UPS])}</td>
                         <td>${formatStatus(item[KOLOM_AKTIVASI])}</td>
-                        <td>${formatStatus(item[KOLOM_IP_DVR])}</td>
-                        <td>${formatStatus(item[KOLOM_DVR])}</td>
-                        <td>${formatStatus(item[KOLOM_DVR2])}</td>
+                        <td>${item[KOLOM_IP_DVR] || '-'}</td>
+                        <td>${item[KOLOM_DVR] || '-'}</td>
+                        <td>${item[KOLOM_DVR2] || '-'}</td>
+                        <td>${formatStatus(item[KOLOM_STATUS_NETWORK])}</td>
                     </tr>
                 `;
             });
@@ -403,7 +403,6 @@ data.forEach(item => {
                 dataHasilFilter = dataHasilFilter.filter(item => item[KOLOM_NAMA_EDP] === namaEdpTerpilih);
             }
 
-            // Update dropdown Kode Toko secara dinamis sesuai Nama EDP atau Tanggal yang dipilih
             buatDropdownEDP(dataHasilFilter);
 
             if (edpTerpilih !== "semua") {
