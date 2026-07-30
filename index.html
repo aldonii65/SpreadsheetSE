@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Monitoring Status Toko</title>
+    <!-- Memuat Pustaka SheetJS untuk export ke Excel (.xlsx) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -59,6 +61,46 @@
         .btn-reset:hover {
             background-color: #cbd5e1;
         }
+        
+        /* Styling untuk tombol Export & Baris Atas Tabel */
+        .table-action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-export {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .btn-csv {
+            background-color: #2b6cb0;
+        }
+        .btn-csv:hover {
+            background-color: #2c5282;
+        }
+        .btn-excel {
+            background-color: #2f855a;
+        }
+        .btn-excel:hover {
+            background-color: #276749;
+        }
+
         #ringkasan-parameter-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -70,6 +112,7 @@
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             overflow-x: auto;
+            padding: 15px;
         }
         table {
             width: 100%;
@@ -111,7 +154,16 @@
 <body>
 
     <div class="filter-container">
-        <!-- Urutan Filter: Nama EDP terlebih dahulu -->
+        <!-- Filter Status Toko -->
+        <div class="filter-group">
+            <label for="filter-status-nok">Filter Status Toko:</label>
+            <select id="filter-status-nok" onchange="jalankanFilter()">
+                <option value="semua">1. Tampilkan Semua</option>
+                <option value="nok">2. Tampilkan NOK</option>
+                <option value="koneksi-mati">3. Koneksi Mati/Listener Off</option>
+            </select>
+        </div>
+        <!-- Filter Nama EDP -->
         <div class="filter-group">
             <label for="filter-nama-edp">Pilih Nama EDP:</label>
             <select id="filter-nama-edp" onchange="jalankanFilter()">
@@ -145,6 +197,21 @@
     </div>
 
     <div class="table-responsive">
+        <!-- Baris Tombol Export di atas tabel -->
+        <div class="table-action-bar">
+            <div style="font-size: 14px; font-weight: 600; color: #4a5568;" id="info-jumlah-data">
+                Memuat data...
+            </div>
+            <div class="export-buttons">
+                <button class="btn-export btn-csv" onclick="exportData('csv')">
+                    📥 Export CSV
+                </button>
+                <button class="btn-export btn-excel" onclick="exportData('xlsx')">
+                    📊 Export Excel
+                </button>
+            </div>
+        </div>
+
         <table>
             <thead>
                 <tr>
@@ -175,6 +242,7 @@
     <script>
         const apiUrl = "https://script.google.com/macros/s/AKfycbyaIgi8vy49pUhnnqSGUhXC8PD76nYNtm7YjEuKzoDmDPpQt0jt6WG2Rb0acITe4YaTYg/exec";
         let semuaData = [];
+        let dataAktifTerfilter = []; // Menyimpan data yang sedang aktif ditampilkan/filter
 
         let KOLOM_EDP = "";
         let KOLOM_NAMA_EDP = "";
@@ -305,7 +373,49 @@
         function isAman(nilai) {
             if (!nilai) return false;
             const teks = nilai.toString().trim().toUpperCase();
-            return (teks === 'OK' || teks === 'NORMAL' || teks === 'ONLINE');
+            return (teks === 'OK' || teks === 'NORMAL' || teks === 'ONLINE'|| teks === 'NO EDC');
+        }
+
+        function cekKriteriaNOK(item) {
+            const lanSpeed = (item[KOLOM_LAN_SPEED] || "").toString().trim().toUpperCase();
+            const mysql = (item[KOLOM_MYSQL] || "").toString().trim();
+            const suhu = (item[KOLOM_SUHU] || "").toString().trim().toUpperCase();
+            const bootTime = (item[KOLOM_BOOT_TIME] || "").toString().trim();
+            const aktivasi = (item[KOLOM_AKTIVASI] || "").toString().trim().toUpperCase();
+            const edcBca = (item[KOLOM_EDC_BCA] || "").toString().trim().toUpperCase();
+            const edcMti = (item[KOLOM_EDC_MANDIRI] || "").toString().trim().toUpperCase();
+            const bsod = (item[KOLOM_BSOD] || "").toString().trim().toUpperCase();
+            const ups = (item[KOLOM_UPS] || "").toString().trim().toUpperCase();
+            
+            const dvr1 = (item[KOLOM_DVR] !== undefined && item[KOLOM_DVR] !== "") ? item[KOLOM_DVR] : (item['DVR'] || '-');
+            const dvr2 = (item[KOLOM_DVR2] !== undefined && item[KOLOM_DVR2] !== "") ? item[KOLOM_DVR2] : (item['DVR2'] || '-');
+            const dvr1Upper = dvr1.toString().trim().toUpperCase();
+            const dvr2Upper = dvr2.toString().trim().toUpperCase();
+
+            if (lanSpeed !== "" && lanSpeed !== "-" && lanSpeed.includes("TIDAK 1 GB")) return true;
+            if (mysql !== "" && mysql !== "-" && mysql.toUpperCase().includes("NOK")) return true;
+            if (suhu !== "" && suhu !== "-" && suhu.includes("TINGGI")) return true;
+            
+            if (bootTime !== "" && bootTime !== "-") {
+                const matchMenit = bootTime.match(/([\d.]+)\s*menit/i);
+                if (matchMenit && parseFloat(matchMenit[1]) > 4) return true;
+                if (!matchMenit && parseFloat(bootTime) > 4) return true;
+            }
+
+            if (aktivasi !== "" && aktivasi !== "-" && (aktivasi.includes("TIDAK AKTIF") || aktivasi === "TIDAK")) return true;
+            if (edcBca !== "" && edcBca !== "-" && edcBca !== "OK" && edcBca !== "NO EDC") return true;
+            if (edcMti !== "" && edcMti !== "-" && edcMti !== "OK" && edcMti !== "NO EDC") return true;
+            if (bsod !== "" && bsod !== "-" && (bsod === "NOK" || bsod === "BSOD" || bsod.includes("NOK"))) return true;
+            if (ups !== "" && ups !== "-" && (ups.includes("PINDAHKAN KE STATION INDUK") || (ups.includes("NOK")))) return true;
+            if (dvr1Upper !== "" && dvr1Upper !== "-" && dvr1Upper === "DOWN") return true;
+            if (dvr2Upper !== "" && dvr2Upper !== "-" && dvr2Upper === "DOWN") return true;
+
+            return false;
+        }
+
+        function cekKoneksiMati(item) {
+            const listener = (item[KOLOM_LISTENER] || "").toString().trim().toUpperCase();
+            return listener.includes("KONEKSI MATI") || listener.includes("GAGAL") || listener.includes("OFFLINE") || listener.includes("OFF");
         }
 
         function hitungPersentaseParameter(dataYangDigunakan) {
@@ -316,16 +426,9 @@
 
             const totalData = dataYangDigunakan.length;
             const statistik = { 
-                suhu: 0, 
-                bsod: 0, 
-                lanSpeed: 0, 
-                edcBca: 0, 
-                edcMandiri: 0, 
-                ups: 0, 
-                mysql: 0, 
-                listener: 0,
-                bootTime: 0,
-                aktivasi: 0
+                suhu: 0, bsod: 0, lanSpeed: 0, edcBca: 0, 
+                edcMandiri: 0, ups: 0, mysql: 0, listener: 0,
+                bootTime: 0, aktivasi: 0
             };
 
             dataYangDigunakan.forEach(item => {
@@ -341,7 +444,6 @@
                 if (isAman(item[KOLOM_AKTIVASI])) statistik.aktivasi++;
             });
 
-            // Daftar parameter lengkap termasuk Status Listener, Boot Time, dan Aktivasi
             const daftarParameter = [
                 { label: "LAN Speed Normal", count: statistik.lanSpeed, warna: "#d69e2e" },
                 { label: "MySQL Normal", count: statistik.mysql, warna: "#319795" },
@@ -369,8 +471,12 @@
         }
 
         function tampilkanData(data) {
+            dataAktifTerfilter = data; // Simpan state data yang sedang aktif
             const tbody = document.getElementById("isi-tabel");
+            const infoJumlah = document.getElementById("info-jumlah-data");
             let htmlContent = "";
+
+            infoJumlah.textContent = `Menampilkan ${data.length} data toko`;
 
             if(data.length === 0) {
                 tbody.innerHTML = "<tr><td colspan='16' style='text-align: center;'>Tidak ada data monitoring ditemukan.</td></tr>";
@@ -378,7 +484,6 @@
                 return;
             }
 
-            // Sorting bertingkat: Kode Toko (A-Z) lalu Station
             data.sort((a, b) => {
                 const kodeA = (a[KOLOM_KODE_TOKO] || "").toString();
                 const kodeB = (b[KOLOM_KODE_TOKO] || "").toString();
@@ -398,7 +503,6 @@
                 const dvrVal1  = (item[KOLOM_DVR] !== undefined && item[KOLOM_DVR] !== "") ? item[KOLOM_DVR] : (item['DVR'] || '-');
                 const dvrVal2  = (item[KOLOM_DVR2] !== undefined && item[KOLOM_DVR2] !== "") ? item[KOLOM_DVR2] : (item['DVR2'] || '-');
 
-                // Jika ingin menampilkan hari terlambat pada status listener atau kolom terpisah, kita bisa format:
                 let statusListenerVal = formatStatus(item[KOLOM_LISTENER]);
                 const hariTerlambat = item[KOLOM_HARI_TERLAMBAT];
                 if (hariTerlambat !== undefined && hariTerlambat !== "" && hariTerlambat !== "OK" && hariTerlambat !== 0 && hariTerlambat !== "0") {
@@ -415,7 +519,7 @@
                         <td>${formatStatus(item[KOLOM_SUHU])}</td>
                         <td>${formatStatus(item[KOLOM_BOOT_TIME])}</td>
                         <td>${formatStatus(item[KOLOM_AKTIVASI])}</td>
-                        <td>${formatStatus(item[KOLOM_LISTENER])}</td>
+                        <td>${statusListenerVal}</td>
                         <td>${formatStatus(item[KOLOM_EDC_BCA])}</td>
                         <td>${formatStatus(item[KOLOM_EDC_MANDIRI])}</td>
                         <td>${formatStatus(item[KOLOM_BSOD])}</td>
@@ -429,7 +533,64 @@
             tbody.innerHTML = htmlContent;
         }
 
+        // --- FUNGSI EXPORT DATA (CSV & EXCEL) ---
+        function exportData(format) {
+            if (!dataAktifTerfilter || dataAktifTerfilter.length === 0) {
+                alert("Tidak ada data untuk diexport!");
+                return;
+            }
+
+            // Memetakan data JSON mentah ke bentuk baris yang bersih untuk file export
+            const dataExport = dataAktifTerfilter.map(item => {
+                const ipDvrVal = (item[KOLOM_IP_DVR] !== undefined && item[KOLOM_IP_DVR] !== "") ? item[KOLOM_IP_DVR] : (item['IP_DVR'] || '-');
+                const dvrVal1  = (item[KOLOM_DVR] !== undefined && item[KOLOM_DVR] !== "") ? item[KOLOM_DVR] : (item['DVR'] || '-');
+                const dvrVal2  = (item[KOLOM_DVR2] !== undefined && item[KOLOM_DVR2] !== "") ? item[KOLOM_DVR2] : (item['DVR2'] || '-');
+
+                return {
+                    "Kode Toko": item[KOLOM_KODE_TOKO] || '-',
+                    "Nama Toko": item[KOLOM_NAMA_TOKO] || '-',
+                    "Station": item[KOLOM_STATION] || '-',
+                    "Status LAN Speed": item[KOLOM_LAN_SPEED] || '-',
+                    "Status Durasi Start MySQL": item[KOLOM_MYSQL] || '-',
+                    "Status Suhu": item[KOLOM_SUHU] || '-',
+                    "Status Boot Time": item[KOLOM_BOOT_TIME] || '-',
+                    "Status Aktivasi": item[KOLOM_AKTIVASI] || '-',
+                    "Status Listener": item[KOLOM_LISTENER] || '-',
+                    "Status EDC BCA": item[KOLOM_EDC_BCA] || '-',
+                    "Status EDC MTI": item[KOLOM_EDC_MANDIRI] || '-',
+                    "Status BSOD": item[KOLOM_BSOD] || '-',
+                    "Status UPS": item[KOLOM_UPS] || '-',
+                    "IP DVR": ipDvrVal,
+                    "Status DVR": dvrVal1,
+                    "Status DVR2": dvrVal2
+                };
+            });
+
+            const namaFile = "Monitoring_Status_Toko_" + new Date().toISOString().slice(0, 10);
+
+            if (format === 'csv') {
+                // Export menggunakan SheetJS untuk hasil CSV yang rapi
+                const worksheet = XLSX.utils.json_to_sheet(dataExport);
+                const csvOutput = XLSX.utils.sheet_to_csv(worksheet);
+                const blob = new Blob([csvOutput], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.setAttribute("download", `${namaFile}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else if (format === 'xlsx') {
+                // Export langsung ke file format .xlsx resmi
+                const worksheet = XLSX.utils.json_to_sheet(dataExport);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Data Monitoring");
+                XLSX.writeFile(workbook, `${namaFile}.xlsx`);
+            }
+        }
+        // ----------------------------------------
+
         function jalankanFilter() {
+            const statusFilterNok = document.getElementById("filter-status-nok").value;
             const namaEdpTerpilih = document.getElementById("filter-nama-edp").value;
             const edpTerpilih = document.getElementById("filter-edp").value;
             const tanggalTerpilih = document.getElementById("filter-tanggal").value;
@@ -437,12 +598,16 @@
             
             let dataHasilFilter = semuaData;
 
-            // 1. Filter Nama EDP terlebih dahulu
+            if (statusFilterNok === "nok") {
+                dataHasilFilter = dataHasilFilter.filter(item => cekKriteriaNOK(item));
+            } else if (statusFilterNok === "koneksi-mati") {
+                dataHasilFilter = dataHasilFilter.filter(item => cekKoneksiMati(item));
+            }
+
             if (namaEdpTerpilih !== "semua") {
                 dataHasilFilter = dataHasilFilter.filter(item => item[KOLOM_NAMA_EDP] === namaEdpTerpilih);
             }
 
-            // Perbarui dropdown kode toko berdasarkan EDP yang dipilih
             buatDropdownEDP(dataHasilFilter);
 
             if (tanggalTerpilih !== "semua") {
@@ -463,6 +628,7 @@
         }
 
         function resetFilter() {
+            document.getElementById("filter-status-nok").value = "semua";
             document.getElementById("filter-nama-edp").value = "semua";
             document.getElementById("filter-edp").value = "semua";
             document.getElementById("filter-tanggal").value = "semua";
