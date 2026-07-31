@@ -3,16 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monitoring Status Toko</title>
-    <!-- Memuat Pustaka SheetJS untuk export ke Excel (.xlsx) -->
+    <title>Monitoring Status Toko & Follow Up Lapangan</title>
+    <!-- Pustaka SheetJS untuk export ke Excel (.xlsx) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
+        * { box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 20px;
             background-color: #f5f7fa;
             color: #333;
+            padding-bottom: 50px;
         }
+        
         .filter-container {
             display: flex;
             flex-wrap: wrap;
@@ -29,24 +32,23 @@
             flex-direction: column;
             gap: 5px;
             flex: 1;
-            min-width: 200px;
+            min-width: 180px;
         }
         label {
             font-size: 14px;
             font-weight: 600;
             color: #4a5568;
         }
-        select, input[type="text"] {
+        select, input[type="text"], input[type="date"], input[type="file"], textarea {
             padding: 8px 12px;
             border: 1px solid #cbd5e1;
             border-radius: 6px;
             background-color: #fff;
             font-size: 14px;
             outline: none;
+            width: 100%;
         }
-        select:focus, input[type="text"]:focus {
-            border-color: #3182ce;
-        }
+        select:focus, input:focus, textarea:focus { border-color: #3182ce; }
         .btn-reset {
             padding: 8px 16px;
             background-color: #e2e8f0;
@@ -58,11 +60,9 @@
             cursor: pointer;
             height: 38px;
         }
-        .btn-reset:hover {
-            background-color: #cbd5e1;
-        }
+        .btn-reset:hover { background-color: #cbd5e1; }
         
-        /* Styling untuk tombol Export & Baris Atas Tabel */
+        /* Bar Action & Tombol Export */
         .table-action-bar {
             display: flex;
             justify-content: space-between;
@@ -71,10 +71,7 @@
             flex-wrap: wrap;
             gap: 10px;
         }
-        .export-buttons {
-            display: flex;
-            gap: 10px;
-        }
+        .export-buttons { display: flex; gap: 10px; }
         .btn-export {
             padding: 8px 14px;
             border: none;
@@ -88,18 +85,10 @@
             color: #fff;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-        .btn-csv {
-            background-color: #2b6cb0;
-        }
-        .btn-csv:hover {
-            background-color: #2c5282;
-        }
-        .btn-excel {
-            background-color: #2f855a;
-        }
-        .btn-excel:hover {
-            background-color: #276749;
-        }
+        .btn-csv { background-color: #2b6cb0; }
+        .btn-csv:hover { background-color: #2c5282; }
+        .btn-excel { background-color: #2f855a; }
+        .btn-excel:hover { background-color: #276749; }
 
         #ringkasan-parameter-container {
             display: grid;
@@ -129,10 +118,10 @@
             background-color: #edf2f7;
             color: #4a5568;
             font-weight: 600;
+            position: sticky;
+            top: 0;
         }
-        tr:hover {
-            background-color: #f8fafc;
-        }
+        tr:hover { background-color: #f8fafc; }
         .status-badge {
             display: inline-block;
             padding: 4px 8px;
@@ -141,14 +130,33 @@
             font-weight: bold;
             text-align: center;
         }
-        .status-ok {
-            background-color: #c6f6d5;
-            color: #22543d;
+        .status-ok { background-color: #c6f6d5; color: #22543d; }
+        .status-problem { background-color: #fed7d7; color: #742a2a; }
+
+        /* Style Tombol Aksi Tabel */
+        .btn-fu-action {
+            padding: 5px 10px;
+            border: 1px solid #cbd5e1;
+            background-color: #ffffff;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            color: #2b6cb0;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
-        .status-problem {
-            background-color: #fed7d7;
-            color: #742a2a;
+        .btn-fu-action:hover { background-color: #ebf8ff; border-color: #3182ce; }
+        .badge-fu-count {
+            background-color: #3182ce;
+            color: #fff;
+            border-radius: 10px;
+            padding: 1px 6px;
+            font-size: 10px;
+            font-weight: bold;
         }
+
         .footer-copyright {
             position: fixed;
             bottom: 0;
@@ -163,6 +171,85 @@
             z-index: 9999;
             box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
         }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-card {
+            background: #fff;
+            width: 90%;
+            max-width: 600px;
+            max-height: 85vh;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .modal-header {
+            padding: 15px 20px;
+            background-color: #2b6cb0;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h3 { margin: 0; font-size: 16px; }
+        .btn-close-modal {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .fu-item {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+        .fu-item-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            color: #2b6cb0;
+            border-bottom: 1px solid #cbd5e1;
+            padding-bottom: 4px;
+            margin-bottom: 4px;
+        }
+        .btn-submit-fu {
+            background-color: #2f855a;
+            color: #fff;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+        .btn-submit-fu:hover { background-color: #276749; }
+        .btn-submit-fu:disabled { background-color: #a0aec0; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -175,6 +262,15 @@
                 <option value="semua">1. Tampilkan Semua</option>
                 <option value="nok">2. Tampilkan NOK</option>
                 <option value="koneksi-mati">3. Koneksi Mati/Listener Off</option>
+            </select>
+        </div>
+        <!-- Filter Status Follow Up -->
+        <div class="filter-group">
+            <label for="filter-status-fu">Status Follow Up:</label>
+            <select id="filter-status-fu" onchange="jalankanFilter()">
+                <option value="semua">-- Semua Status FU --</option>
+                <option value="ada-fu">Sudah Ada Follow Up</option>
+                <option value="belum-fu">Belum Ada Follow Up</option>
             </select>
         </div>
         <!-- Filter Nama EDP -->
@@ -206,23 +302,16 @@
     </div>
 
     <!-- Ringkasan Persentase Parameter -->
-    <div id="ringkasan-parameter-container">
-        <!-- Card persentase akan di-generate secara dinamis di sini -->
-    </div>
+    <div id="ringkasan-parameter-container"></div>
 
     <div class="table-responsive">
-        <!-- Baris Tombol Export di atas tabel -->
         <div class="table-action-bar">
             <div style="font-size: 14px; font-weight: 600; color: #4a5568;" id="info-jumlah-data">
                 Memuat data...
             </div>
             <div class="export-buttons">
-                <button class="btn-export btn-csv" onclick="exportData('csv')">
-                    📥 Export CSV
-                </button>
-                <button class="btn-export btn-excel" onclick="exportData('xlsx')">
-                    📊 Export Excel
-                </button>
+                <button class="btn-export btn-csv" onclick="exportData('csv')">📥 Export CSV</button>
+                <button class="btn-export btn-excel" onclick="exportData('xlsx')">📊 Export Excel</button>
             </div>
         </div>
 
@@ -245,21 +334,71 @@
                     <th>IP DVR</th>
                     <th>STATUS DVR</th>
                     <th>STATUS DVR2</th>
+                    <th>Aksi / Follow Up</th>
                 </tr>
             </thead>
             <tbody id="isi-tabel">
-                <tr><td colspan="16" style="text-align: center;">Memuat data dari Google Spreadsheet...</td></tr>
+                <tr><td colspan="17" style="text-align: center;">Memuat data dari Google Spreadsheet...</td></tr>
             </tbody>
         </table>
     </div>
+
     <!-- Copyright Footer -->
     <div class="footer-copyright">
         Aldoni Jelang R. - EDP Samarinda (dibantu oleh Edi dan Rey) &copy; 2026
     </div>
+
+    <!-- Modal Popup Follow Up -->
+    <div class="modal-overlay" id="modal-fu-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modal-fu-title">Follow Up Lapangan</h3>
+                <button class="btn-close-modal" onclick="tutupModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <strong style="font-size: 13px; color: #2d3748;">📜 Riwayat Perbaikan Lapangan:</strong>
+                    <div id="modal-fu-history-list" style="margin-top: 8px;"></div>
+                </div>
+                <hr style="border: 0; border-top: 1px dashed #cbd5e1; margin: 10px 0;">
+                <div>
+                    <strong style="font-size: 13px; color: #2d3748;">📝 Form Input Follow Up Baru:</strong>
+                    <form id="form-fu" onsubmit="kirimFollowUp(event)" style="margin-top: 8px; display: flex; flex-direction: column; gap: 8px;">
+                        <input type="hidden" id="modal-kdtk">
+                        <input type="hidden" id="modal-tgl-report">
+
+                        <div>
+                            <label style="font-size: 12px;">Tanggal Follow Up Lapangan:</label>
+                            <input type="date" id="modal-tgl-fu" required>
+                        </div>
+                        <div>
+                            <label style="font-size: 12px;">Nama EDP / Petugas Lapangan:</label>
+                            <input type="text" id="modal-nama-edp-input" placeholder="Masukkan nama EDP..." required>
+                        </div>
+                        <div>
+                            <label style="font-size: 12px;">Analisa Penyebab / Kendala NOK:</label>
+                            <textarea id="modal-analisa" rows="2" placeholder="Contoh: Router hang, Kabel LAN lepas..." required></textarea>
+                        </div>
+                        <div>
+                            <label style="font-size: 12px;">Hasil Follow Up / Perbaikan:</label>
+                            <textarea id="modal-hasil" rows="2" placeholder="Contoh: Sudah restart router, koneksi normal..." required></textarea>
+                        </div>
+                        <div>
+                            <label style="font-size: 12px;">Pilih / Ambil Foto Bukti (Kamera/Galeri):</label>
+                            <input type="file" id="modal-foto-file" accept="image/*" capture="environment">
+                        </div>
+
+                        <button type="submit" class="btn-submit-fu" id="btn-submit-fu">💾 Simpan Follow Up Lapangan</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        const apiUrl = "https://script.google.com/macros/s/AKfycbyaIgi8vy49pUhnnqSGUhXC8PD76nYNtm7YjEuKzoDmDPpQt0jt6WG2Rb0acITe4YaTYg/exec";
+        const apiUrl = "https://script.google.com/macros/s/AKfycbyNValiWqKpCUEDDRj2ywcPSlmULE6EcZNmN_Dyinha-50q2pFcNRV3HsCTGd3K_ubxjw/exec";
         let semuaData = [];
-        let dataAktifTerfilter = []; // Menyimpan data yang sedang aktif ditampilkan/filter
+        let dataAktifTerfilter = [];
 
         let KOLOM_EDP = "";
         let KOLOM_NAMA_EDP = "";
@@ -282,6 +421,27 @@
         let KOLOM_DVR = "DVR";
         let KOLOM_DVR2 = "DVR2";
 
+        function formatTanggalRapi(val) {
+            if (!val || val === '-') return '-';
+            let str = val.toString().trim();
+
+            if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+                return str;
+            }
+
+            const d = new Date(val);
+            if (!isNaN(d.getTime())) {
+                if (d.getUTCHours() >= 15) {
+                    d.setUTCDate(d.getUTCDate() + 1);
+                }
+                const yyyy = d.getUTCFullYear();
+                const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+                const dd = String(d.getUTCDate()).padStart(2, '0');
+                return `${yyyy}-${mm}-${dd}`;
+            }
+            return str.substring(0, 10);
+        }
+
         async function ambilData() {
             try {
                 const response = await fetch(apiUrl);
@@ -294,11 +454,11 @@
                     buatDropdownTanggal();
                     tampilkanData(semuaData);
                 } else {
-                    document.getElementById("isi-tabel").innerHTML = "<tr><td colspan='16' style='text-align: center;'>Spreadsheet terdeteksi kosong.</td></tr>";
+                    document.getElementById("isi-tabel").innerHTML = "<tr><td colspan='17' style='text-align: center;'>Spreadsheet terdeteksi kosong.</td></tr>";
                 }
             } catch (error) {
                 console.error("Detail Error:", error);
-                document.getElementById("isi-tabel").innerHTML = "<tr><td colspan='16' style='text-align: center; color: red;'>Gagal memuat data dari API. Pastikan status Google Sheet diset publik.</td></tr>";
+                document.getElementById("isi-tabel").innerHTML = "<tr><td colspan='17' style='text-align: center; color: red;'>Gagal memuat data dari API. Pastikan status Google Sheet diset publik.</td></tr>";
             }
         }
 
@@ -317,7 +477,7 @@
             KOLOM_SUHU         = cariKey("status suhu") || "STATUS SUHU";
             KOLOM_BOOT_TIME    = cariKey("status boot time") || "STATUS BOOT TIME";
             KOLOM_AKTIVASI     = cariKey("status aktivasi") || "STATUS AKTIVASI";
-            KOLOM_LISTENER     = cariKey("STATUS LISTENER") || cariKey("STATUS LISTENER") || "STATUS LISTENER";
+            KOLOM_LISTENER     = cariKey("STATUS LISTENER") || "STATUS LISTENER";
             KOLOM_EDC_BCA      = cariKey("status edc bca") || "STATUS EDC BCA";
             KOLOM_EDC_MANDIRI  = cariKey("status edc mti") || cariKey("status edc mandiri") || "STATUS EDC MTI";
             KOLOM_BSOD         = cariKey("status bsod") || "STATUS BSOD";
@@ -366,7 +526,16 @@
         function buatDropdownTanggal() {
             const dropdown = document.getElementById("filter-tanggal");
             dropdown.innerHTML = '<option value="semua">-- Semua Tanggal --</option>';
-            const daftarTanggal = [...new Set(semuaData.map(item => item[KOLOM_TANGGAL]))].filter(Boolean).sort((a, b) => new Date(b) - new Date(a));
+            
+            const setTanggalUnik = new Set();
+            semuaData.forEach(item => {
+                let tglRaw = item[KOLOM_TANGGAL];
+                if (tglRaw) {
+                    setTanggalUnik.add(formatTanggalRapi(tglRaw));
+                }
+            });
+
+            const daftarTanggal = Array.from(setTanggalUnik).sort((a, b) => new Date(b) - new Date(a));
                         
             daftarTanggal.forEach(tgl => {
                 const opsi = document.createElement("option");
@@ -488,7 +657,7 @@
         }
 
         function tampilkanData(data) {
-            dataAktifTerfilter = data; // Simpan state data yang sedang aktif
+            dataAktifTerfilter = data;
             const tbody = document.getElementById("isi-tabel");
             const infoJumlah = document.getElementById("info-jumlah-data");
             let htmlContent = "";
@@ -496,7 +665,7 @@
             infoJumlah.textContent = `Menampilkan ${data.length} data toko`;
 
             if(data.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='16' style='text-align: center;'>Tidak ada data monitoring ditemukan.</td></tr>";
+                tbody.innerHTML = "<tr><td colspan='17' style='text-align: center;'>Tidak ada data monitoring ditemukan.</td></tr>";
                 document.getElementById("ringkasan-parameter-container").innerHTML = "";
                 return;
             }
@@ -515,7 +684,8 @@
 
             hitungPersentaseParameter(data);
 
-            data.forEach(item => {
+            data.forEach((item, index) => {
+                const kdtkVal = item[KOLOM_KODE_TOKO] || '-';
                 const ipDvrVal = (item[KOLOM_IP_DVR] !== undefined && item[KOLOM_IP_DVR] !== "") ? item[KOLOM_IP_DVR] : (item['IP_DVR'] || '-');
                 const dvrVal1  = (item[KOLOM_DVR] !== undefined && item[KOLOM_DVR] !== "") ? item[KOLOM_DVR] : (item['DVR'] || '-');
                 const dvrVal2  = (item[KOLOM_DVR2] !== undefined && item[KOLOM_DVR2] !== "") ? item[KOLOM_DVR2] : (item['DVR2'] || '-');
@@ -526,11 +696,17 @@
                     statusListenerVal += ` <span style="font-size:11px; color:#e53e3e;">(Terlambat ${hariTerlambat} hr)</span>`;
                 }
 
+                const fuHistory = item.FOLLOW_UP_HISTORY || [];
+                const fuCount = fuHistory.length;
+                let btnFuHtml = fuCount > 0 
+                    ? `<button class="btn-fu-action" onclick="bukaModalFollowUp('${kdtkVal}', ${index})">📋 Detail <span class="badge-fu-count">${fuCount}</span></button>`
+                    : `<button class="btn-fu-action" onclick="bukaModalFollowUp('${kdtkVal}', ${index})">➕ Follow Up</button>`;
+
                 htmlContent += `
                     <tr>
-                        <td><strong>${item[KOLOM_KODE_TOKO] || '-'}</strong></td>
+                        <td><strong>${kdtkVal}</strong></td>
                         <td>${item[KOLOM_NAMA_TOKO] || '-'}</td>
-                        <td>${item[KOLOM_STATION] || '-'} </td>
+                        <td>${item[KOLOM_STATION] || '-'}</td>
                         <td>${formatStatus(item[KOLOM_LAN_SPEED])}</td>
                         <td>${formatStatus(item[KOLOM_MYSQL])}</td>
                         <td>${formatStatus(item[KOLOM_SUHU])}</td>
@@ -544,28 +720,44 @@
                         <td>${ipDvrVal}</td>
                         <td>${formatStatus(dvrVal1)}</td>
                         <td>${formatStatus(dvrVal2)}</td>
+                        <td>${btnFuHtml}</td>
                     </tr>
                 `;
             });
             tbody.innerHTML = htmlContent;
         }
 
-        // --- FUNGSI EXPORT DATA (CSV & EXCEL) ---
+        // EXPORT DATA (CSV & EXCEL)
         function exportData(format) {
             if (!dataAktifTerfilter || dataAktifTerfilter.length === 0) {
                 alert("Tidak ada data untuk diexport!");
                 return;
             }
 
-            // Memetakan data JSON mentah ke bentuk baris yang bersih untuk file export
             const dataExport = dataAktifTerfilter.map(item => {
                 const ipDvrVal = (item[KOLOM_IP_DVR] !== undefined && item[KOLOM_IP_DVR] !== "") ? item[KOLOM_IP_DVR] : (item['IP_DVR'] || '-');
                 const dvrVal1  = (item[KOLOM_DVR] !== undefined && item[KOLOM_DVR] !== "") ? item[KOLOM_DVR] : (item['DVR'] || '-');
                 const dvrVal2  = (item[KOLOM_DVR2] !== undefined && item[KOLOM_DVR2] !== "") ? item[KOLOM_DVR2] : (item['DVR2'] || '-');
 
+                let tglFuTerakhir = '-';
+                let namaEdpFu = '-';
+                let analisaFu = '-';
+                let hasilFu = '-';
+                let fotoFu = '-';
+
+                if (item.FOLLOW_UP_HISTORY && item.FOLLOW_UP_HISTORY.length > 0) {
+                    const fuTerakhir = item.FOLLOW_UP_HISTORY[item.FOLLOW_UP_HISTORY.length - 1];
+                    tglFuTerakhir = fuTerakhir.tanggal_fu || '-';
+                    namaEdpFu     = fuTerakhir.nama_edp || '-';
+                    analisaFu     = fuTerakhir.analisa || '-';
+                    hasilFu       = fuTerakhir.hasil || '-';
+                    fotoFu        = fuTerakhir.foto || '-';
+                }
+
                 return {
                     "Kode Toko": item[KOLOM_KODE_TOKO] || '-',
                     "Nama Toko": item[KOLOM_NAMA_TOKO] || '-',
+                    "Tanggal Report": formatTanggalRapi(item[KOLOM_TANGGAL]),
                     "Station": item[KOLOM_STATION] || '-',
                     "Status LAN Speed": item[KOLOM_LAN_SPEED] || '-',
                     "Status Durasi Start MySQL": item[KOLOM_MYSQL] || '-',
@@ -579,14 +771,18 @@
                     "Status UPS": item[KOLOM_UPS] || '-',
                     "IP DVR": ipDvrVal,
                     "Status DVR": dvrVal1,
-                    "Status DVR2": dvrVal2
+                    "Status DVR2": dvrVal2,
+                    "Tgl Follow Up": tglFuTerakhir,
+                    "EDP Follow Up": namaEdpFu,
+                    "Analisa Kendala": analisaFu,
+                    "Hasil Perbaikan": hasilFu,
+                    "Link Foto Bukti": fotoFu
                 };
             });
 
             const namaFile = "Monitoring_Status_Toko_" + new Date().toISOString().slice(0, 10);
 
             if (format === 'csv') {
-                // Export menggunakan SheetJS untuk hasil CSV yang rapi
                 const worksheet = XLSX.utils.json_to_sheet(dataExport);
                 const csvOutput = XLSX.utils.sheet_to_csv(worksheet);
                 const blob = new Blob([csvOutput], { type: 'text/csv;charset=utf-8;' });
@@ -597,21 +793,144 @@
                 link.click();
                 document.body.removeChild(link);
             } else if (format === 'xlsx') {
-                // Export langsung ke file format .xlsx resmi
                 const worksheet = XLSX.utils.json_to_sheet(dataExport);
                 const workbook = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(workbook, worksheet, "Data Monitoring");
                 XLSX.writeFile(workbook, `${namaFile}.xlsx`);
             }
         }
-        // ----------------------------------------
+
+        // MODAL FOLLOW UP
+        function bukaModalFollowUp(kdtk, dataIndex) {
+            const item = dataAktifTerfilter[dataIndex] || semuaData.find(x => x[KOLOM_KODE_TOKO] === kdtk);
+            if (!item) return;
+
+            const namaToko = item[KOLOM_NAMA_TOKO] || '';
+            const tglReport = formatTanggalRapi(item[KOLOM_TANGGAL]);
+            const namaEdpToko = item[KOLOM_NAMA_EDP] || '';
+
+            document.getElementById("modal-fu-title").innerText = `Follow Up Toko: ${kdtk} - ${namaToko}`;
+            document.getElementById("modal-kdtk").value = kdtk;
+            document.getElementById("modal-tgl-report").value = tglReport;
+            document.getElementById("modal-tgl-fu").value = new Date().toISOString().slice(0, 10);
+            
+            if (namaEdpToko) {
+                document.getElementById("modal-nama-edp-input").value = namaEdpToko;
+            }
+
+            const historyListContainer = document.getElementById("modal-fu-history-list");
+            const fuHistory = item.FOLLOW_UP_HISTORY || [];
+
+            if (fuHistory.length === 0) {
+                historyListContainer.innerHTML = `<div style="color: #a0aec0; font-style: italic;">Belum ada riwayat follow up.</div>`;
+            } else {
+                let historyHtml = '';
+                const reversedHistory = [...fuHistory].reverse();
+                reversedHistory.forEach((fu) => {
+                    let linkFotoHtml = '';
+                    if (fu.foto && fu.foto !== '-' && fu.foto.trim() !== '') {
+                        linkFotoHtml = `<div><a href="${fu.foto}" target="_blank" style="color:#3182ce; font-weight:bold;">📷 Lihat Foto Bukti Perbaikan</a></div>`;
+                    }
+                    historyHtml += `
+                        <div class="fu-item">
+                            <div class="fu-item-header">
+                                <span>📅 Tgl FU: ${fu.tanggal_fu || '-'}</span>
+                                <span>👤 EDP: ${fu.nama_edp || '-'}</span>
+                            </div>
+                            <div><b>Analisa:</b> ${fu.analisa || '-'}</div>
+                            <div><b>Hasil:</b> ${fu.hasil || '-'}</div>
+                            ${linkFotoHtml}
+                        </div>
+                    `;
+                });
+                historyListContainer.innerHTML = historyHtml;
+            }
+
+            document.getElementById("modal-analisa").value = '';
+            document.getElementById("modal-hasil").value = '';
+            document.getElementById("modal-foto-file").value = '';
+
+            document.getElementById("modal-fu-overlay").classList.add("active");
+        }
+
+        function tutupModal() {
+            document.getElementById("modal-fu-overlay").classList.remove("active");
+        }
+
+        // FUNGSI KONVERSI GAMBAR KE BASE64
+        function convertFileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const base64String = reader.result.split(',')[1];
+                    resolve(base64String);
+                };
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function kirimFollowUp(event) {
+            event.preventDefault();
+            const btnSubmit = document.getElementById("btn-submit-fu");
+            btnSubmit.disabled = true;
+            btnSubmit.innerText = "⏳ Mengunggah Gambar & Menyimpan...";
+
+            const fileInput = document.getElementById("modal-foto-file");
+            let base64File = "";
+            let fileName = "";
+            let mimeType = "";
+
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                fileName = file.name;
+                mimeType = file.type;
+                try {
+                    base64File = await convertFileToBase64(file);
+                } catch(e) {
+                    alert("Gagal membaca file foto.");
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerText = "💾 Simpan Follow Up Lapangan";
+                    return;
+                }
+            }
+
+            const payload = {
+                tanggal: document.getElementById("modal-tgl-report").value || new Date().toISOString().slice(0, 10),
+                kdtk: document.getElementById("modal-kdtk").value,
+                nama_edp: document.getElementById("modal-nama-edp-input").value,
+                analisa: document.getElementById("modal-analisa").value,
+                hasil: document.getElementById("modal-hasil").value,
+                base64File: base64File,
+                fileName: fileName,
+                mimeType: mimeType
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify(payload)
+                });
+                
+                alert("✅ Data & Foto Follow Up berhasil disimpan!");
+                tutupModal();
+                await ambilData();
+            } catch (err) {
+                console.error("Error submit follow up:", err);
+                alert("⚠️ Terjadi kesalahan koneksi saat mengirim data.");
+            } finally {
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = "💾 Simpan Follow Up Lapangan";
+            }
+        }
 
         function jalankanFilter() {
             const statusFilterNok = document.getElementById("filter-status-nok").value;
+            const statusFilterFu  = document.getElementById("filter-status-fu").value;
             const namaEdpTerpilih = document.getElementById("filter-nama-edp").value;
-            const edpTerpilih = document.getElementById("filter-edp").value;
             const tanggalTerpilih = document.getElementById("filter-tanggal").value;
-            const keywordSearch = document.getElementById("search-text").value.toLowerCase();
+            const keywordSearch   = document.getElementById("search-text").value.toLowerCase();
             
             let dataHasilFilter = semuaData;
 
@@ -621,18 +940,29 @@
                 dataHasilFilter = dataHasilFilter.filter(item => cekKoneksiMati(item));
             }
 
+            if (statusFilterFu === "ada-fu") {
+                dataHasilFilter = dataHasilFilter.filter(item => item.FOLLOW_UP_HISTORY && item.FOLLOW_UP_HISTORY.length > 0);
+            } else if (statusFilterFu === "belum-fu") {
+                dataHasilFilter = dataHasilFilter.filter(item => !item.FOLLOW_UP_HISTORY || item.FOLLOW_UP_HISTORY.length === 0);
+            }
+
             if (namaEdpTerpilih !== "semua") {
                 dataHasilFilter = dataHasilFilter.filter(item => item[KOLOM_NAMA_EDP] === namaEdpTerpilih);
             }
 
+            if (tanggalTerpilih !== "semua") {
+                dataHasilFilter = dataHasilFilter.filter(item => formatTanggalRapi(item[KOLOM_TANGGAL]) === tanggalTerpilih);
+            }
+
+            // PERBAIKAN URUTAN: Panggil dulu pembaruan dropdown Kode Toko
             buatDropdownEDP(dataHasilFilter);
 
-            if (tanggalTerpilih !== "semua") {
-                dataHasilFilter = dataHasilFilter.filter(item => item[KOLOM_TANGGAL] === tanggalTerpilih);
-            }
+            // Ambil nilai Kode Toko SETELAH dropdown diperbarui (Mencegah Bug Mismatch)
+            const edpTerpilih = document.getElementById("filter-edp").value;
             if (edpTerpilih !== "semua") {
                 dataHasilFilter = dataHasilFilter.filter(item => item[KOLOM_KODE_TOKO] === edpTerpilih);
             }
+
             if (keywordSearch.trim() !== "") {
                 dataHasilFilter = dataHasilFilter.filter(item => {
                     const kode = (item[KOLOM_KODE_TOKO] || "").toLowerCase();
@@ -646,10 +976,11 @@
 
         function resetFilter() {
             document.getElementById("filter-status-nok").value = "semua";
-            document.getElementById("filter-nama-edp").value = "semua";
-            document.getElementById("filter-edp").value = "semua";
-            document.getElementById("filter-tanggal").value = "semua";
-            document.getElementById("search-text").value = "";
+            document.getElementById("filter-status-fu").value  = "semua";
+            document.getElementById("filter-nama-edp").value    = "semua";
+            document.getElementById("filter-edp").value         = "semua";
+            document.getElementById("filter-tanggal").value     = "semua";
+            document.getElementById("search-text").value        = "";
             
             buatDropdownEDP(semuaData);
             tampilkanData(semuaData);
