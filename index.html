@@ -13,6 +13,1121 @@
             margin: 20px;
             background-color: #f5f7fa;
             color: #333;
+            padding-bottom: 90px;
+        }
+        
+        .filter-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            align-items: flex-end;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            flex: 1;
+            min-width: 180px;
+        }
+        label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+        select, input[type="text"], input[type="date"], input[type="file"], textarea {
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background-color: #fff;
+            font-size: 14px;
+            outline: none;
+            width: 100%;
+        }
+        select:focus, input:focus, textarea:focus { border-color: #3182ce; }
+        .btn-reset {
+            padding: 8px 16px;
+            background-color: #e2e8f0;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #4a5568;
+            cursor: pointer;
+            height: 38px;
+        }
+        .btn-reset:hover { background-color: #cbd5e1; }
+        
+        .table-action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .export-buttons { display: flex; gap: 10px; }
+        .btn-export {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .btn-csv { background-color: #2b6cb0; }
+        .btn-csv:hover { background-color: #2c5282; }
+        .btn-excel { background-color: #2f855a; }
+        .btn-excel:hover { background-color: #276749; }
+
+        #ringkasan-parameter-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .table-responsive {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            overflow-x: auto;
+            padding: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 14px;
+        }
+        th, td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e2e8f0;
+            white-space: nowrap;
+        }
+        th {
+            background-color: #edf2f7;
+            color: #4a5568;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        tr:hover { background-color: #f8fafc; }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .status-ok { background-color: #c6f6d5; color: #22543d; }
+        .status-problem { background-color: #fed7d7; color: #742a2a; }
+
+        .btn-fu-action {
+            padding: 5px 10px;
+            border: 1px solid #cbd5e1;
+            background-color: #ffffff;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            color: #2b6cb0;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .btn-fu-action:hover { background-color: #ebf8ff; border-color: #3182ce; }
+        .badge-fu-count {
+            background-color: #3182ce;
+            color: #fff;
+            border-radius: 10px;
+            padding: 1px 6px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .footer-copyright {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #edf2f7;
+            border-top: 1px solid #cbd5e1;
+            text-align: center;
+            font-size: 12px;
+            color: #4a5568;
+            padding: 8px 0;
+            z-index: 9999;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-card {
+            background: #fff;
+            width: 90%;
+            max-width: 600px;
+            max-height: 85vh;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .modal-header {
+            padding: 15px 20px;
+            background-color: #2b6cb0;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h3 { margin: 0; font-size: 16px; }
+        .btn-close-modal {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .fu-item {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+        .fu-item-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            color: #2b6cb0;
+            border-bottom: 1px solid #cbd5e1;
+            padding-bottom: 4px;
+            margin-bottom: 4px;
+        }
+        .btn-submit-fu {
+            background-color: #2f855a;
+            color: #fff;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+        .btn-submit-fu:hover { background-color: #276749; }
+        .btn-submit-fu:disabled { background-color: #a0aec0; cursor: not-allowed; }
+    
+        /* Styling Loading Container & Spinner Modern */
+        .loading-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            gap: 15px;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 5px solid #e2e8f0;
+            border-bottom-color: #2b6cb0;
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: #4a5568;
+            letter-spacing: 0.5px;
+        }
+
+        /* Skeleton Loading Effect */
+        .skeleton-row td {
+            padding: 12px 15px;
+        }
+        .skeleton-bar {
+            height: 16px;
+            background: linear-gradient(90deg, #edf2f7 25%, #e2e8f0 50%, #edf2f7 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+            border-radius: 4px;
+        }
+
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="filter-container">
+        <!-- Filter Status Toko -->
+        <div class="filter-group">
+            <label for="filter-status-nok">Filter Status Toko:</label>
+            <select id="filter-status-nok" onchange="jalankanFilter()">
+                <option value="semua">1. Tampilkan Semua</option>
+                <option value="nok">2. Tampilkan NOK</option>
+                <option value="koneksi-mati">3. Koneksi Mati/Listener Off</option>
+            </select>
+        </div>
+        <!-- Filter Status Follow Up -->
+        <div class="filter-group">
+            <label for="filter-status-fu">Status Follow Up:</label>
+            <select id="filter-status-fu" onchange="jalankanFilter()">
+                <option value="semua">-- Semua Status FU --</option>
+                <option value="ada-fu">Sudah Ada Follow Up</option>
+                <option value="belum-fu">Belum Ada Follow Up</option>
+            </select>
+        </div>
+        <!-- Filter Nama EDP -->
+        <div class="filter-group">
+            <label for="filter-nama-edp">Pilih Nama EDP:</label>
+            <select id="filter-nama-edp" onchange="jalankanFilter()">
+                <option value="semua">-- Semua Nama EDP --</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="filter-edp">Pilih Kode Toko:</label>
+            <select id="filter-edp" onchange="jalankanFilter()">
+                <option value="semua">-- Semua Kode Toko --</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="filter-tanggal">Pilih Tanggal Report:</label>
+            <input type="date" id="filter-tanggal" onchange="muatDataPerTanggal()">
+        </div>
+        <div class="filter-group">
+            <label for="search-text">Cari Toko / Nama:</label>
+            <input type="text" id="search-text" placeholder="Ketik kode/nama toko..." onkeyup="jalankanFilter()">
+        </div>
+        <div>
+            <button class="btn-reset" onclick="resetFilter()">Reset Filter</button>
+        </div>
+    </div>
+
+    <!-- Ringkasan Persentase Parameter -->
+    <div id="ringkasan-parameter-container"></div>
+
+    <div class="table-responsive">
+        <div class="table-action-bar">
+            <div style="font-size: 14px; font-weight: 600; color: #4a5568;" id="info-jumlah-data">
+                Memuat data...
+            </div>
+            <div class="export-buttons">
+                <button class="btn-export btn-csv" onclick="exportData('csv')">📥 Export CSV</button>
+                <button class="btn-export btn-excel" onclick="exportData('xlsx')">📊 Export Excel</button>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Kode Toko</th>
+                    <th>Nama Toko</th>
+                    <th>Station</th>
+                    <th>Status LAN Speed</th>
+                    <th>Status Durasi Start MySQL</th>
+                    <th>Status Suhu</th>
+                    <th>Status Boot Time</th>
+                    <th>Status Aktivasi</th>
+                    <th>Status Listener</th>
+                    <th>Status EDC BCA</th>
+                    <th>Status EDC MTI</th>
+                    <th>Status BSOD</th>
+                    <th>Status UPS</th>
+                    <th>IP DVR</th>
+                    <th>STATUS DVR</th>
+                    <th>STATUS DVR2</th>
+                    <th>Aksi / Follow Up</th>
+                </tr>
+            </thead>
+            <tbody id="isi-tabel">
+                <tr><td colspan="17" style="text-align: center;">Memuat data dari Google Spreadsheet...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Copyright Footer -->
+    <div class="footer-copyright">
+        Aldoni Jelang R. - EDP Samarinda (dibantu oleh Edi dan Rey) &copy; 2026
+    </div>
+
+    <!-- Modal Popup Follow Up -->
+    <div class="modal-overlay" id="modal-fu-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modal-fu-title">Follow Up Lapangan</h3>
+                <button class="btn-close-modal" onclick="tutupModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <strong style="font-size: 13px; color: #2d3748;">📜 Riwayat Perbaikan Lapangan:</strong>
+                    <div id="modal-fu-history-list" style="margin-top: 8px;"></div>
+                </div>
+                <hr style="border: 0; border-top: 1px dashed #cbd5e1; margin: 10px 0;">
+                <div>
+                    <strong style="font-size: 13px; color: #2d3748;">📝 Form Input Follow Up Baru:</strong>
+                    <form id="form-fu" onsubmit="kirimFollowUp(event)" style="margin-top: 8px; display: flex; flex-direction: column; gap: 8px;">
+                        <input type="hidden" id="modal-kdtk">
+                        <input type="hidden" id="modal-tgl-report">
+
+                        <div>
+                            <label style="font-size: 12px;">Tanggal Follow Up Lapangan:</label>
+                            <input type="date" id="modal-tgl-fu" required>
+                        </div>
+                        <div>
+                            <label style="font-size: 12px;">Nama EDP / Petugas Lapangan:</label>
+                            <input type="text" id="modal-nama-edp-input" placeholder="Masukkan nama EDP..." required>
+                        </div>
+                        <div>
+                            <label style="font-size: 12px;">Analisa Penyebab / Kendala NOK:</label>
+                            <textarea id="modal-analisa" rows="2" placeholder="Contoh: Router hang, Kabel LAN lepas..." required></textarea>
+                        </div>
+                        <div>
+                            <label style="font-size: 12px;">Hasil Follow Up / Perbaikan:</label>
+                            <textarea id="modal-hasil" rows="2" placeholder="Contoh: Sudah restart router, koneksi normal..." required></textarea>
+                        </div>
+                        <div>
+                            <label style="font-size: 12px;">Pilih / Ambil Foto Bukti (Kamera/Galeri):</label>
+                            <input type="file" id="modal-foto-file" accept="image/*" capture="environment" required>
+                        </div>
+
+                        <button type="submit" class="btn-submit-fu" id="btn-submit-fu">💾 Simpan Follow Up Lapangan</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const apiUrl = "https://script.google.com/macros/s/AKfycbx3MjRXUj6XFIIbXp8_hdBEWeboGZmIE-WVzHjYMZ0GyNpfCBFFTIoufEDN59MB-jgYAw/exec";
+        let semuaData = [];
+        let dataAktifTerfilter = [];
+
+        let KOLOM_EDP = "";
+        let KOLOM_NAMA_EDP = "";
+        let KOLOM_TANGGAL = "";
+        let KOLOM_STATION = "";
+        let KOLOM_KODE_TOKO = "";
+        let KOLOM_NAMA_TOKO = "";
+        let KOLOM_AKTIVASI = "";
+        let KOLOM_LAN_SPEED = "";
+        let KOLOM_MYSQL = "";
+        let KOLOM_SUHU = "";
+        let KOLOM_BOOT_TIME = "";
+        let KOLOM_LISTENER = "";
+        let KOLOM_EDC_BCA = "";
+        let KOLOM_EDC_MANDIRI = "";
+        let KOLOM_BSOD = "";
+        let KOLOM_UPS = "";
+        let KOLOM_HARI_TERLAMBAT = "HARI TERLAMBAT IDM LISTENER";
+        let KOLOM_IP_DVR = "IP_DVR";
+        let KOLOM_DVR = "DVR";
+        let KOLOM_DVR2 = "DVR2";
+        
+        function renderSkeletonLoading(jumlahBaris = 5) {
+    let skeletonHtml = '';
+    for (let i = 0; i < jumlahBaris; i++) {
+        skeletonHtml += `
+            <tr class="skeleton-row">
+                <td><div class="skeleton-bar" style="width: 70px;"></div></td>
+                <td><div class="skeleton-bar" style="width: 140px;"></div></td>
+                <td><div class="skeleton-bar" style="width: 50px;"></div></td>
+                <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                <td><div class="skeleton-bar" style="width: 80px;"></div></td>
+                <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                <td><div class="skeleton-bar" style="width: 90px;"></div></td>
+                <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                <td><div class="skeleton-bar" style="width: 80px;"></div></td>
+            </tr>
+        `;
+    }
+    return skeletonHtml;
+}
+        
+        function formatTanggalRapi(val) {
+            if (!val || val === '-') return '-';
+            let str = val.toString().trim();
+
+            if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+                return str;
+            }
+
+            const d = new Date(val);
+            if (!isNaN(d.getTime())) {
+                if (d.getUTCHours() >= 15) {
+                    d.setUTCDate(d.getUTCDate() + 1);
+                }
+                const yyyy = d.getUTCFullYear();
+                const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+                const dd = String(d.getUTCDate()).padStart(2, '0');
+                return `${yyyy}-${mm}-${dd}`;
+            }
+            return str.substring(0, 10);
+        }
+
+        // Atur tanggal default ke hari ini saat halaman pertama dimuat
+document.addEventListener("DOMContentLoaded", () => {
+    const today = new Date().toISOString().slice(0, 10);
+    document.getElementById("filter-tanggal").value = today;
+    
+    // Tarik data awal sesuai tanggal hari ini
+    ambilData(today);
+});
+
+async function ambilData(tanggalSelected = "") {
+    const tbody = document.getElementById("isi-tabel");
+    const infoJumlah = document.getElementById("info-jumlah-data");
+    const tgl = tanggalSelected || document.getElementById("filter-tanggal").value;
+
+    // Tampilkan Spinner & Skeleton Animasi Modern
+    infoJumlah.innerHTML = `⏳ Memuat data tanggal <strong>${tgl}</strong>...`;
+    
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="17" style="padding: 30px 0;">
+                <div class="loading-box">
+                    <span class="spinner"></span>
+                    <span class="loading-text">Sedang mengambil data laporan (${tgl})...</span>
+                </div>
+            </td>
+        </tr>
+        ${renderSkeletonLoading(5)}
+    `;
+
+    try {
+        let requestUrl = apiUrl;
+        if (tgl) {
+            requestUrl += "?tanggal=" + encodeURIComponent(tgl);
+        }
+
+        const response = await fetch(requestUrl);
+        semuaData = await response.json();
+                        
+        if (semuaData.length > 0) {
+            petakanNamaKolom(semuaData[0]);
+            buatDropdownNamaEdp();
+            buatDropdownEDP(semuaData);
+            jalankanFilter();
+        } else {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan='17' style='text-align: center; padding: 40px; color: #718096;'>
+                        📂 Tidak ada data report ditemukan untuk tanggal <strong>${tgl}</strong>.
+                    </td>
+                </tr>`;
+            document.getElementById("ringkasan-parameter-container").innerHTML = "";
+            infoJumlah.textContent = "Menampilkan 0 data toko";
+        }
+    } catch (error) {
+        console.error("Detail Error:", error);
+        tbody.innerHTML = `
+            <tr>
+                <td colspan='17' style='text-align: center; padding: 40px; color: #e53e3e;'>
+                    ⚠️ Gagal memuat data dari Spreadsheet. Pastikan koneksi internet stabil atau Apps Script sudah di-deploy.
+                </td>
+            </tr>`;
+        infoJumlah.textContent = "Gagal memuat data";
+    }
+}
+
+            // Handler saat tanggal pada filter diubah user
+        function muatDataPerTanggal() {
+            const tgl = document.getElementById("filter-tanggal").value;
+            ambilData(tgl);
+            }
+
+        function petakanNamaKolom(sampelBaris) {
+            const keys = Object.keys(sampelBaris);
+            const cariKey = (kataKunci) => keys.find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '').includes(kataKunci)) || "";
+
+            KOLOM_EDP          = cariKey("kdtk") || "KDTK";
+            KOLOM_NAMA_EDP     = cariKey("nama edp") || cariKey("edp") || keys[57] || "NAMA EDP";
+            KOLOM_TANGGAL      = cariKey("tanggalrespon") || cariKey("listener") || "TANGGAL RESPON IDM LISTENER";
+            KOLOM_STATION      = cariKey("station") || "station";
+            KOLOM_KODE_TOKO    = cariKey("kdtk") || cariKey("kode") || "KDTK";
+            KOLOM_NAMA_TOKO    = cariKey("nama") || "NAMA";
+            KOLOM_LAN_SPEED    = cariKey("status lan speed") || "STATUS LAN SPEED";
+            KOLOM_MYSQL        = cariKey("durasi start mysql") || cariKey("mysql") || "STATUS DURASI START MYSQL";
+            KOLOM_SUHU         = cariKey("status suhu") || "STATUS SUHU";
+            KOLOM_BOOT_TIME    = cariKey("status boot time") || "STATUS BOOT TIME";
+            KOLOM_AKTIVASI     = cariKey("status aktivasi") || "STATUS AKTIVASI";
+            KOLOM_LISTENER     = cariKey("STATUS LISTENER") || "STATUS LISTENER";
+            KOLOM_EDC_BCA      = cariKey("status edc bca") || "STATUS EDC BCA";
+            KOLOM_EDC_MANDIRI  = cariKey("status edc mti") || cariKey("status edc mandiri") || "STATUS EDC MTI";
+            KOLOM_BSOD         = cariKey("status bsod") || "STATUS BSOD";
+            KOLOM_UPS          = cariKey("status ups") || "STATUS UPS";
+            KOLOM_HARI_TERLAMBAT = cariKey("HARI TERLAMBAT IDM LISTENER") || "HARI TERLAMBAT IDM LISTENER";
+            
+            KOLOM_IP_DVR       = keys.find(k => k.toUpperCase().includes("IP_DVR") || k.toUpperCase() === "IP DVR") || "IP_DVR";
+            KOLOM_DVR          = keys.find(k => k.toUpperCase() === "DVR" || k.toUpperCase() === "STATUS_DVR1") || "DVR";
+            KOLOM_DVR2         = keys.find(k => k.toUpperCase() === "DVR2" || k.toUpperCase() === "STATUS_DVR2") || "DVR2";
+        }
+
+        function buatDropdownNamaEdp() {
+            const dropdown = document.getElementById("filter-nama-edp");
+            dropdown.innerHTML = '<option value="semua">-- Semua Nama EDP --</option>';
+            const daftarNamaEdp = [...new Set(semuaData.map(item => item[KOLOM_NAMA_EDP]))].filter(Boolean).sort();
+                
+            daftarNamaEdp.forEach(nama => {
+                const opsi = document.createElement("option");
+                opsi.value = nama;
+                opsi.textContent = nama;
+                dropdown.appendChild(opsi);
+            });
+        }
+
+        function buatDropdownEDP(dataSumber) {
+            const dropdown = document.getElementById("filter-edp");
+            const nilaiTerpilihSebelumnya = dropdown.value;
+            
+            dropdown.innerHTML = '<option value="semua">-- Semua Kode Toko --</option>';
+            const daftarEDP = [...new Set(dataSumber.map(item => item[KOLOM_KODE_TOKO]))].filter(Boolean).sort();
+                        
+            daftarEDP.forEach(edp => {
+                const opsi = document.createElement("option");
+                opsi.value = edp;
+                opsi.textContent = edp;
+                dropdown.appendChild(opsi);
+            });
+
+            if (daftarEDP.includes(nilaiTerpilihSebelumnya)) {
+                dropdown.value = nilaiTerpilihSebelumnya;
+            } else {
+                dropdown.value = "semua";
+            }
+        }
+
+ //       function buatDropdownTanggal() {
+ //           const dropdown = document.getElementById("filter-tanggal");
+   //         dropdown.innerHTML = '<option value="semua">-- Semua Tanggal --</option>';
+     //       
+       //     const setTanggalUnik = new Set();
+         //   semuaData.forEach(item => {
+           //     let tglRaw = item[KOLOM_TANGGAL];
+             //   if (tglRaw) {
+               //     setTanggalUnik.add(formatTanggalRapi(tglRaw));
+               // }
+            //});
+
+//            const daftarTanggal = Array.from(setTanggalUnik).sort((a, b) => new Date(b) - new Date(a));
+ //                       
+ //           daftarTanggal.forEach(tgl => {
+  //              const opsi = document.createElement("option");
+  //              opsi.value = tgl;
+ //               opsi.textContent = tgl;
+ //               dropdown.appendChild(opsi);
+ //           });
+   //     }
+//
+        function formatStatus(nilai) {
+            if (!nilai || nilai === '-') return '-';
+            const teks = nilai.toString().trim().toUpperCase();
+            if (teks === 'OK' || teks === 'NORMAL' || teks === 'ONLINE' || teks === 'UP') {
+                return `<span class="status-badge status-ok">${teks}</span>`;
+            } else if (teks === 'PROBLEM' || teks === 'TIDAK 1 GB' || teks === 'SUHU TINGGI' || teks === 'PINDAHKAN KE STATION INDUK' || teks === 'KONEKSI MATI' || teks === 'NOK' || teks === 'TIDAK' || teks === 'ERROR' || teks === 'OFFLINE' || teks === 'BSOD' || teks === 'DOWN' || teks === 'OFF') {
+                return `<span class="status-badge status-problem">${teks}</span>`;
+            }
+            return teks;
+        }
+
+        function isAman(nilai) {
+            if (!nilai) return false;
+            const teks = nilai.toString().trim().toUpperCase();
+            return (teks === 'OK' || teks === 'NORMAL' || teks === 'ONLINE'|| teks === 'NO EDC');
+        }
+
+        function cekKriteriaNOK(item) {
+            const lanSpeed = (item[KOLOM_LAN_SPEED] || "").toString().trim().toUpperCase();
+            const mysql = (item[KOLOM_MYSQL] || "").toString().trim();
+            const suhu = (item[KOLOM_SUHU] || "").toString().trim().toUpperCase();
+            const bootTime = (item[KOLOM_BOOT_TIME] || "").toString().trim();
+            const aktivasi = (item[KOLOM_AKTIVASI] || "").toString().trim().toUpperCase();
+            const edcBca = (item[KOLOM_EDC_BCA] || "").toString().trim().toUpperCase();
+            const edcMti = (item[KOLOM_EDC_MANDIRI] || "").toString().trim().toUpperCase();
+            const bsod = (item[KOLOM_BSOD] || "").toString().trim().toUpperCase();
+            const ups = (item[KOLOM_UPS] || "").toString().trim().toUpperCase();
+            
+            const dvr1 = (item[KOLOM_DVR] !== undefined && item[KOLOM_DVR] !== "") ? item[KOLOM_DVR] : (item['DVR'] || '-');
+            const dvr2 = (item[KOLOM_DVR2] !== undefined && item[KOLOM_DVR2] !== "") ? item[KOLOM_DVR2] : (item['DVR2'] || '-');
+            const dvr1Upper = dvr1.toString().trim().toUpperCase();
+            const dvr2Upper = dvr2.toString().trim().toUpperCase();
+
+            if (lanSpeed !== "" && lanSpeed !== "-" && lanSpeed.includes("TIDAK 1 GB")) return true;
+            if (mysql !== "" && mysql !== "-" && mysql.toUpperCase().includes("NOK")) return true;
+            if (suhu !== "" && suhu !== "-" && suhu.includes("TINGGI")) return true;
+            
+            if (bootTime !== "" && bootTime !== "-") {
+                const matchMenit = bootTime.match(/([\d.]+)\s*menit/i);
+                if (matchMenit && parseFloat(matchMenit[1]) > 4) return true;
+                if (!matchMenit && parseFloat(bootTime) > 4) return true;
+            }
+
+            if (aktivasi !== "" && aktivasi !== "-" && (aktivasi.includes("TIDAK AKTIF") || aktivasi === "TIDAK")) return true;
+            if (edcBca !== "" && edcBca !== "-" && edcBca !== "OK" && edcBca !== "NO EDC") return true;
+            if (edcMti !== "" && edcMti !== "-" && edcMti !== "OK" && edcMti !== "NO EDC") return true;
+            if (bsod !== "" && bsod !== "-" && (bsod === "NOK" || bsod === "BSOD" || bsod.includes("NOK"))) return true;
+            if (ups !== "" && ups !== "-" && (ups.includes("PINDAHKAN KE STATION INDUK") || (ups.includes("NOK")))) return true;
+            if (dvr1Upper !== "" && dvr1Upper !== "-" && dvr1Upper === "DOWN") return true;
+            if (dvr2Upper !== "" && dvr2Upper !== "-" && dvr2Upper === "DOWN") return true;
+
+            return false;
+        }
+
+        function cekKoneksiMati(item) {
+            const listener = (item[KOLOM_LISTENER] || "").toString().trim().toUpperCase();
+            return listener.includes("KONEKSI MATI") || listener.includes("GAGAL") || listener.includes("OFFLINE") || listener.includes("OFF");
+        }
+
+        function hitungPersentaseParameter(dataYangDigunakan) {
+            const container = document.getElementById("ringkasan-parameter-container");
+            container.innerHTML = "";
+
+            if (dataYangDigunakan.length === 0) return;
+
+            const totalData = dataYangDigunakan.length;
+            const statistik = { 
+                suhu: 0, bsod: 0, lanSpeed: 0, edcBca: 0, 
+                edcMandiri: 0, ups: 0, mysql: 0, listener: 0,
+                bootTime: 0, aktivasi: 0
+            };
+
+            dataYangDigunakan.forEach(item => {
+                if (isAman(item[KOLOM_SUHU])) statistik.suhu++;
+                if (isAman(item[KOLOM_BSOD])) statistik.bsod++;
+                if (isAman(item[KOLOM_LAN_SPEED])) statistik.lanSpeed++;
+                if (isAman(item[KOLOM_EDC_BCA])) statistik.edcBca++;
+                if (isAman(item[KOLOM_EDC_MANDIRI])) statistik.edcMandiri++;
+                if (isAman(item[KOLOM_UPS])) statistik.ups++;
+                if (isAman(item[KOLOM_MYSQL])) statistik.mysql++;
+                if (isAman(item[KOLOM_LISTENER])) statistik.listener++;
+                if (isAman(item[KOLOM_BOOT_TIME])) statistik.bootTime++;
+                if (isAman(item[KOLOM_AKTIVASI])) statistik.aktivasi++;
+            });
+
+            const daftarParameter = [
+                { label: "LAN Speed Normal", count: statistik.lanSpeed, warna: "#d69e2e" },
+                { label: "MySQL Normal", count: statistik.mysql, warna: "#319795" },
+                { label: "Suhu Normal", count: statistik.suhu, warna: "#3182ce" },
+                { label: "Listener Normal", count: statistik.listener, warna: "#805ad5" },
+                { label: "Boot Time Normal", count: statistik.bootTime, warna: "#dd6b20" },
+                { label: "Aktivasi Aman", count: statistik.aktivasi, warna: "#319795" },
+                { label: "BSOD Aman", count: statistik.bsod, warna: "#38a169" },
+                { label: "EDC BCA Normal", count: statistik.edcBca, warna: "#805ad5" },
+                { label: "EDC Mandiri Normal", count: statistik.edcMandiri, warna: "#e53e3e" },
+                { label: "UPS Normal", count: statistik.ups, warna: "#319795" }
+            ];
+
+            daftarParameter.forEach(param => {
+                const persentase = ((param.count / totalData) * 100).toFixed(1);
+                const card = document.createElement("div");
+                card.style.cssText = `background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 5px solid ${param.warna};`;
+                card.innerHTML = `
+                    <div style="font-size: 13px; color: #64748b; font-weight: 600;">${param.label}</div>
+                    <div style="font-size: 22px; font-weight: bold; color: #1e293b; margin: 5px 0;">${persentase}%</div>
+                    <div style="font-size: 12px; color: #64748b;">(${param.count} dari ${totalData})</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function tampilkanData(data) {
+            dataAktifTerfilter = data;
+            const tbody = document.getElementById("isi-tabel");
+            const infoJumlah = document.getElementById("info-jumlah-data");
+            let htmlContent = "";
+
+            infoJumlah.textContent = `Menampilkan ${data.length} data toko`;
+
+            if(data.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='17' style='text-align: center;'>Tidak ada data monitoring ditemukan.</td></tr>";
+                document.getElementById("ringkasan-parameter-container").innerHTML = "";
+                return;
+            }
+
+            data.sort((a, b) => {
+                const kodeA = (a[KOLOM_KODE_TOKO] || "").toString();
+                const kodeB = (b[KOLOM_KODE_TOKO] || "").toString();
+                let hasilSort = kodeA.localeCompare(kodeB, undefined, { numeric: true });
+                if (hasilSort === 0) {
+                    const stationA = (a[KOLOM_STATION] || "").toString();
+                    const stationB = (b[KOLOM_STATION] || "").toString();
+                    hasilSort = stationA.localeCompare(stationB, undefined, { numeric: true });
+                }
+                return hasilSort;
+            });
+
+            hitungPersentaseParameter(data);
+
+            data.forEach((item, index) => {
+                const kdtkVal = item[KOLOM_KODE_TOKO] || '-';
+                const ipDvrVal = (item[KOLOM_IP_DVR] !== undefined && item[KOLOM_IP_DVR] !== "") ? item[KOLOM_IP_DVR] : (item['IP_DVR'] || '-');
+                const dvrVal1  = (item[KOLOM_DVR] !== undefined && item[KOLOM_DVR] !== "") ? item[KOLOM_DVR] : (item['DVR'] || '-');
+                const dvrVal2  = (item[KOLOM_DVR2] !== undefined && item[KOLOM_DVR2] !== "") ? item[KOLOM_DVR2] : (item['DVR2'] || '-');
+
+                let statusListenerVal = formatStatus(item[KOLOM_LISTENER]);
+                const hariTerlambat = item[KOLOM_HARI_TERLAMBAT];
+                if (hariTerlambat !== undefined && hariTerlambat !== "" && hariTerlambat !== "OK" && hariTerlambat !== 0 && hariTerlambat !== "0") {
+                    statusListenerVal += ` <span style="font-size:11px; color:#e53e3e;">(Terlambat ${hariTerlambat} hr)</span>`;
+                }
+
+                const fuHistory = item.FOLLOW_UP_HISTORY || [];
+                const fuCount = fuHistory.length;
+                let btnFuHtml = fuCount > 0 
+                    ? `<button class="btn-fu-action" onclick="bukaModalFollowUp('${kdtkVal}', ${index})">📋 Detail <span class="badge-fu-count">${fuCount}</span></button>`
+                    : `<button class="btn-fu-action" onclick="bukaModalFollowUp('${kdtkVal}', ${index})">➕ Follow Up</button>`;
+
+                htmlContent += `
+                    <tr>
+                        <td><strong>${kdtkVal}</strong></td>
+                        <td>${item[KOLOM_NAMA_TOKO] || '-'}</td>
+                        <td>${item[KOLOM_STATION] || '-'}</td>
+                        <td>${formatStatus(item[KOLOM_LAN_SPEED])}</td>
+                        <td>${formatStatus(item[KOLOM_MYSQL])}</td>
+                        <td>${formatStatus(item[KOLOM_SUHU])}</td>
+                        <td>${formatStatus(item[KOLOM_BOOT_TIME])}</td>
+                        <td>${formatStatus(item[KOLOM_AKTIVASI])}</td>
+                        <td>${statusListenerVal}</td>
+                        <td>${formatStatus(item[KOLOM_EDC_BCA])}</td>
+                        <td>${formatStatus(item[KOLOM_EDC_MANDIRI])}</td>
+                        <td>${formatStatus(item[KOLOM_BSOD])}</td>
+                        <td>${formatStatus(item[KOLOM_UPS])}</td>
+                        <td>${ipDvrVal}</td>
+                        <td>${formatStatus(dvrVal1)}</td>
+                        <td>${formatStatus(dvrVal2)}</td>
+                        <td>${btnFuHtml}</td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = htmlContent;
+        }
+
+        // EXPORT DATA (CSV & EXCEL)
+        function exportData(format) {
+            if (!dataAktifTerfilter || dataAktifTerfilter.length === 0) {
+                alert("Tidak ada data untuk diexport!");
+                return;
+            }
+
+            const dataExport = dataAktifTerfilter.map(item => {
+                const ipDvrVal = (item[KOLOM_IP_DVR] !== undefined && item[KOLOM_IP_DVR] !== "") ? item[KOLOM_IP_DVR] : (item['IP_DVR'] || '-');
+                const dvrVal1  = (item[KOLOM_DVR] !== undefined && item[KOLOM_DVR] !== "") ? item[KOLOM_DVR] : (item['DVR'] || '-');
+                const dvrVal2  = (item[KOLOM_DVR2] !== undefined && item[KOLOM_DVR2] !== "") ? item[KOLOM_DVR2] : (item['DVR2'] || '-');
+
+                let tglFuTerakhir = '-';
+                let namaEdpFu = '-';
+                let analisaFu = '-';
+                let hasilFu = '-';
+                let fotoFu = '-';
+
+                if (item.FOLLOW_UP_HISTORY && item.FOLLOW_UP_HISTORY.length > 0) {
+                    const fuTerakhir = item.FOLLOW_UP_HISTORY[item.FOLLOW_UP_HISTORY.length - 1];
+                    tglFuTerakhir = fuTerakhir.tanggal_fu || '-';
+                    namaEdpFu     = fuTerakhir.nama_edp || '-';
+                    analisaFu     = fuTerakhir.analisa || '-';
+                    hasilFu       = fuTerakhir.hasil || '-';
+                    fotoFu        = fuTerakhir.foto || '-';
+                }
+
+                return {
+                    "Kode Toko": item[KOLOM_KODE_TOKO] || '-',
+                    "Nama Toko": item[KOLOM_NAMA_TOKO] || '-',
+                    "Tanggal Report": formatTanggalRapi(item[KOLOM_TANGGAL]),
+                    "Station": item[KOLOM_STATION] || '-',
+                    "Status LAN Speed": item[KOLOM_LAN_SPEED] || '-',
+                    "Status Durasi Start MySQL": item[KOLOM_MYSQL] || '-',
+                    "Status Suhu": item[KOLOM_SUHU] || '-',
+                    "Status Boot Time": item[KOLOM_BOOT_TIME] || '-',
+                    "Status Aktivasi": item[KOLOM_AKTIVASI] || '-',
+                    "Status Listener": item[KOLOM_LISTENER] || '-',
+                    "Status EDC BCA": item[KOLOM_EDC_BCA] || '-',
+                    "Status EDC MTI": item[KOLOM_EDC_MANDIRI] || '-',
+                    "Status BSOD": item[KOLOM_BSOD] || '-',
+                    "Status UPS": item[KOLOM_UPS] || '-',
+                    "Nama EDP" : item[KOLOM_NAMA_EDP],
+                    "IP DVR": ipDvrVal,
+                    "Status DVR": dvrVal1,
+                    "Status DVR2": dvrVal2,
+                    "Tgl Follow Up": tglFuTerakhir,
+                    "EDP Follow Up": namaEdpFu,
+                    "Analisa Kendala": analisaFu,
+                    "Hasil Perbaikan": hasilFu,
+                    "Link Foto Bukti": fotoFu
+                };
+            });
+
+            const namaFile = "Monitoring_Status_Toko_" + new Date().toISOString().slice(0, 10);
+
+            if (format === 'csv') {
+                const worksheet = XLSX.utils.json_to_sheet(dataExport);
+                const csvOutput = XLSX.utils.sheet_to_csv(worksheet);
+                const blob = new Blob([csvOutput], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.setAttribute("download", `${namaFile}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else if (format === 'xlsx') {
+                const worksheet = XLSX.utils.json_to_sheet(dataExport);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Data Monitoring");
+                XLSX.writeFile(workbook, `${namaFile}.xlsx`);
+            }
+        }
+
+        // MODAL FOLLOW UP
+        function bukaModalFollowUp(kdtk, dataIndex) {
+            const item = dataAktifTerfilter[dataIndex] || semuaData.find(x => x[KOLOM_KODE_TOKO] === kdtk);
+            if (!item) return;
+
+            const namaToko = item[KOLOM_NAMA_TOKO] || '';
+            const tglReport = formatTanggalRapi(item[KOLOM_TANGGAL]);
+            const namaEdpToko = item[KOLOM_NAMA_EDP] || '';
+
+            document.getElementById("modal-fu-title").innerText = `Follow Up Toko: ${kdtk} - ${namaToko}`;
+            document.getElementById("modal-kdtk").value = kdtk;
+            document.getElementById("modal-tgl-report").value = tglReport;
+            document.getElementById("modal-tgl-fu").value = new Date().toISOString().slice(0, 10);
+            
+            if (namaEdpToko) {
+                document.getElementById("modal-nama-edp-input").value = namaEdpToko;
+            }
+
+            const historyListContainer = document.getElementById("modal-fu-history-list");
+            const fuHistory = item.FOLLOW_UP_HISTORY || [];
+
+            if (fuHistory.length === 0) {
+                historyListContainer.innerHTML = `<div style="color: #a0aec0; font-style: italic;">Belum ada riwayat follow up.</div>`;
+            } else {
+                let historyHtml = '';
+                const reversedHistory = [...fuHistory].reverse();
+                reversedHistory.forEach((fu) => {
+                    let linkFotoHtml = '';
+                    if (fu.foto && fu.foto !== '-' && fu.foto.trim() !== '') {
+                        linkFotoHtml = `<div><a href="${fu.foto}" target="_blank" style="color:#3182ce; font-weight:bold;">📷 Lihat Foto Bukti Perbaikan</a></div>`;
+                    }
+                    historyHtml += `
+                        <div class="fu-item">
+                            <div class="fu-item-header">
+                                <span>📅 Tgl FU: ${fu.tanggal_fu || '-'}</span>
+                                <span>👤 EDP: ${fu.nama_edp || '-'}</span>
+                            </div>
+                            <div><b>Analisa:</b> ${fu.analisa || '-'}</div>
+                            <div><b>Hasil:</b> ${fu.hasil || '-'}</div>
+                            ${linkFotoHtml}
+                        </div>
+                    `;
+                });
+                historyListContainer.innerHTML = historyHtml;
+            }
+
+            document.getElementById("modal-analisa").value = '';
+            document.getElementById("modal-hasil").value = '';
+            document.getElementById("modal-foto-file").value = '';
+
+            document.getElementById("modal-fu-overlay").classList.add("active");
+        }
+
+        function tutupModal() {
+            document.getElementById("modal-fu-overlay").classList.remove("active");
+        }
+
+        // FUNGSI KONVERSI GAMBAR KE BASE64
+        function convertFileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const base64String = reader.result.split(',')[1];
+                    resolve(base64String);
+                };
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function kirimFollowUp(event) {
+            event.preventDefault();
+            const btnSubmit = document.getElementById("btn-submit-fu");
+            btnSubmit.disabled = true;
+            btnSubmit.innerText = "⏳ Mengunggah Gambar & Menyimpan...";
+
+            const fileInput = document.getElementById("modal-foto-file");
+            let base64File = "";
+            let fileName = "";
+            let mimeType = "";
+
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                fileName = file.name;
+                mimeType = file.type;
+                try {
+                    base64File = await convertFileToBase64(file);
+                } catch(e) {
+                    alert("Gagal membaca file foto.");
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerText = "💾 Simpan Follow Up Lapangan";
+                    return;
+                }
+            }
+
+            const payload = {
+                tanggal: document.getElementById("modal-tgl-report").value || new Date().toISOString().slice(0, 10),
+                kdtk: document.getElementById("modal-kdtk").value,
+                nama_edp: document.getElementById("modal-nama-edp-input").value,
+                analisa: document.getElementById("modal-analisa").value,
+                hasil: document.getElementById("modal-hasil").value,
+                base64File: base64File,
+                fileName: fileName,
+                mimeType: mimeType
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify(payload)
+                });
+                
+                alert("✅ Data & Foto Follow Up berhasil disimpan!");
+                tutupModal();
+                await ambilData();
+            } catch (err) {
+                console.error("Error submit follow up:", err);
+                alert("⚠️ Terjadi kesalahan koneksi saat mengirim data.");
+            } finally {
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = "💾 Simpan Follow Up Lapangan";
+            }
+        }
+
+        function jalankanFilter() {
+            const statusFilterNok = document.getElementById("filter-status-nok").value;
+            const statusFilterFu  = document.getElementById("filter-status-fu").value;
+            const namaEdpTerpilih = document.getElementById("filter-nama-edp").value;
+            //const tanggalTerpilih = document.getElementById("filter-tanggal").value;
+            const keywordSearch   = document.getElementById("search-text").value.toLowerCase();
+            
+            let dataHasilFilter = semuaData;
+
+            if (statusFilterNok === "nok") {
+                dataHasilFilter = dataHasilFilter.filter(item => cekKriteriaNOK(item));
+            } else if (statusFilterNok === "koneksi-mati") {
+                dataHasilFilter = dataHasilFilter.filter(item => cekKoneksiMati(item));
+            }
+
+            if (statusFilterFu === "ada-fu") {
+                dataHasilFilter = dataHasilFilter.filter(item => item.FOLLOW_UP_HISTORY && item.FOLLOW_UP_HISTORY.length > 0);
+            } else if (statusFilterFu === "belum-fu") {
+                dataHasilFilter = dataHasilFilter.filter(item => !item.FOLLOW_UP_HISTORY || item.FOLLOW_UP_HISTORY.length === 0);
+            }
+
+            if (namaEdpTerpilih !== "semua") {
+                dataHasilFilter = dataHasilFilter.filter(item => item[KOLOM_NAMA_EDP] === namaEdpTerpilih);
+            }
+
+            //if (tanggalTerpilih !== "semua") {
+                //dataHasilFilter = dataHasilFilter.filter(item => formatTanggalRapi(item[KOLOM_TANGGAL]) === tanggalTerpilih);
+            //}
+
+            // PERBAIKAN URUTAN: Panggil dulu pembaruan dropdown Kode Toko
+            buatDropdownEDP(dataHasilFilter);
+
+            // Ambil nilai Kode Toko SETELAH dropdown diperbarui (Mencegah Bug Mismatch)
+            const edpTerpilih = document.getElementById("filter-edp").value;
+            if (edpTerpilih !== "semua") {
+                dataHasilFilter = dataHasilFilter.filter(item => item[KOLOM_KODE_TOKO] === edpTerpilih);
+            }
+
+            if (keywordSearch.trim() !== "") {
+                dataHasilFilter = dataHasilFilter.filter(item => {
+                    const kode = (item[KOLOM_KODE_TOKO] || "").toLowerCase();
+                    const nama = (item[KOLOM_NAMA_TOKO] || "").toLowerCase();
+                    return kode.includes(keywordSearch) || nama.includes(keywordSearch);
+                });
+            }
+
+            tampilkanData(dataHasilFilter);
+        }
+
+function resetFilter() {
+    const today = new Date().toISOString().slice(0, 10);
+    document.getElementById("filter-tanggal").value = today;
+    document.getElementById("filter-status-nok").value = "semua";
+    document.getElementById("filter-status-fu").value  = "semua";
+    document.getElementById("filter-nama-edp").value    = "semua";
+    document.getElementById("filter-edp").value         = "semua";
+    document.getElementById("search-text").value        = "";
+    
+    ambilData(today);
+}
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoring Status Toko & Follow Up Lapangan</title>
+    <!-- Pustaka SheetJS untuk export ke Excel (.xlsx) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #f5f7fa;
+            color: #333;
             padding-bottom: 90px; /* Jarak agar konten terbawah tidak tertutup tab & footer */
         }
         
