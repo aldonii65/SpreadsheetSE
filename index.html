@@ -648,28 +648,28 @@ async function ambilData(tanggalSelected = "") {
             }
         }
 
- //       function buatDropdownTanggal() {
- //           const dropdown = document.getElementById("filter-tanggal");
-   //         dropdown.innerHTML = '<option value="semua">-- Semua Tanggal --</option>';
-     //       
-       //     const setTanggalUnik = new Set();
-         //   semuaData.forEach(item => {
-           //     let tglRaw = item[KOLOM_TANGGAL];
-             //   if (tglRaw) {
-               //     setTanggalUnik.add(formatTanggalRapi(tglRaw));
-               // }
-            //});
+       function buatDropdownTanggal() {
+           const dropdown = document.getElementById("filter-tanggal");
+              dropdown.innerHTML = '<option value="semua">-- Semua Tanggal --</option>';
+            
+            const setTanggalUnik = new Set();
+            semuaData.forEach(item => {
+                let tglRaw = item[KOLOM_TANGGAL];
+                if (tglRaw) {
+                    setTanggalUnik.add(formatTanggalRapi(tglRaw));
+                }
+            });
 
-//            const daftarTanggal = Array.from(setTanggalUnik).sort((a, b) => new Date(b) - new Date(a));
- //                       
- //           daftarTanggal.forEach(tgl => {
-  //              const opsi = document.createElement("option");
-  //              opsi.value = tgl;
- //               opsi.textContent = tgl;
- //               dropdown.appendChild(opsi);
- //           });
-   //     }
-//
+            const daftarTanggal = Array.from(setTanggalUnik).sort((a, b) => new Date(b) - new Date(a));
+                        
+            daftarTanggal.forEach(tgl => {
+                const opsi = document.createElement("option");
+                opsi.value = tgl;
+                opsi.textContent = tgl;
+                dropdown.appendChild(opsi);
+            });
+        }
+
         function formatStatus(nilai) {
             if (!nilai || nilai === '-') return '-';
             const teks = nilai.toString().trim().toUpperCase();
@@ -1055,7 +1055,7 @@ async function ambilData(tanggalSelected = "") {
             const statusFilterNok = document.getElementById("filter-status-nok").value;
             const statusFilterFu  = document.getElementById("filter-status-fu").value;
             const namaEdpTerpilih = document.getElementById("filter-nama-edp").value;
-            //const tanggalTerpilih = document.getElementById("filter-tanggal").value;
+            const tanggalTerpilih = document.getElementById("filter-tanggal").value;
             const keywordSearch   = document.getElementById("search-text").value.toLowerCase();
             
             let dataHasilFilter = semuaData;
@@ -1076,9 +1076,9 @@ async function ambilData(tanggalSelected = "") {
                 dataHasilFilter = dataHasilFilter.filter(item => item[KOLOM_NAMA_EDP] === namaEdpTerpilih);
             }
 
-            //if (tanggalTerpilih !== "semua") {
-                //dataHasilFilter = dataHasilFilter.filter(item => formatTanggalRapi(item[KOLOM_TANGGAL]) === tanggalTerpilih);
-            //}
+            if (tanggalTerpilih !== "semua") {
+                dataHasilFilter = dataHasilFilter.filter(item => formatTanggalRapi(item[KOLOM_TANGGAL]) === tanggalTerpilih);
+            }
 
             // PERBAIKAN URUTAN: Panggil dulu pembaruan dropdown Kode Toko
             buatDropdownEDP(dataHasilFilter);
