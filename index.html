@@ -384,9 +384,7 @@
         </div>
         <div class="filter-group">
             <label for="filter-tanggal">Pilih Tanggal Report:</label>
-            <select id="filter-tanggal" onchange="jalankanFilter()">
-                <option value="semua">-- Semua Tanggal --</option>
-            </select>
+            <input type="date" id="filter-tanggal" onchange="muatDataPerTanggal()">
         </div>
         <div class="filter-group">
             <label for="search-text">Cari Toko / Nama:</label>
@@ -538,25 +536,52 @@
             return str.substring(0, 10);
         }
 
-        async function ambilData() {
-            try {
-                const response = await fetch(apiUrl);
-                semuaData = await response.json();
-                                
-                if (semuaData.length > 0) {
-                    petakanNamaKolom(semuaData[0]);
-                    buatDropdownNamaEdp();
-                    buatDropdownEDP(semuaData);
-                    buatDropdownTanggal();
-                    tampilkanData(semuaData);
-                } else {
-                    document.getElementById("isi-tabel").innerHTML = "<tr><td colspan='17' style='text-align: center;'>Spreadsheet terdeteksi kosong.</td></tr>";
-                }
-            } catch (error) {
-                console.error("Detail Error:", error);
-                document.getElementById("isi-tabel").innerHTML = "<tr><td colspan='17' style='text-align: center; color: red;'>Gagal memuat data dari API. Pastikan status Google Sheet diset publik.</td></tr>";
-            }
+        // Atur tanggal default ke hari ini saat halaman pertama dimuat
+document.addEventListener("DOMContentLoaded", () => {
+    const today = new Date().toISOString().slice(0, 10);
+    document.getElementById("filter-tanggal").value = today;
+    
+    // Tarik data awal sesuai tanggal hari ini
+    ambilData(today);
+});
+
+async function ambilData(tanggalSelected = "") {
+    const tbody = document.getElementById("isi-tabel");
+    tbody.innerHTML = "<tr><td colspan='17' style='text-align: center;'>Memuat data tanggal " + (tanggalSelected || 'terpilih') + "...</td></tr>";
+
+    try {
+        // Tambahkan query parameter ?tanggal=YYYY-MM-DD ke URL API
+        let requestUrl = apiUrl;
+        if (tanggalSelected) {
+            requestUrl += "?tanggal=" + encodeURIComponent(tanggalSelected);
         }
+
+        const response = await fetch(requestUrl);
+        semuaData = await response.json();
+                        
+        if (semuaData.length > 0) {
+            petakanNamaKolom(semuaData[0]);
+            buatDropdownNamaEdp();
+            buatDropdownEDP(semuaData);
+            
+            // Filter lokal sisanya (NOK, Nama EDP, Kode Toko, Search, dll)
+            jalankanFilter();
+        } else {
+            tbody.innerHTML = "<tr><td colspan='17' style='text-align: center;'>Tidak ada data report untuk tanggal ini.</td></tr>";
+            document.getElementById("ringkasan-parameter-container").innerHTML = "";
+            document.getElementById("info-jumlah-data").textContent = "Menampilkan 0 data toko";
+        }
+    } catch (error) {
+        console.error("Detail Error:", error);
+        tbody.innerHTML = "<tr><td colspan='17' style='text-align: center; color: red;'>Gagal memuat data dari API. Pastikan Web App sudah di-deploy dengan benar.</td></tr>";
+    }
+}
+
+            // Handler saat tanggal pada filter diubah user
+        function muatDataPerTanggal() {
+            const tgl = document.getElementById("filter-tanggal").value;
+            ambilData(tgl);
+            }
 
         function petakanNamaKolom(sampelBaris) {
             const keys = Object.keys(sampelBaris);
@@ -1070,19 +1095,17 @@
             tampilkanData(dataHasilFilter);
         }
 
-        function resetFilter() {
-            document.getElementById("filter-status-nok").value = "semua";
-            document.getElementById("filter-status-fu").value  = "semua";
-            document.getElementById("filter-nama-edp").value    = "semua";
-            document.getElementById("filter-edp").value         = "semua";
-            document.getElementById("filter-tanggal").value     = "semua";
-            document.getElementById("search-text").value        = "";
-            
-            buatDropdownEDP(semuaData);
-            tampilkanData(semuaData);
-        }
-
-        ambilData();
+function resetFilter() {
+    const today = new Date().toISOString().slice(0, 10);
+    document.getElementById("filter-tanggal").value = today;
+    document.getElementById("filter-status-nok").value = "semua";
+    document.getElementById("filter-status-fu").value  = "semua";
+    document.getElementById("filter-nama-edp").value    = "semua";
+    document.getElementById("filter-edp").value         = "semua";
+    document.getElementById("search-text").value        = "";
+    
+    ambilData(today);
+}
     </script>
 </body>
 </html>
