@@ -19,31 +19,50 @@
 </head>
 <body class="bg-slate-50 text-slate-800" x-data="edpApp()" x-cloak>
 
-    <div class="flex h-screen overflow-hidden">
+    <div class="flex h-screen overflow-hidden relative">
         
-        <!-- SIDEBAR -->
-        <aside class="w-64 bg-slate-900 text-slate-300 hidden md:flex flex-col justify-between border-r border-slate-800">
+        <!-- OVERLAY BACKGROUND UNTUK MOBILE -->
+        <div x-show="mobileSidebarOpen" 
+             @click="mobileSidebarOpen = false"
+             x-transition:enter="transition-opacity ease-linear duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition-opacity ease-linear duration-300"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 md:hidden" 
+             x-cloak></div>
+
+        <!-- SIDEBAR (RESPONSIF MOBILE DRAWER & DESKTOP STATIC) -->
+        <aside class="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-300 flex flex-col justify-between border-r border-slate-800 transform transition-transform duration-300 ease-in-out md:static md:translate-x-0"
+               :class="mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'">
             <div>
-                <div class="p-6 flex items-center space-x-3 border-b border-slate-800">
-                    <div class="bg-indigo-600 p-2 rounded-lg text-white font-bold shadow-md">EDP</div>
-                    <div>
-                        <span class="text-lg font-bold text-white tracking-wide block">Stock Control</span>
-                        <span class="text-xs text-indigo-400 font-medium">Branch Management v3.0</span>
+                <div class="p-6 flex items-center justify-between border-b border-slate-800">
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-indigo-600 p-2 rounded-lg text-white font-bold shadow-md">EDP</div>
+                        <div>
+                            <span class="text-lg font-bold text-white tracking-wide block">Stock Control</span>
+                            <span class="text-xs text-indigo-400 font-medium">Branch Management v3.0</span>
+                        </div>
                     </div>
+                    <!-- Tombol Tutup Khusus Mobile -->
+                    <button @click="mobileSidebarOpen = false" class="md:hidden text-slate-400 hover:text-white p-1">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
                 </div>
                 <nav class="p-4 space-y-1.5">
-                    <button @click="activeTab = 'monitoring'" :class="activeTab === 'monitoring' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'hover:bg-slate-800 hover:text-white'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all">
+                    <button @click="activeTab = 'monitoring'; mobileSidebarOpen = false" :class="activeTab === 'monitoring' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'hover:bg-slate-800 hover:text-white'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                         <span>Monitoring Stock</span>
                     </button>
                     
-                    <button x-show="userRole.toUpperCase() === 'ADMIN'" @click="activeTab = 'transfer'" :class="activeTab === 'transfer' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'hover:bg-slate-800 hover:text-white'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all">
+                    <button x-show="userRole.toUpperCase() === 'ADMIN'" @click="activeTab = 'transfer'; mobileSidebarOpen = false" :class="activeTab === 'transfer' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'hover:bg-slate-800 hover:text-white'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
                         <span>Top-up / Transfer Qty</span>
                     </button>
 
                     <!-- MENU PERMINTAAN BARANG -->
-                    <button @click="activeTab = 'request'" :class="activeTab === 'request' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'hover:bg-slate-800 hover:text-white'" class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all">
+                    <button @click="activeTab = 'request'; mobileSidebarOpen = false" :class="activeTab === 'request' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'hover:bg-slate-800 hover:text-white'" class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all">
                         <div class="flex items-center space-x-3">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
                             <span>Permintaan Barang</span>
@@ -51,12 +70,12 @@
                         <span x-show="userRole.toUpperCase() === 'ADMIN' && pendingRequests.length > 0" class="bg-rose-500 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse" x-text="pendingRequests.length"></span>
                     </button>
 
-                    <button @click="activeTab = 'bkb'" :class="activeTab === 'bkb' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'hover:bg-slate-800 hover:text-white'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all">
+                    <button @click="activeTab = 'bkb'; mobileSidebarOpen = false" :class="activeTab === 'bkb' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'hover:bg-slate-800 hover:text-white'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         <span>Input BKB & Surat Jalan</span>
                     </button>
 
-                    <button x-show="userRole.toUpperCase() === 'ADMIN'" @click="activeTab = 'master'" :class="activeTab === 'master' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'hover:bg-slate-800 hover:text-white'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all">
+                    <button x-show="userRole.toUpperCase() === 'ADMIN'" @click="activeTab = 'master'; mobileSidebarOpen = false" :class="activeTab === 'master' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'hover:bg-slate-800 hover:text-white'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
                         <span>Master Produk EDP</span>
                     </button>
@@ -77,31 +96,35 @@
         </aside>
 
         <!-- MAIN CONTENT AREA -->
-        <main class="flex-1 flex flex-col overflow-y-auto bg-slate-50">
+        <main class="flex-1 flex flex-col overflow-y-auto bg-slate-50 w-full">
             
             <!-- Top Header -->
-            <header class="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center shadow-sm sticky top-0 z-20">
-                <div class="flex items-center space-x-4">
+            <header class="bg-white border-b border-slate-200 px-4 sm:px-8 py-4 flex justify-between items-center shadow-sm sticky top-0 z-20">
+                <div class="flex items-center space-x-3">
+                    <!-- Tombol Hamburger Mobile -->
+                    <button @click="mobileSidebarOpen = true" class="md:hidden p-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    </button>
                     <div>
-                        <h1 class="text-xl font-bold text-slate-800" x-text="getPageTitle()"></h1>
-                        <p class="text-xs text-slate-500">Kelola dan pantau persediaan perangkat EDP secara real-time</p>
+                        <h1 class="text-base sm:text-xl font-bold text-slate-800" x-text="getPageTitle()"></h1>
+                        <p class="text-xs text-slate-500 hidden sm:block">Kelola dan pantau persediaan perangkat EDP secara real-time</p>
                     </div>
                 </div>
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2 sm:space-x-4">
                     <div class="hidden sm:flex items-center space-x-2 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-semibold border border-emerald-200">
                         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                         <span x-text="syncStatus">Terhubung ke Spreadsheet</span>
                     </div>
                     <div class="text-right">
-                        <p class="text-sm font-bold text-slate-700" x-text="loggedInUser">User</p>
-                        <p class="text-xs text-indigo-600 font-semibold uppercase tracking-wider" x-text="userRole">Role</p>
+                        <p class="text-xs sm:text-sm font-bold text-slate-700" x-text="loggedInUser">User</p>
+                        <p class="text-[10px] sm:text-xs text-indigo-600 font-semibold uppercase tracking-wider" x-text="userRole">Role</p>
                     </div>
-                    <div class="w-10 h-10 bg-indigo-600 text-white font-bold rounded-xl flex items-center justify-center shadow-md shadow-indigo-600/20" x-text="getUserInitials()">US</div>
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 bg-indigo-600 text-white font-bold rounded-xl flex items-center justify-center text-xs sm:text-base shadow-md shadow-indigo-600/20" x-text="getUserInitials()">US</div>
                 </div>
             </header>
 
             <!-- Content Body -->
-            <div class="p-8 space-y-6 max-w-7xl mx-auto w-full">
+            <div class="p-4 sm:p-8 space-y-6 max-w-7xl mx-auto w-full">
 
                 <!-- NOTIFIKASI / ALERT BANNER -->
                 <div x-show="notification.show" :class="notification.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800'" class="p-4 rounded-xl border flex items-center justify-between shadow-sm transition-all">
@@ -115,7 +138,7 @@
 
                 <!-- TAB 1: MONITORING STOCK -->
                 <div x-show="activeTab === 'monitoring'" class="space-y-6">
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
                         <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
                             <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
@@ -148,8 +171,8 @@
                     <!-- Filter & Search Bar -->
                     <div class="flex flex-col sm:flex-row justify-between gap-4 items-center bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                         <div class="flex items-center space-x-3 w-full sm:w-auto">
-                            <label class="text-sm font-semibold text-slate-600">Pilih PIC / Kota:</label>
-                            <select x-model="selectedBranch" class="border border-slate-300 rounded-xl px-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
+                            <label class="text-sm font-semibold text-slate-600 whitespace-nowrap">Pilih PIC / Kota:</label>
+                            <select x-model="selectedBranch" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
                                 <option value="ALL">Semua PIC & Kota</option>
                                 <template x-for="loc in edpLocations" :key="loc.pic + loc.kota">
                                     <option :value="loc.pic" x-text="loc.pic + ' — ' + loc.kota"></option>
@@ -163,8 +186,8 @@
                     </div>
 
                     <!-- Tabel Stock -->
-                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                        <table class="w-full text-left border-collapse">
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-x-auto">
+                        <table class="w-full text-left border-collapse min-w-[600px]">
                             <thead>
                                 <tr class="bg-slate-50 text-slate-500 text-xs uppercase font-semibold tracking-wider border-b border-slate-200">
                                     <th class="p-5">PIC (EDP)</th>
@@ -208,7 +231,7 @@
                 </div>
 
                 <!-- TAB 2: TRANSFER / TOP-UP QTY (Admin Only) -->
-                <div x-show="activeTab === 'transfer' && userRole.toUpperCase() === 'ADMIN'" class="max-w-xl mx-auto bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+                <div x-show="activeTab === 'transfer' && userRole.toUpperCase() === 'ADMIN'" class="max-w-xl mx-auto bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
                     <div>
                         <h3 class="text-xl font-bold text-slate-800">Form Transfer / Penambahan Saldo Stock</h3>
                         <p class="text-sm text-slate-500 mt-1">Kirim penambahan qty barang dari pusat ke PIC / Kota tujuan.</p>
@@ -251,7 +274,7 @@
                 <div x-show="activeTab === 'request'" class="space-y-8 max-w-4xl mx-auto">
                     
                     <!-- Form Permintaan Barang (Pengguna) -->
-                    <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+                    <div class="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div>
                                 <h3 class="text-xl font-bold text-slate-800">Ajukan Permintaan Barang ke Admin</h3>
@@ -311,7 +334,7 @@
                     </div>
 
                     <!-- Daftar Permintaan Pending (Akses Khusus Admin) -->
-                    <div x-show="userRole.toUpperCase() === 'ADMIN'" class="bg-white p-8 rounded-2xl border border-amber-200 shadow-sm space-y-4">
+                    <div x-show="userRole.toUpperCase() === 'ADMIN'" class="bg-white p-6 sm:p-8 rounded-2xl border border-amber-200 shadow-sm space-y-4">
                         <div class="flex items-center justify-between">
                             <div>
                                 <h3 class="text-lg font-bold text-slate-800">Daftar Permintaan Menunggu Approval</h3>
@@ -321,7 +344,7 @@
                         </div>
 
                         <div class="overflow-x-auto border border-slate-200 rounded-xl">
-                            <table class="w-full text-left text-xs">
+                            <table class="w-full text-left text-xs min-w-[500px]">
                                 <thead class="bg-slate-50 text-slate-500 uppercase font-semibold border-b border-slate-200">
                                     <tr>
                                         <th class="p-3">Tanggal</th>
@@ -415,7 +438,7 @@
                 </div>
 
                 <!-- TAB 3: INPUT BKB (BUKTI KELUAR BARANG) -->
-                <div x-show="activeTab === 'bkb'" class="max-w-2xl mx-auto bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+                <div x-show="activeTab === 'bkb'" class="max-w-2xl mx-auto bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
                     <div>
                         <h3 class="text-xl font-bold text-slate-800">Input BKB (Bukti Keluar Barang)</h3>
                         <p class="text-sm text-slate-500 mt-1">Catat pengeluaran barang, kurangi stok, dan kirim langsung ke Google Spreadsheet via GAS.</p>
@@ -494,7 +517,7 @@
                 </div>
 
                 <!-- TAB 4: MASTER PRODUK (Admin Only) -->
-                <div x-show="activeTab === 'master' && userRole.toUpperCase() === 'ADMIN'" class="max-w-2xl mx-auto bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+                <div x-show="activeTab === 'master' && userRole.toUpperCase() === 'ADMIN'" class="max-w-2xl mx-auto bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
                     <div>
                         <h3 class="text-xl font-bold text-slate-800">Upload Master Data Produk EDP</h3>
                         <p class="text-sm text-slate-500 mt-1">Unggah file Excel (.xlsx/.xls) atau CSV berisi daftar master produk.</p>
@@ -552,6 +575,7 @@
 
         function edpApp() {
             return {
+                mobileSidebarOpen: false, // KONTROL SIDEBAR MOBILE
                 activeTab: 'monitoring',
                 selectedBranch: 'ALL',
                 searchQuery: '',
@@ -568,7 +592,6 @@
 
                 pendingRequests: [],
                 
-                // DATA STRUCTURE DIBUAT DYNAMIC REPEATER (MAKS 5 ITEM)
                 requestForm: { 
                     items: [
                         { itemCode: '', qty: 1 }
@@ -638,7 +661,6 @@
                     setTimeout(() => { this.notification.show = false; }, 5000);
                 },
 
-                // HELPER TAHAN MAKSIMAL 5 BARIS PERMINTAAN
                 addRequestRow() {
                     if (this.requestForm.items.length < 5) {
                         this.requestForm.items.push({ itemCode: '', qty: 1 });
@@ -704,7 +726,6 @@
                     }
                 },
 
-                // PROSES PENGIRIMAN MULTI-ITEM KETIKA USER MENGISI FORM
                 async submitRequestBarang() {
                     const validItems = this.requestForm.items.filter(i => i.itemCode && Number(i.qty) > 0);
                     if (validItems.length === 0) {
@@ -714,7 +735,6 @@
 
                     this.isSubmitting = true;
                     try {
-                        // Iterasi pengiriman seluruh barang ke Spreadsheet
                         for (let item of validItems) {
                             const fullProductName = this.getProductName(item.itemCode);
 
@@ -737,7 +757,6 @@
 
                         this.showNotification('success', `Berhasil mengajukan ${validItems.length} item barang ke Admin!`);
                         
-                        // Reset Form Kembali ke 1 Baris
                         this.requestForm = { 
                             items: [{ itemCode: '', qty: 1 }], 
                             note: '' 
