@@ -129,7 +129,7 @@
             color: #ffffff;
         }
 
-        /* SIDEBAR MODE DITUTUP (COLLAPSED) */
+        /* SIDEBAR MODE DITUTUP DESKTOP (COLLAPSED) */
         .sidebar.collapsed {
             width: 56px;
         }
@@ -181,6 +181,48 @@
         }
         .sidebar.collapsed .btn-sidebar-logout span:nth-child(2) {
             display: none;
+        }
+
+        /* BAR TOPBAR KHUSUS MOBILE */
+        .mobile-topbar {
+            display: none; /* Sembunyi di Desktop */
+            background-color: #1e293b;
+            color: #fff;
+            padding: 12px 15px;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 900;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .mobile-topbar h3 {
+            font-size: 15px;
+            color: #60a5fa;
+        }
+
+        .btn-mobile-menu {
+            background: #334155;
+            border: none;
+            color: #fff;
+            font-size: 20px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        /* OVERLAY BACKGROUND MOBILE */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
         }
 
         /* --- KONTEN UTAMA --- */
@@ -311,7 +353,7 @@
 
         table {
             width: 100%;
-            border-collapse: separate; /* Mengubah dari collapse agar sticky border bekerja rapi */
+            border-collapse: separate;
             border-spacing: 0;
             text-align: left;
             font-size: 14px;
@@ -322,10 +364,9 @@
             border-bottom: 1px solid #e2e8f0;
             border-right: 1px solid #f1f5f9;
             white-space: nowrap;
-            background-color: #fff; /* Memberikan background agar sel tidak transparan saat ditimpa */
+            background-color: #fff;
         }
 
-        /* HEADER TABEL TETAP TERKUNCI DIBAGIAN ATAS */
         th {
             background-color: #edf2f7;
             color: #4a5568;
@@ -336,7 +377,6 @@
             box-shadow: 0 1px 2px rgba(0,0,0,0.06);
         }
 
-        /* KOLOM PERTAMA (KODE TOKO) TERKUNCI DI SEBELAH KIRI */
         th:first-child,
         td:first-child {
             position: sticky;
@@ -345,7 +385,6 @@
             box-shadow: 2px 0 4px rgba(0,0,0,0.05);
         }
 
-        /* KHUSUS POJOK KIRI ATAS (HEADER KODE TOKO) DIBERI Z-INDEX LEBIH TINGGI */
         th:first-child {
             z-index: 20;
             background-color: #edf2f7;
@@ -546,15 +585,53 @@
             100% { background-position: -200% 0; }
         }
 
+        /* --- MEDIA QUERY KHUSUS LAYAR HP (< 768px) --- */
         @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); }
-            .sidebar.open { transform: translateX(0); }
-            .main-content { margin-left: 0; width: 100%; }
-            .footer-copyright { left: 0; width: 100%; }
+            body {
+                flex-direction: column;
+            }
+
+            .mobile-topbar {
+                display: flex; /* Tampilkan bar atas di HP */
+            }
+
+            .sidebar {
+                transform: translateX(-100%); /* Sembunyikan ke kiri */
+                width: 250px !important;
+            }
+
+            .sidebar.open {
+                transform: translateX(0); /* Muncul saat di-toggle */
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+                width: 100% !important;
+                padding: 10px;
+                padding-bottom: 60px;
+            }
+
+            .footer-copyright {
+                left: 0 !important;
+                width: 100% !important;
+            }
+
+            .filter-group {
+                min-width: 100%; /* Penuhi lebar filter di HP */
+            }
         }
     </style>
 </head>
 <body>
+
+    <!-- TOPBAR MOBILE (KHUSUS TAMPILAN HP) -->
+    <div class="mobile-topbar">
+        <h3>📊 Monitoring Toko EDP</h3>
+        <button class="btn-mobile-menu" onclick="toggleSidebar()" title="Buka Menu">☰</button>
+    </div>
+
+    <!-- OVERLAY LAYAR SAAT SIDEBAR MOBILE TERBUKA -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
     <!-- SIDEBAR NAVIGASI -->
     <aside class="sidebar" id="sidebar">
@@ -744,7 +821,8 @@
                 }
             }
 
-            if (localStorage.getItem("sidebarCollapsed") === "true") {
+            // Jalankan mode collapse desktop jika tersimpan
+            if (window.innerWidth > 768 && localStorage.getItem("sidebarCollapsed") === "true") {
                 const sidebar = document.getElementById("sidebar");
                 const mainContent = document.querySelector(".main-content");
                 const footer = document.querySelector(".footer-copyright");
@@ -768,17 +846,26 @@
             }
         }
 
+        // FUNGSI TOGGLE REVISI UNTUK DESKTOP & MOBILE
         function toggleSidebar() {
             const sidebar = document.getElementById("sidebar");
+            const overlay = document.getElementById("sidebar-overlay");
             const mainContent = document.querySelector(".main-content");
             const footer = document.querySelector(".footer-copyright");
 
-            sidebar.classList.toggle("collapsed");
-            if (mainContent) mainContent.classList.toggle("expanded");
-            if (footer) footer.classList.toggle("expanded");
+            if (window.innerWidth <= 768) {
+                // Mode Mobile: Slide In/Out
+                sidebar.classList.toggle("open");
+                overlay.classList.toggle("active");
+            } else {
+                // Mode Desktop: Collapse Icon Only
+                sidebar.classList.toggle("collapsed");
+                if (mainContent) mainContent.classList.toggle("expanded");
+                if (footer) footer.classList.toggle("expanded");
 
-            const isCollapsed = sidebar.classList.contains("collapsed");
-            localStorage.setItem("sidebarCollapsed", isCollapsed ? "true" : "false");
+                const isCollapsed = sidebar.classList.contains("collapsed");
+                localStorage.setItem("sidebarCollapsed", isCollapsed ? "true" : "false");
+            }
         }
 
         // --- DUA ENDPOINT TERPISAH (HYBRID STRATEGY) ---
