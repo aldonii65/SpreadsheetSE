@@ -297,32 +297,61 @@
             background: #fff;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            overflow-x: auto;
             padding: 15px;
+        }
+
+        /* GRID SCROLL WRAPPER */
+        .table-scroll-wrapper {
+            max-height: 520px;
+            overflow: auto;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            position: relative;
         }
 
         table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate; /* Mengubah dari collapse agar sticky border bekerja rapi */
+            border-spacing: 0;
             text-align: left;
             font-size: 14px;
         }
 
         th, td {
-            padding: 12px 15px;
+            padding: 10px 14px;
             border-bottom: 1px solid #e2e8f0;
+            border-right: 1px solid #f1f5f9;
             white-space: nowrap;
+            background-color: #fff; /* Memberikan background agar sel tidak transparan saat ditimpa */
         }
 
+        /* HEADER TABEL TETAP TERKUNCI DIBAGIAN ATAS */
         th {
             background-color: #edf2f7;
             color: #4a5568;
             font-weight: 600;
             position: sticky;
             top: 0;
+            z-index: 10;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.06);
         }
 
-        tr:hover { background-color: #f8fafc; }
+        /* KOLOM PERTAMA (KODE TOKO) TERKUNCI DI SEBELAH KIRI */
+        th:first-child,
+        td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 15;
+            box-shadow: 2px 0 4px rgba(0,0,0,0.05);
+        }
+
+        /* KHUSUS POJOK KIRI ATAS (HEADER KODE TOKO) DIBERI Z-INDEX LEBIH TINGGI */
+        th:first-child {
+            z-index: 20;
+            background-color: #edf2f7;
+        }
+
+        tr:hover td { background-color: #f8fafc; }
 
         .status-badge {
             display: inline-block;
@@ -609,32 +638,35 @@
                 </div>
             </div>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>Kode Toko</th>
-                        <th>Nama Toko</th>
-                        <th>Station</th>
-                        <th>Status LAN Speed</th>
-                        <th>Status Durasi Start MySQL</th>
-                        <th>Status Suhu</th>
-                        <th>Status Boot Time</th>
-                        <th>Status Aktivasi</th>
-                        <th>Status Listener</th>
-                        <th>Status EDC BCA</th>
-                        <th>Status EDC MTI</th>
-                        <th>Status BSOD</th>
-                        <th>Status UPS</th>
-                        <th>IP DVR</th>
-                        <th>STATUS DVR</th>
-                        <th>STATUS DVR2</th>
-                        <th>Aksi / Follow Up</th>
-                    </tr>
-                </thead>
-                <tbody id="isi-tabel">
-                    <tr><td colspan="17" style="text-align: center;">Memuat data dari Google Spreadsheet...</td></tr>
-                </tbody>
-            </table>
+            <!-- SCROLL WRAPPER TERPISAH UNTUK DATA TABEL -->
+            <div class="table-scroll-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Kode Toko</th>
+                            <th>Nama Toko</th>
+                            <th>Station</th>
+                            <th>Status LAN Speed</th>
+                            <th>Status Durasi Start MySQL</th>
+                            <th>Status Suhu</th>
+                            <th>Status Boot Time</th>
+                            <th>Status Aktivasi</th>
+                            <th>Status Listener</th>
+                            <th>Status EDC BCA</th>
+                            <th>Status EDC MTI</th>
+                            <th>Status BSOD</th>
+                            <th>Status UPS</th>
+                            <th>IP DVR</th>
+                            <th>STATUS DVR</th>
+                            <th>STATUS DVR2</th>
+                            <th>Aksi / Follow Up</th>
+                        </tr>
+                    </thead>
+                    <tbody id="isi-tabel">
+                        <tr><td colspan="17" style="text-align: center;">Memuat data dari Google Spreadsheet...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
     </main>
@@ -750,10 +782,7 @@
         }
 
         // --- DUA ENDPOINT TERPISAH (HYBRID STRATEGY) ---
-        // 1. SheetBest API: khusus untuk membaca & menulis baris data laporan
         const apiUrlSheetBest = "https://api.sheetbest.com/sheets/478b0475-ac28-4edd-a01e-7e87ff27ac26"; 
-
-        // 2. Google Apps Script Web App: KHUSUS UPLOAD FOTO KE GOOGLE DRIVE
         const gasUploadUrl = "https://script.google.com/macros/s/AKfycbynpQMCaUnWggcjYe9wWpFulIx8tcsYyfwI_MB5CPPbpa88tUW2VpOXQJ3D7KRS7aV8cA/exec"; 
 
         let semuaData = [];
@@ -829,7 +858,6 @@
             return str.substring(0, 10);
         }
 
-        // --- AMBIL DATA DARI SHEETBEST UTAMA DAN TAB FOLLOW UP LAPANGAN ---
         async function ambilData(tanggalSelected = "") {
             const tbody = document.getElementById("isi-tabel");
             const infoJumlah = document.getElementById("info-jumlah-data");
@@ -945,7 +973,6 @@
             KOLOM_DVR2         = keys.find(k => k.toUpperCase() === "DVR2" || k.toUpperCase() === "STATUS_DVR2") || "DVR2";
         }
 
-        // --- BUAT DROPDOWN NAMA EDP (DILENGKAPI LOGIKA OTO-FILTER UNTUK USER) ---
         function buatDropdownNamaEdp() {
             const dropdown = document.getElementById("filter-nama-edp");
             const currentRole = (sessionStorage.getItem("userRole") || "").toUpperCase();
@@ -961,7 +988,6 @@
                 dropdown.appendChild(opsi);
             });
 
-            // Jika role BUKAN ADMIN, otomatis pilih nama user dan KUNCI dropdown-nya
             if (currentRole !== "ADMIN" && currentNama) {
                 const matchedNama = daftarNamaEdp.find(nama => 
                     nama.toLowerCase().trim().includes(currentNama.toLowerCase().trim()) || 
@@ -977,7 +1003,7 @@
                     dropdown.appendChild(opsiUser);
                     dropdown.value = currentNama;
                 }
-                dropdown.disabled = true; // Kunci agar tidak bisa pilih nama EDP lain
+                dropdown.disabled = true;
             } else {
                 dropdown.disabled = false;
             }
@@ -1259,7 +1285,6 @@
             }
         }
 
-        // --- BUKA MODAL DAN LOAD HISTORY ---
         function bukaModalFollowUp(kdtk, dataIndex) {
             const item = dataAktifTerfilter[dataIndex] || semuaData.find(x => x[KOLOM_KODE_TOKO] === kdtk);
             if (!item) return;
@@ -1322,7 +1347,6 @@
             document.getElementById("modal-fu-overlay").classList.remove("active");
         }
 
-        // --- FUNGSI KOMPRESI GAMBAR DENGAN CANVAS ---
         function kompresGambar(file, maxDimension = 800, quality = 0.6) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -1361,7 +1385,6 @@
             });
         }
 
-        // --- KIRIM FORM FOLLOW UP (HYBRID ALUR: FOTO KE GAS DRIVE, DATA KE SHEETBEST) ---
         async function kirimFollowUp(event) {
             event.preventDefault();
             const btnSubmit = document.getElementById("btn-submit-fu");
