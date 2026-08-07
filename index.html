@@ -1472,81 +1472,66 @@
             });
         }
 
-        async function kirimFollowUp(event) {
-            event.preventDefault();
-            const btnSubmit = document.getElementById("btn-submit-fu");
-            btnSubmit.disabled = true;
-            btnSubmit.innerText = "⏳ Mengunggah foto ke Drive...";
+            async function kirimFollowUp(event) {
+                event.preventDefault();
 
-            const fileInput = document.getElementById("modal-foto-file");
-            const kdtkVal = document.getElementById("modal-kdtk").value;
-            let linkFotoDrive = "-";
+                const btnSubmit = document.getElementById("btn-submit-fu");
+                btnSubmit.disabled = true;
+                btnSubmit.innerText = "⏳ Mengunggah foto & menyimpan data...";
 
-            if (fileInput.files.length > 0) {
-                const file = fileInput.files[0];
+                const fileInput = document.getElementById("modal-foto-file");
+                const kdtkVal = document.getElementById("modal-kdtk").value;
+
+                let base64String = "";
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    try {
+                        const fullBase64 = await kompresGambar(file, 800, 0.6);
+                        base64String = fullBase64.includes(",") ? fullBase64.split(",")[1] : fullBase64;
+                    } catch (e) {
+                        alert(`⚠️ Gagal memproses gambar:\n${e.message}`);
+                        btnSubmit.disabled = false;
+                        btnSubmit.innerText = "💾 Simpan Follow Up Lapangan";
+                        return;
+                    }
+                }
+
+                // 1. Susun payload LENGKAP untuk dikirim HANYA ke GAS
+                const payloadGAS = {
+                    "tanggal": document.getElementById("modal-tgl-report").value || new Date().toISOString().slice(0, 10),
+                    "kdtk": kdtkVal,
+                    "nama_edp": document.getElementById("modal-nama-edp-input").value,
+                    "analisa": document.getElementById("modal-analisa").value,
+                    "hasil": document.getElementById("modal-hasil").value,
+                    "base64File": base64String,
+                    "mimeType": "image/jpeg"
+                };
+
                 try {
-                    const fullBase64 = await kompresGambar(file, 800, 0.6);
-                    const rawBase64 = fullBase64.includes(",") ? fullBase64.split(",")[1] : fullBase64;
-
+                    // 2. CUKUP PANGGIL GAS SAJA (Tanpa SheetBest)
                     const resGas = await fetch(gasUploadUrl, {
                         method: "POST",
                         headers: { "Content-Type": "text/plain" },
-                        body: JSON.stringify({
-                            "kdtk": kdtkVal,
-                            "base64File": rawBase64,
-                            "mimeType": "image/jpeg"
-                        })
+                        body: JSON.stringify(payloadGAS)
                     });
 
                     const resGasData = await resGas.json();
+
                     if (resGasData.status === "sukses") {
-                        linkFotoDrive = resGasData.photoUrl;
+                        alert("✅ Data Follow Up & Foto Bukti berhasil disimpan!");
+                        tutupModal();
+                        await ambilData(); // Refresh tabel setelah simpan
                     } else {
-                        throw new Error("Gagal upload Drive: " + resGasData.message);
+                        throw new Error(resGasData.message || "Gagal menyimpan data via GAS.");
                     }
-                } catch(e) {
-                    alert(`⚠️ Gagal mengunggah foto ke Drive:\n${e.message}`);
+                } catch (err) {
+                    console.error("Error submit follow up:", err);
+                    alert(`⚠️ Terjadi kesalahan saat menyimpan data:\n${err.message}`);
+                } finally {
                     btnSubmit.disabled = false;
                     btnSubmit.innerText = "💾 Simpan Follow Up Lapangan";
-                    return;
                 }
             }
-
-            btnSubmit.innerText = "⏳ Menyimpan data ke Spreadsheet...";
-
-            const payloadSheetBest = {
-                "Tanggal Report": document.getElementById("modal-tgl-report").value || new Date().toISOString().slice(0, 10),
-                "Kode Toko": kdtkVal,
-                "Nama EDP": document.getElementById("modal-nama-edp-input").value,
-                "Analisa Kendala / NOK": document.getElementById("modal-analisa").value,
-                "Hasil Perbaikan": document.getElementById("modal-hasil").value,
-                "Foto Bukti": linkFotoDrive
-            };
-
-            try {
-                const targetUrl = `${apiUrlSheetBest}/tabs/${encodeURIComponent("FOLLOW UP LAPANGAN")}`;
-                const response = await fetch(targetUrl, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify([payloadSheetBest])
-                });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Server Error (${response.status}): ${errorText}`);
-                }
-                
-                alert("✅ Data Follow Up & Link Foto Drive berhasil disimpan!");
-                tutupModal();
-                await ambilData();
-            } catch (err) {
-                console.error("Error submit follow up:", err);
-                alert(`⚠️ Terjadi kesalahan saat menyimpan data ke SheetBest:\n${err.message}`);
-            } finally {
-                btnSubmit.disabled = false;
-                btnSubmit.innerText = "💾 Simpan Follow Up Lapangan";
-            }
-        }
 
         function jalankanFilter() {
             const statusFilterNok = document.getElementById("filter-status-nok").value;
