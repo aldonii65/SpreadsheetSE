@@ -7,13 +7,194 @@
     <!-- Pustaka SheetJS untuk export ke Excel (.xlsx) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 20px;
             background-color: #f5f7fa;
             color: #333;
-            padding-bottom: 90px;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* --- TRANSISI HALUS --- */
+        .sidebar, .main-content, .footer-copyright {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* --- SIDEBAR STYLES --- */
+        .sidebar {
+            width: 250px;
+            background-color: #1e293b;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0; bottom: 0; left: 0;
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .sidebar-header {
+            padding: 20px 15px;
+            background-color: #0f172a;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-header h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #60a5fa;
+            line-height: 1.2;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 15px 10px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .sidebar-menu li a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-menu li a:hover {
+            background-color: #334155;
+            color: #f8fafc;
+        }
+
+        .sidebar-menu li.active a {
+            background-color: #2563eb;
+            color: #ffffff;
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+        }
+
+        .sidebar-footer {
+            padding: 15px 10px;
+            border-top: 1px solid #334155;
+        }
+
+        .btn-sidebar-logout {
+            width: 100%;
+            padding: 10px;
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-sidebar-logout:hover { background-color: #dc2626; }
+
+        /* TOMBOL TOGGLE SIDEBAR */
+        .btn-toggle-sidebar {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 18px;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s;
+            margin-left: auto;
+        }
+        .btn-toggle-sidebar:hover {
+            background-color: #334155;
+            color: #ffffff;
+        }
+
+        /* SIDEBAR MODE DITUTUP (COLLAPSED) */
+        .sidebar.collapsed {
+            width: 56px;
+        }
+
+        .sidebar.collapsed .sidebar-header {
+            padding: 12px 0;
+            justify-content: center;
+        }
+        .sidebar.collapsed .sidebar-header span:first-child,
+        .sidebar.collapsed .sidebar-header h3 {
+            display: none;
+        }
+        .sidebar.collapsed .btn-toggle-sidebar {
+            margin-left: 0;
+        }
+
+        .sidebar.collapsed .sidebar-menu {
+            padding: 15px 0;
+            align-items: center;
+        }
+        .sidebar.collapsed .sidebar-menu li {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        .sidebar.collapsed .sidebar-menu li a {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 18px;
+        }
+        .sidebar.collapsed .sidebar-menu li a span:nth-child(2) {
+            display: none;
+        }
+
+        .sidebar.collapsed .sidebar-footer {
+            padding: 12px 0;
+            display: flex;
+            justify-content: center;
+        }
+        .sidebar.collapsed .btn-sidebar-logout {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        .sidebar.collapsed .btn-sidebar-logout span:nth-child(2) {
+            display: none;
+        }
+
+        /* --- KONTEN UTAMA --- */
+        .main-content {
+            margin-left: 250px;
+            flex: 1;
+            padding: 20px;
+            padding-bottom: 70px;
+            width: calc(100% - 250px);
+        }
+
+        .main-content.expanded {
+            margin-left: 56px;
+            width: calc(100% - 56px);
         }
         
         .filter-container {
@@ -27,6 +208,7 @@
             margin-bottom: 20px;
             align-items: flex-end;
         }
+
         .filter-group {
             display: flex;
             flex-direction: column;
@@ -34,11 +216,13 @@
             flex: 1;
             min-width: 180px;
         }
+
         label {
             font-size: 14px;
             font-weight: 600;
             color: #4a5568;
         }
+
         select, input[type="text"], input[type="date"], input[type="file"], textarea {
             padding: 8px 12px;
             border: 1px solid #cbd5e1;
@@ -48,7 +232,16 @@
             outline: none;
             width: 100%;
         }
+
+        select:disabled {
+            background-color: #f1f5f9;
+            color: #64748b;
+            cursor: not-allowed;
+            border-color: #e2e8f0;
+        }
+
         select:focus, input:focus, textarea:focus { border-color: #3182ce; }
+
         .btn-reset {
             padding: 8px 16px;
             background-color: #e2e8f0;
@@ -60,6 +253,7 @@
             cursor: pointer;
             height: 38px;
         }
+
         .btn-reset:hover { background-color: #cbd5e1; }
         
         .table-action-bar {
@@ -70,7 +264,9 @@
             flex-wrap: wrap;
             gap: 10px;
         }
+
         .export-buttons { display: flex; gap: 10px; }
+
         .btn-export {
             padding: 8px 14px;
             border: none;
@@ -84,6 +280,7 @@
             color: #fff;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
+
         .btn-csv { background-color: #2b6cb0; }
         .btn-csv:hover { background-color: #2c5282; }
         .btn-excel { background-color: #2f855a; }
@@ -95,6 +292,7 @@
             gap: 15px;
             margin-bottom: 20px;
         }
+
         .table-responsive {
             background: #fff;
             border-radius: 8px;
@@ -102,17 +300,20 @@
             overflow-x: auto;
             padding: 15px;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             text-align: left;
             font-size: 14px;
         }
+
         th, td {
             padding: 12px 15px;
             border-bottom: 1px solid #e2e8f0;
             white-space: nowrap;
         }
+
         th {
             background-color: #edf2f7;
             color: #4a5568;
@@ -120,7 +321,9 @@
             position: sticky;
             top: 0;
         }
+
         tr:hover { background-color: #f8fafc; }
+
         .status-badge {
             display: inline-block;
             padding: 4px 8px;
@@ -129,6 +332,7 @@
             font-weight: bold;
             text-align: center;
         }
+
         .status-ok { background-color: #c6f6d5; color: #22543d; }
         .status-problem { background-color: #fed7d7; color: #742a2a; }
 
@@ -145,7 +349,9 @@
             align-items: center;
             gap: 4px;
         }
+
         .btn-fu-action:hover { background-color: #ebf8ff; border-color: #3182ce; }
+
         .badge-fu-count {
             background-color: #3182ce;
             color: #fff;
@@ -157,9 +363,8 @@
 
         .footer-copyright {
             position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
+            bottom: 0; left: 250px;
+            width: calc(100% - 250px);
             background-color: #edf2f7;
             border-top: 1px solid #cbd5e1;
             text-align: center;
@@ -168,6 +373,11 @@
             padding: 8px 0;
             z-index: 9999;
             box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+        }
+
+        .footer-copyright.expanded {
+            left: 56px;
+            width: calc(100% - 56px);
         }
 
         /* Modal Styles */
@@ -184,7 +394,9 @@
             visibility: hidden;
             transition: all 0.2s ease;
         }
+
         .modal-overlay.active { opacity: 1; visibility: visible; }
+
         .modal-card {
             background: #fff;
             width: 90%;
@@ -196,6 +408,7 @@
             flex-direction: column;
             overflow: hidden;
         }
+
         .modal-header {
             padding: 15px 20px;
             background-color: #2b6cb0;
@@ -204,7 +417,9 @@
             justify-content: space-between;
             align-items: center;
         }
+
         .modal-header h3 { margin: 0; font-size: 16px; }
+
         .btn-close-modal {
             background: transparent;
             border: none;
@@ -212,6 +427,7 @@
             font-size: 20px;
             cursor: pointer;
         }
+
         .modal-body {
             padding: 20px;
             overflow-y: auto;
@@ -219,6 +435,7 @@
             flex-direction: column;
             gap: 15px;
         }
+
         .fu-item {
             background: #f7fafc;
             border: 1px solid #e2e8f0;
@@ -227,6 +444,7 @@
             font-size: 12px;
             margin-bottom: 8px;
         }
+
         .fu-item-header {
             display: flex;
             justify-content: space-between;
@@ -236,6 +454,7 @@
             padding-bottom: 4px;
             margin-bottom: 4px;
         }
+
         .btn-submit-fu {
             background-color: #2f855a;
             color: #fff;
@@ -246,10 +465,11 @@
             cursor: pointer;
             width: 100%;
         }
+
         .btn-submit-fu:hover { background-color: #276749; }
         .btn-submit-fu:disabled { background-color: #a0aec0; cursor: not-allowed; }
     
-        /* Styling Loading Container & Spinner Modern */
+        /* Loading Container & Spinner */
         .loading-box {
             display: flex;
             flex-direction: column;
@@ -283,9 +503,7 @@
         }
 
         /* Skeleton Loading Effect */
-        .skeleton-row td {
-            padding: 12px 15px;
-        }
+        .skeleton-row td { padding: 12px 15px; }
         .skeleton-bar {
             height: 16px;
             background: linear-gradient(90deg, #edf2f7 25%, #e2e8f0 50%, #edf2f7 75%);
@@ -298,96 +516,128 @@
             0% { background-position: 200% 0; }
             100% { background-position: -200% 0; }
         }
+
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; width: 100%; }
+            .footer-copyright { left: 0; width: 100%; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="filter-container">
-        <!-- Filter Status Toko -->
-        <div class="filter-group">
-            <label for="filter-status-nok">Filter Status Toko:</label>
-            <select id="filter-status-nok" onchange="jalankanFilter()">
-                <option value="semua">1. Tampilkan Semua</option>
-                <option value="nok">2. Tampilkan NOK</option>
-                <option value="koneksi-mati">3. Koneksi Mati/Listener Off</option>
-            </select>
+    <!-- SIDEBAR NAVIGASI -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span style="font-size: 24px;">📊</span>
+            <h3>Monitoring Toko<br><span style="font-size: 12px; color: #94a3b8; font-weight: normal;">EDP Samarinda</span></h3>
+            <button class="btn-toggle-sidebar" onclick="toggleSidebar()" title="Buka/Tutup Sidebar">☰</button>
         </div>
-        <!-- Filter Status Follow Up -->
-        <div class="filter-group">
-            <label for="filter-status-fu">Status Follow Up:</label>
-            <select id="filter-status-fu" onchange="jalankanFilter()">
-                <option value="semua">-- Semua Status FU --</option>
-                <option value="ada-fu">Sudah Ada Follow Up</option>
-                <option value="belum-fu">Belum Ada Follow Up</option>
-            </select>
-        </div>
-        <!-- Filter Nama EDP -->
-        <div class="filter-group">
-            <label for="filter-nama-edp">Pilih Nama EDP:</label>
-            <select id="filter-nama-edp" onchange="jalankanFilter()">
-                <option value="semua">-- Semua Nama EDP --</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            <label for="filter-edp">Pilih Kode Toko:</label>
-            <select id="filter-edp" onchange="jalankanFilter()">
-                <option value="semua">-- Semua Kode Toko --</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            <label for="filter-tanggal">Pilih Tanggal Report:</label>
-            <input type="date" id="filter-tanggal" onchange="muatDataPerTanggal()">
-        </div>
-        <div class="filter-group">
-            <label for="search-text">Cari Toko / Nama:</label>
-            <input type="text" id="search-text" placeholder="Ketik kode/nama toko..." onkeyup="jalankanFilter()">
-        </div>
-        <div>
-            <button class="btn-reset" onclick="resetFilter()">Reset Filter</button>
-        </div>
-    </div>
 
-    <!-- Ringkasan Persentase Parameter -->
-    <div id="ringkasan-parameter-container"></div>
+        <ul class="sidebar-menu">
+            <li class="active"><a href="index.html" title="Rekap SE"><span>📈</span> <span>Rekap SE</span></a></li>
+            <li><a href="upload-data.html" title="Upload Data"><span>📤</span> <span>Upload Data</span></a></li>
+            <li><a href="filter-item.html" title="Filter Data Per Item"><span>🔍</span> <span>Filter Data Per Item</span></a></li>
+            <li><a href="bkb.html" title="Monitoring Stock EDP"><span>📦</span> <span>Monitoring Stock EDP</span></a></li>
+        </ul>
 
-    <div class="table-responsive">
-        <div class="table-action-bar">
-            <div style="font-size: 14px; font-weight: 600; color: #4a5568;" id="info-jumlah-data">
-                Memuat data...
+        <div class="sidebar-footer">
+            <button class="btn-sidebar-logout" onclick="logout()" title="Logout"><span>🚪</span> <span>Logout</span></button>
+        </div>
+    </aside>
+
+    <!-- KONTEN UTAMA DEDIKASI -->
+    <main class="main-content">
+
+        <div class="filter-container">
+            <!-- Filter Status Toko -->
+            <div class="filter-group">
+                <label for="filter-status-nok">Filter Status Toko:</label>
+                <select id="filter-status-nok" onchange="jalankanFilter()">
+                    <option value="semua">1. Tampilkan Semua</option>
+                    <option value="nok">2. Tampilkan NOK</option>
+                    <option value="koneksi-mati">3. Koneksi Mati/Listener Off</option>
+                </select>
             </div>
-            <div class="export-buttons">
-                <button class="btn-export btn-csv" onclick="exportData('csv')">📥 Export CSV</button>
-                <button class="btn-export btn-excel" onclick="exportData('xlsx')">📊 Export Excel</button>
+            <!-- Filter Status Follow Up -->
+            <div class="filter-group">
+                <label for="filter-status-fu">Status Follow Up:</label>
+                <select id="filter-status-fu" onchange="jalankanFilter()">
+                    <option value="semua">-- Semua Status FU --</option>
+                    <option value="ada-fu">Sudah Ada Follow Up</option>
+                    <option value="belum-fu">Belum Ada Follow Up</option>
+                </select>
+            </div>
+            <!-- Filter Nama EDP -->
+            <div class="filter-group">
+                <label for="filter-nama-edp">Pilih Nama EDP:</label>
+                <select id="filter-nama-edp" onchange="jalankanFilter()">
+                    <option value="semua">-- Semua Nama EDP --</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filter-edp">Pilih Kode Toko:</label>
+                <select id="filter-edp" onchange="jalankanFilter()">
+                    <option value="semua">-- Semua Kode Toko --</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filter-tanggal">Pilih Tanggal Report:</label>
+                <input type="date" id="filter-tanggal" onchange="muatDataPerTanggal()">
+            </div>
+            <div class="filter-group">
+                <label for="search-text">Cari Toko / Nama:</label>
+                <input type="text" id="search-text" placeholder="Ketik kode/nama toko..." onkeyup="jalankanFilter()">
+            </div>
+            <div>
+                <button class="btn-reset" onclick="resetFilter()">Reset Filter</button>
             </div>
         </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Kode Toko</th>
-                    <th>Nama Toko</th>
-                    <th>Station</th>
-                    <th>Status LAN Speed</th>
-                    <th>Status Durasi Start MySQL</th>
-                    <th>Status Suhu</th>
-                    <th>Status Boot Time</th>
-                    <th>Status Aktivasi</th>
-                    <th>Status Listener</th>
-                    <th>Status EDC BCA</th>
-                    <th>Status EDC MTI</th>
-                    <th>Status BSOD</th>
-                    <th>Status UPS</th>
-                    <th>IP DVR</th>
-                    <th>STATUS DVR</th>
-                    <th>STATUS DVR2</th>
-                    <th>Aksi / Follow Up</th>
-                </tr>
-            </thead>
-            <tbody id="isi-tabel">
-                <tr><td colspan="17" style="text-align: center;">Memuat data dari Google Spreadsheet...</td></tr>
-            </tbody>
-        </table>
-    </div>
+        <!-- Ringkasan Persentase Parameter -->
+        <div id="ringkasan-parameter-container"></div>
+
+        <div class="table-responsive">
+            <div class="table-action-bar">
+                <div style="font-size: 14px; font-weight: 600; color: #4a5568;" id="info-jumlah-data">
+                    Memuat data...
+                </div>
+                <div class="export-buttons">
+                    <button class="btn-export btn-csv" onclick="exportData('csv')">📥 Export CSV</button>
+                    <button class="btn-export btn-excel" onclick="exportData('xlsx')">📊 Export Excel</button>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Kode Toko</th>
+                        <th>Nama Toko</th>
+                        <th>Station</th>
+                        <th>Status LAN Speed</th>
+                        <th>Status Durasi Start MySQL</th>
+                        <th>Status Suhu</th>
+                        <th>Status Boot Time</th>
+                        <th>Status Aktivasi</th>
+                        <th>Status Listener</th>
+                        <th>Status EDC BCA</th>
+                        <th>Status EDC MTI</th>
+                        <th>Status BSOD</th>
+                        <th>Status UPS</th>
+                        <th>IP DVR</th>
+                        <th>STATUS DVR</th>
+                        <th>STATUS DVR2</th>
+                        <th>Aksi / Follow Up</th>
+                    </tr>
+                </thead>
+                <tbody id="isi-tabel">
+                    <tr><td colspan="17" style="text-align: center;">Memuat data dari Google Spreadsheet...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+    </main>
 
     <!-- Copyright Footer -->
     <div class="footer-copyright">
@@ -442,7 +692,70 @@
     </div>
 
     <script>
-        const apiUrl = "https://api.sheetbest.com/sheets/478b0475-ac28-4edd-a01e-7e87ff27ac26";
+        document.addEventListener("DOMContentLoaded", () => {
+            if (sessionStorage.getItem("isLoggedIn") !== "true") {
+                window.location.href = "login.html";
+                return;
+            }
+
+            const currentRole = (sessionStorage.getItem("userRole") || "").toUpperCase();
+
+            if (currentRole !== "ADMIN") {
+                const menuUpload = document.querySelector('a[href="upload-data.html"]');
+                const menuFilter = document.querySelector('a[href="filter-item.html"]');
+
+                if (menuUpload && menuUpload.parentElement) {
+                    menuUpload.parentElement.style.display = "none";
+                }
+                if (menuFilter && menuFilter.parentElement) {
+                    menuFilter.parentElement.style.display = "none";
+                }
+            }
+
+            if (localStorage.getItem("sidebarCollapsed") === "true") {
+                const sidebar = document.getElementById("sidebar");
+                const mainContent = document.querySelector(".main-content");
+                const footer = document.querySelector(".footer-copyright");
+
+                if (sidebar) sidebar.classList.add("collapsed");
+                if (mainContent) mainContent.classList.add("expanded");
+                if (footer) footer.classList.add("expanded");
+            }
+
+            const today = new Date().toISOString().slice(0, 10);
+            document.getElementById("filter-tanggal").value = today;
+            ambilData(today);
+        });
+
+        function logout() {
+            if (confirm("Apakah Anda yakin ingin keluar dari sistem?")) {
+                sessionStorage.removeItem("isLoggedIn");
+                sessionStorage.removeItem("userNama");
+                sessionStorage.removeItem("userRole");
+                window.location.href = "login.html";
+            }
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById("sidebar");
+            const mainContent = document.querySelector(".main-content");
+            const footer = document.querySelector(".footer-copyright");
+
+            sidebar.classList.toggle("collapsed");
+            if (mainContent) mainContent.classList.toggle("expanded");
+            if (footer) footer.classList.toggle("expanded");
+
+            const isCollapsed = sidebar.classList.contains("collapsed");
+            localStorage.setItem("sidebarCollapsed", isCollapsed ? "true" : "false");
+        }
+
+        // --- DUA ENDPOINT TERPISAH (HYBRID STRATEGY) ---
+        // 1. SheetBest API: khusus untuk membaca & menulis baris data laporan
+        const apiUrlSheetBest = "https://api.sheetbest.com/sheets/478b0475-ac28-4edd-a01e-7e87ff27ac26"; 
+
+        // 2. Google Apps Script Web App: KHUSUS UPLOAD FOTO KE GOOGLE DRIVE
+        const gasUploadUrl = "https://script.google.com/macros/s/AKfycbynpQMCaUnWggcjYe9wWpFulIx8tcsYyfwI_MB5CPPbpa88tUW2VpOXQJ3D7KRS7aV8cA/exec"; 
+
         let semuaData = [];
         let dataAktifTerfilter = [];
 
@@ -466,35 +779,35 @@
         let KOLOM_IP_DVR = "IP_DVR";
         let KOLOM_DVR = "DVR";
         let KOLOM_DVR2 = "DVR2";
-        
+
         function renderSkeletonLoading(jumlahBaris = 5) {
-    let skeletonHtml = '';
-    for (let i = 0; i < jumlahBaris; i++) {
-        skeletonHtml += `
-            <tr class="skeleton-row">
-                <td><div class="skeleton-bar" style="width: 70px;"></div></td>
-                <td><div class="skeleton-bar" style="width: 140px;"></div></td>
-                <td><div class="skeleton-bar" style="width: 50px;"></div></td>
-                <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                <td><div class="skeleton-bar" style="width: 80px;"></div></td>
-                <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                <td><div class="skeleton-bar" style="width: 90px;"></div></td>
-                <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                <td><div class="skeleton-bar" style="width: 80px;"></div></td>
-            </tr>
-        `;
-    }
-    return skeletonHtml;
-}
-        
+            let skeletonHtml = '';
+            for (let i = 0; i < jumlahBaris; i++) {
+                skeletonHtml += `
+                    <tr class="skeleton-row">
+                        <td><div class="skeleton-bar" style="width: 70px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 140px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 50px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 80px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 90px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 80px;"></div></td>
+                    </tr>
+                `;
+            }
+            return skeletonHtml;
+        }
+
         function formatTanggalRapi(val) {
             if (!val || val === '-') return '-';
             let str = val.toString().trim();
@@ -516,76 +829,94 @@
             return str.substring(0, 10);
         }
 
-        // Atur tanggal default ke hari ini saat halaman pertama dimuat
-document.addEventListener("DOMContentLoaded", () => {
-    const today = new Date().toISOString().slice(0, 10);
-    document.getElementById("filter-tanggal").value = today;
-    
-    // Tarik data awal sesuai tanggal hari ini
-    ambilData(today);
-});
+        // --- AMBIL DATA DARI SHEETBEST UTAMA DAN TAB FOLLOW UP LAPANGAN ---
+        async function ambilData(tanggalSelected = "") {
+            const tbody = document.getElementById("isi-tabel");
+            const infoJumlah = document.getElementById("info-jumlah-data");
+            const tgl = tanggalSelected || document.getElementById("filter-tanggal").value;
 
-async function ambilData(tanggalSelected = "") {
-    const tbody = document.getElementById("isi-tabel");
-    const infoJumlah = document.getElementById("info-jumlah-data");
-    const tgl = tanggalSelected || document.getElementById("filter-tanggal").value;
-
-    // Tampilkan Spinner & Skeleton Animasi Modern
-    infoJumlah.innerHTML = `⏳ Memuat data tanggal <strong>${tgl}</strong>...`;
-    
-    tbody.innerHTML = `
-        <tr>
-            <td colspan="17" style="padding: 30px 0;">
-                <div class="loading-box">
-                    <span class="spinner"></span>
-                    <span class="loading-text">Sedang mengambil data laporan (${tgl})...</span>
-                </div>
-            </td>
-        </tr>
-        ${renderSkeletonLoading(5)}
-    `;
-
-    try {
-        let requestUrl = apiUrl;
-        if (tgl) {
-            requestUrl += "?tanggal=" + encodeURIComponent(tgl);
-        }
-
-        const response = await fetch(requestUrl);
-        semuaData = await response.json();
-                        
-        if (semuaData.length > 0) {
-            petakanNamaKolom(semuaData[0]);
-            buatDropdownNamaEdp();
-            buatDropdownEDP(semuaData);
-            jalankanFilter();
-        } else {
+            infoJumlah.innerHTML = `⏳ Memuat data tanggal <strong>${tgl}</strong>...`;
+            
             tbody.innerHTML = `
                 <tr>
-                    <td colspan='17' style='text-align: center; padding: 40px; color: #718096;'>
-                        📂 Tidak ada data report ditemukan untuk tanggal <strong>${tgl}</strong>.
+                    <td colspan="17" style="padding: 30px 0;">
+                        <div class="loading-box">
+                            <span class="spinner"></span>
+                            <span class="loading-text">Sedang mengambil data laporan (${tgl})...</span>
+                        </div>
                     </td>
-                </tr>`;
-            document.getElementById("ringkasan-parameter-container").innerHTML = "";
-            infoJumlah.textContent = "Menampilkan 0 data toko";
-        }
-    } catch (error) {
-        console.error("Detail Error:", error);
-        tbody.innerHTML = `
-            <tr>
-                <td colspan='17' style='text-align: center; padding: 40px; color: #e53e3e;'>
-                    ⚠️ Gagal memuat data dari Spreadsheet. Pastikan koneksi internet stabil atau Apps Script sudah di-deploy.
-                </td>
-            </tr>`;
-        infoJumlah.textContent = "Gagal memuat data";
-    }
-}
+                </tr>
+                ${renderSkeletonLoading(5)}
+            `;
 
-            // Handler saat tanggal pada filter diubah user
+            try {
+                let requestUrl = apiUrlSheetBest;
+                if (tgl) {
+                    requestUrl += "?tanggal=" + encodeURIComponent(tgl);
+                }
+
+                const [resMain, resFu] = await Promise.all([
+                    fetch(requestUrl),
+                    fetch(`${apiUrlSheetBest}/tabs/${encodeURIComponent("FOLLOW UP LAPANGAN")}`)
+                ]);
+
+                semuaData = await resMain.json();
+                let dataFuRaw = [];
+
+                try {
+                    dataFuRaw = await resFu.json();
+                } catch (e) {
+                    console.warn("Tab FOLLOW UP LAPANGAN belum terbaca atau masih kosong:", e);
+                }
+
+                if (semuaData.length > 0) {
+                    petakanNamaKolom(semuaData[0]);
+
+                    semuaData = semuaData.map(item => {
+                        const itemKdtk = (item[KOLOM_KODE_TOKO] || "").toString().trim().toUpperCase();
+                        const itemTgl = formatTanggalRapi(item[KOLOM_TANGGAL]);
+
+                        const matchedFu = Array.isArray(dataFuRaw) ? dataFuRaw.filter(fu => {
+                            const fuKdtk = (fu["Kode Toko"] || fu.kdtk || fu.KDTK || "").toString().trim().toUpperCase();
+                            const fuTgl = formatTanggalRapi(fu["Tanggal Report"] || fu.tanggal || "");
+                            return fuKdtk === itemKdtk && (fuTgl === itemTgl || !fu["Tanggal Report"]);
+                        }) : [];
+
+                        return {
+                            ...item,
+                            FOLLOW_UP_HISTORY: matchedFu
+                        };
+                    });
+
+                    buatDropdownNamaEdp();
+                    buatDropdownEDP(semuaData);
+                    jalankanFilter();
+                } else {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan='17' style='text-align: center; padding: 40px; color: #718096;'>
+                                📂 Tidak ada data report ditemukan untuk tanggal <strong>${tgl}</strong>.
+                            </td>
+                        </tr>`;
+                    document.getElementById("ringkasan-parameter-container").innerHTML = "";
+                    infoJumlah.textContent = "Menampilkan 0 data toko";
+                }
+            } catch (error) {
+                console.error("Detail Error:", error);
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan='17' style='text-align: center; padding: 40px; color: #e53e3e;'>
+                            ⚠️ Gagal memuat data dari Spreadsheet. Pastikan koneksi internet stabil.
+                        </td>
+                    </tr>`;
+                infoJumlah.textContent = "Gagal memuat data";
+            }
+        }
+
         function muatDataPerTanggal() {
             const tgl = document.getElementById("filter-tanggal").value;
             ambilData(tgl);
-            }
+        }
 
         function petakanNamaKolom(sampelBaris) {
             const keys = Object.keys(sampelBaris);
@@ -614,8 +945,12 @@ async function ambilData(tanggalSelected = "") {
             KOLOM_DVR2         = keys.find(k => k.toUpperCase() === "DVR2" || k.toUpperCase() === "STATUS_DVR2") || "DVR2";
         }
 
+        // --- BUAT DROPDOWN NAMA EDP (DILENGKAPI LOGIKA OTO-FILTER UNTUK USER) ---
         function buatDropdownNamaEdp() {
             const dropdown = document.getElementById("filter-nama-edp");
+            const currentRole = (sessionStorage.getItem("userRole") || "").toUpperCase();
+            const currentNama = (sessionStorage.getItem("userNama") || "").trim();
+
             dropdown.innerHTML = '<option value="semua">-- Semua Nama EDP --</option>';
             const daftarNamaEdp = [...new Set(semuaData.map(item => item[KOLOM_NAMA_EDP]))].filter(Boolean).sort();
                 
@@ -625,6 +960,27 @@ async function ambilData(tanggalSelected = "") {
                 opsi.textContent = nama;
                 dropdown.appendChild(opsi);
             });
+
+            // Jika role BUKAN ADMIN, otomatis pilih nama user dan KUNCI dropdown-nya
+            if (currentRole !== "ADMIN" && currentNama) {
+                const matchedNama = daftarNamaEdp.find(nama => 
+                    nama.toLowerCase().trim().includes(currentNama.toLowerCase().trim()) || 
+                    currentNama.toLowerCase().trim().includes(nama.toLowerCase().trim())
+                );
+
+                if (matchedNama) {
+                    dropdown.value = matchedNama;
+                } else {
+                    const opsiUser = document.createElement("option");
+                    opsiUser.value = currentNama;
+                    opsiUser.textContent = currentNama;
+                    dropdown.appendChild(opsiUser);
+                    dropdown.value = currentNama;
+                }
+                dropdown.disabled = true; // Kunci agar tidak bisa pilih nama EDP lain
+            } else {
+                dropdown.disabled = false;
+            }
         }
 
         function buatDropdownEDP(dataSumber) {
@@ -646,28 +1002,6 @@ async function ambilData(tanggalSelected = "") {
             } else {
                 dropdown.value = "semua";
             }
-        }
-
-       function buatDropdownTanggal() {
-           const dropdown = document.getElementById("filter-tanggal");
-              dropdown.innerHTML = '<option value="semua">-- Semua Tanggal --</option>';
-            
-            const setTanggalUnik = new Set();
-            semuaData.forEach(item => {
-                let tglRaw = item[KOLOM_TANGGAL];
-                if (tglRaw) {
-                    setTanggalUnik.add(formatTanggalRapi(tglRaw));
-                }
-            });
-
-            const daftarTanggal = Array.from(setTanggalUnik).sort((a, b) => new Date(b) - new Date(a));
-                        
-            daftarTanggal.forEach(tgl => {
-                const opsi = document.createElement("option");
-                opsi.value = tgl;
-                opsi.textContent = tgl;
-                dropdown.appendChild(opsi);
-            });
         }
 
         function formatStatus(nilai) {
@@ -852,7 +1186,6 @@ async function ambilData(tanggalSelected = "") {
             tbody.innerHTML = htmlContent;
         }
 
-        // EXPORT DATA (CSV & EXCEL)
         function exportData(format) {
             if (!dataAktifTerfilter || dataAktifTerfilter.length === 0) {
                 alert("Tidak ada data untuk diexport!");
@@ -872,11 +1205,11 @@ async function ambilData(tanggalSelected = "") {
 
                 if (item.FOLLOW_UP_HISTORY && item.FOLLOW_UP_HISTORY.length > 0) {
                     const fuTerakhir = item.FOLLOW_UP_HISTORY[item.FOLLOW_UP_HISTORY.length - 1];
-                    tglFuTerakhir = fuTerakhir.tanggal_fu || '-';
-                    namaEdpFu     = fuTerakhir.nama_edp || '-';
-                    analisaFu     = fuTerakhir.analisa || '-';
-                    hasilFu       = fuTerakhir.hasil || '-';
-                    fotoFu        = fuTerakhir.foto || '-';
+                    tglFuTerakhir = fuTerakhir["Tanggal Report"] || fuTerakhir.tanggal_fu || '-';
+                    namaEdpFu     = fuTerakhir["Nama EDP"] || fuTerakhir.nama_edp || '-';
+                    analisaFu     = fuTerakhir["Analisa Kendala / NOK"] || fuTerakhir.analisa || '-';
+                    hasilFu       = fuTerakhir["Hasil Perbaikan"] || fuTerakhir.hasil || '-';
+                    fotoFu        = fuTerakhir["Foto Bukti"] || fuTerakhir.foto || '-';
                 }
 
                 return {
@@ -926,7 +1259,7 @@ async function ambilData(tanggalSelected = "") {
             }
         }
 
-        // MODAL FOLLOW UP
+        // --- BUKA MODAL DAN LOAD HISTORY ---
         function bukaModalFollowUp(kdtk, dataIndex) {
             const item = dataAktifTerfilter[dataIndex] || semuaData.find(x => x[KOLOM_KODE_TOKO] === kdtk);
             if (!item) return;
@@ -953,18 +1286,24 @@ async function ambilData(tanggalSelected = "") {
                 let historyHtml = '';
                 const reversedHistory = [...fuHistory].reverse();
                 reversedHistory.forEach((fu) => {
+                    const tglReportVal = fu["Tanggal Report"] || fu.tanggal_fu || '-';
+                    const edpVal = fu["Nama EDP"] || fu.nama_edp || '-';
+                    const analisaVal = fu["Analisa Kendala / NOK"] || fu.analisa || '-';
+                    const hasilVal = fu["Hasil Perbaikan"] || fu.hasil || '-';
+                    const fotoVal = fu["Foto Bukti"] || fu.foto || '-';
+
                     let linkFotoHtml = '';
-                    if (fu.foto && fu.foto !== '-' && fu.foto.trim() !== '') {
-                        linkFotoHtml = `<div><a href="${fu.foto}" target="_blank" style="color:#3182ce; font-weight:bold;">📷 Lihat Foto Bukti Perbaikan</a></div>`;
+                    if (fotoVal && fotoVal !== '-' && fotoVal.trim() !== '') {
+                        linkFotoHtml = `<div><a href="${fotoVal}" target="_blank" style="color:#3182ce; font-weight:bold;">📷 Lihat Foto Bukti Perbaikan</a></div>`;
                     }
                     historyHtml += `
                         <div class="fu-item">
                             <div class="fu-item-header">
-                                <span>📅 Tgl FU: ${fu.tanggal_fu || '-'}</span>
-                                <span>👤 EDP: ${fu.nama_edp || '-'}</span>
+                                <span>📅 Tgl FU: ${tglReportVal}</span>
+                                <span>👤 EDP: ${edpVal}</span>
                             </div>
-                            <div><b>Analisa:</b> ${fu.analisa || '-'}</div>
-                            <div><b>Hasil:</b> ${fu.hasil || '-'}</div>
+                            <div><b>Analisa:</b> ${analisaVal}</div>
+                            <div><b>Hasil:</b> ${hasilVal}</div>
                             ${linkFotoHtml}
                         </div>
                     `;
@@ -983,68 +1322,116 @@ async function ambilData(tanggalSelected = "") {
             document.getElementById("modal-fu-overlay").classList.remove("active");
         }
 
-        // FUNGSI KONVERSI GAMBAR KE BASE64
-        function convertFileToBase64(file) {
+        // --- FUNGSI KOMPRESI GAMBAR DENGAN CANVAS ---
+        function kompresGambar(file, maxDimension = 800, quality = 0.6) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
-                reader.onload = () => {
-                    const base64String = reader.result.split(',')[1];
-                    resolve(base64String);
-                };
-                reader.onerror = error => reject(error);
                 reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > maxDimension) {
+                                height = Math.round((height * maxDimension) / width);
+                                width = maxDimension;
+                            }
+                        } else {
+                            if (height > maxDimension) {
+                                width = Math.round((width * maxDimension) / height);
+                                height = maxDimension;
+                            }
+                        }
+
+                        const canvas = document.createElement("canvas");
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext("2d");
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        const dataUrl = canvas.toDataURL("image/jpeg", quality);
+                        resolve(dataUrl);
+                    };
+                    img.onerror = (err) => reject(err);
+                };
+                reader.onerror = (err) => reject(err);
             });
         }
 
+        // --- KIRIM FORM FOLLOW UP (HYBRID ALUR: FOTO KE GAS DRIVE, DATA KE SHEETBEST) ---
         async function kirimFollowUp(event) {
             event.preventDefault();
             const btnSubmit = document.getElementById("btn-submit-fu");
             btnSubmit.disabled = true;
-            btnSubmit.innerText = "⏳ Mengunggah Gambar & Menyimpan...";
+            btnSubmit.innerText = "⏳ Mengunggah foto ke Drive...";
 
             const fileInput = document.getElementById("modal-foto-file");
-            let base64File = "";
-            let fileName = "";
-            let mimeType = "";
+            const kdtkVal = document.getElementById("modal-kdtk").value;
+            let linkFotoDrive = "-";
 
             if (fileInput.files.length > 0) {
                 const file = fileInput.files[0];
-                fileName = file.name;
-                mimeType = file.type;
                 try {
-                    base64File = await convertFileToBase64(file);
+                    const fullBase64 = await kompresGambar(file, 800, 0.6);
+                    const rawBase64 = fullBase64.includes(",") ? fullBase64.split(",")[1] : fullBase64;
+
+                    const resGas = await fetch(gasUploadUrl, {
+                        method: "POST",
+                        headers: { "Content-Type": "text/plain" },
+                        body: JSON.stringify({
+                            "kdtk": kdtkVal,
+                            "base64File": rawBase64,
+                            "mimeType": "image/jpeg"
+                        })
+                    });
+
+                    const resGasData = await resGas.json();
+                    if (resGasData.status === "sukses") {
+                        linkFotoDrive = resGasData.photoUrl;
+                    } else {
+                        throw new Error("Gagal upload Drive: " + resGasData.message);
+                    }
                 } catch(e) {
-                    alert("Gagal membaca file foto.");
+                    alert(`⚠️ Gagal mengunggah foto ke Drive:\n${e.message}`);
                     btnSubmit.disabled = false;
                     btnSubmit.innerText = "💾 Simpan Follow Up Lapangan";
                     return;
                 }
             }
 
-            const payload = {
-                tanggal: document.getElementById("modal-tgl-report").value || new Date().toISOString().slice(0, 10),
-                kdtk: document.getElementById("modal-kdtk").value,
-                nama_edp: document.getElementById("modal-nama-edp-input").value,
-                analisa: document.getElementById("modal-analisa").value,
-                hasil: document.getElementById("modal-hasil").value,
-                base64File: base64File,
-                fileName: fileName,
-                mimeType: mimeType
+            btnSubmit.innerText = "⏳ Menyimpan data ke Spreadsheet...";
+
+            const payloadSheetBest = {
+                "Tanggal Report": document.getElementById("modal-tgl-report").value || new Date().toISOString().slice(0, 10),
+                "Kode Toko": kdtkVal,
+                "Nama EDP": document.getElementById("modal-nama-edp-input").value,
+                "Analisa Kendala / NOK": document.getElementById("modal-analisa").value,
+                "Hasil Perbaikan": document.getElementById("modal-hasil").value,
+                "Foto Bukti": linkFotoDrive
             };
 
             try {
-                const response = await fetch(apiUrl, {
+                const targetUrl = `${apiUrlSheetBest}/tabs/${encodeURIComponent("FOLLOW UP LAPANGAN")}`;
+                const response = await fetch(targetUrl, {
                     method: "POST",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify(payload)
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify([payloadSheetBest])
                 });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server Error (${response.status}): ${errorText}`);
+                }
                 
-                alert("✅ Data & Foto Follow Up berhasil disimpan!");
+                alert("✅ Data Follow Up & Link Foto Drive berhasil disimpan!");
                 tutupModal();
                 await ambilData();
             } catch (err) {
                 console.error("Error submit follow up:", err);
-                alert("⚠️ Terjadi kesalahan koneksi saat mengirim data.");
+                alert(`⚠️ Terjadi kesalahan saat menyimpan data ke SheetBest:\n${err.message}`);
             } finally {
                 btnSubmit.disabled = false;
                 btnSubmit.innerText = "💾 Simpan Follow Up Lapangan";
@@ -1073,17 +1460,19 @@ async function ambilData(tanggalSelected = "") {
             }
 
             if (namaEdpTerpilih !== "semua") {
-                dataHasilFilter = dataHasilFilter.filter(item => item[KOLOM_NAMA_EDP] === namaEdpTerpilih);
+                dataHasilFilter = dataHasilFilter.filter(item => {
+                    const namaVal = (item[KOLOM_NAMA_EDP] || "").toString().toLowerCase().trim();
+                    const targetVal = namaEdpTerpilih.toLowerCase().trim();
+                    return namaVal === targetVal || namaVal.includes(targetVal) || targetVal.includes(namaVal);
+                });
             }
 
             if (tanggalTerpilih !== "semua") {
                 dataHasilFilter = dataHasilFilter.filter(item => formatTanggalRapi(item[KOLOM_TANGGAL]) === tanggalTerpilih);
             }
 
-            // PERBAIKAN URUTAN: Panggil dulu pembaruan dropdown Kode Toko
             buatDropdownEDP(dataHasilFilter);
 
-            // Ambil nilai Kode Toko SETELAH dropdown diperbarui (Mencegah Bug Mismatch)
             const edpTerpilih = document.getElementById("filter-edp").value;
             if (edpTerpilih !== "semua") {
                 dataHasilFilter = dataHasilFilter.filter(item => item[KOLOM_KODE_TOKO] === edpTerpilih);
@@ -1100,17 +1489,23 @@ async function ambilData(tanggalSelected = "") {
             tampilkanData(dataHasilFilter);
         }
 
-function resetFilter() {
-    const today = new Date().toISOString().slice(0, 10);
-    document.getElementById("filter-tanggal").value = today;
-    document.getElementById("filter-status-nok").value = "semua";
-    document.getElementById("filter-status-fu").value  = "semua";
-    document.getElementById("filter-nama-edp").value    = "semua";
-    document.getElementById("filter-edp").value         = "semua";
-    document.getElementById("search-text").value        = "";
-    
-    ambilData(today);
-}
+        function resetFilter() {
+            const today = new Date().toISOString().slice(0, 10);
+            const currentRole = (sessionStorage.getItem("userRole") || "").toUpperCase();
+
+            document.getElementById("filter-tanggal").value = today;
+            document.getElementById("filter-status-nok").value = "semua";
+            document.getElementById("filter-status-fu").value  = "semua";
+            
+            if (currentRole === "ADMIN") {
+                document.getElementById("filter-nama-edp").value = "semua";
+            }
+            
+            document.getElementById("filter-edp").value         = "semua";
+            document.getElementById("search-text").value        = "";
+            
+            ambilData(today);
+        }
     </script>
 </body>
 </html>
