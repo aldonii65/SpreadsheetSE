@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filter Data Per Item - Monitoring Status Toko</title>
+    <!-- Pustaka SheetJS untuk Export Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* --- TRANSISI HALUS (GEMINI STYLE) --- */
+        .sidebar, .main-content, .footer-copyright {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* --- SIDEBAR STYLES --- */
+        .sidebar {
+            width: 250px;
+            background-color: #1e293b;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0; bottom: 0; left: 0;
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .sidebar-header {
+            padding: 20px 15px;
+            background-color: #0f172a;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-header h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #60a5fa;
+            line-height: 1.2;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 15px 10px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .sidebar-menu li a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-menu li a:hover { background-color: #334155; color: #f8fafc; }
+
+        .sidebar-menu li.active a {
+            background-color: #2563eb;
+            color: #ffffff;
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+        }
+
+        .sidebar-footer { padding: 15px 10px; border-top: 1px solid #334155; }
+
+        .btn-sidebar-logout {
+            width: 100%;
+            padding: 10px;
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-sidebar-logout:hover { background-color: #dc2626; }
+
+        /* TOMBOL TOGGLE SIDEBAR */
+        .btn-toggle-sidebar {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 18px;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s;
+            margin-left: auto;
+        }
+        .btn-toggle-sidebar:hover {
+            background-color: #334155;
+            color: #ffffff;
+        }
+
+        /* ========================================================
+           SIDEBAR MODE DITUTUP (COLLAPSED / RAMPING STYLE GEMINI)
+           ======================================================== */
+        .sidebar.collapsed {
+            width: 56px;
+        }
+
+        .sidebar.collapsed .sidebar-header {
+            padding: 12px 0;
+            justify-content: center;
+        }
+        .sidebar.collapsed .sidebar-header span:first-child,
+        .sidebar.collapsed .sidebar-header h3 {
+            display: none;
+        }
+        .sidebar.collapsed .btn-toggle-sidebar {
+            margin-left: 0;
+        }
+
+        .sidebar.collapsed .sidebar-menu {
+            padding: 15px 0;
+            align-items: center;
+        }
+        .sidebar.collapsed .sidebar-menu li {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        .sidebar.collapsed .sidebar-menu li a {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 18px;
+        }
+        .sidebar.collapsed .sidebar-menu li a span:nth-child(2) {
+            display: none;
+        }
+
+        .sidebar.collapsed .sidebar-footer {
+            padding: 12px 0;
+            display: flex;
+            justify-content: center;
+        }
+        .sidebar.collapsed .btn-sidebar-logout {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        .sidebar.collapsed .btn-sidebar-logout span:nth-child(2) {
+            display: none;
+        }
+
+        /* --- MAIN CONTENT --- */
+        .main-content {
+            margin-left: 250px;
+            flex: 1;
+            padding: 20px;
+            padding-bottom: 70px;
+            width: calc(100% - 250px);
+        }
+
+        .main-content.expanded {
+            margin-left: 56px;
+            width: calc(100% - 56px);
+        }
+
+        .filter-card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            align-items: flex-end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        label { font-size: 13px; font-weight: 600; color: #4a5568; }
+
+        select, input[type="date"], input[type="text"] {
+            padding: 9px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            background-color: #fff;
+        }
+
+        select:focus, input:focus { border-color: #3182ce; }
+
+        .btn-reset {
+            padding: 9px 16px;
+            background-color: #e2e8f0;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #4a5568;
+            cursor: pointer;
+            height: 38px;
+        }
+
+        .btn-reset:hover { background-color: #cbd5e1; }
+
+        /* MULTI-CHECKBOX DROPDOWN STYLES */
+        .checkbox-dropdown-container {
+            position: relative;
+            width: 100%;
+        }
+        .checkbox-dropdown-btn {
+            padding: 9px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background-color: #fff;
+            font-size: 14px;
+            color: #4a5568;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+        .checkbox-dropdown-panel {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            max-height: 250px;
+            overflow-y: auto;
+            padding: 8px 0;
+            margin-top: 4px;
+        }
+        .checkbox-dropdown-panel.show { display: block; }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 14px;
+            font-size: 13.5px;
+            color: #2d3748;
+            cursor: pointer;
+        }
+        .checkbox-item:hover { background-color: #f1f5f9; }
+        .checkbox-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        .checkbox-actions {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 4px;
+        }
+        .btn-link {
+            background: none;
+            border: none;
+            color: #3182ce;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* SUMMARY COUNTER CARDS */
+        .summary-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .summary-card {
+            background: #fff;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            flex: 1;
+            min-width: 180px;
+            border-left: 4px solid #3182ce;
+        }
+
+        .summary-card-title { font-size: 12px; color: #64748b; font-weight: 600; }
+        .summary-card-value { font-size: 24px; font-weight: 700; color: #1e293b; margin-top: 4px; }
+
+        /* TABLE STYLING */
+        .table-responsive {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            overflow-x: auto;
+            padding: 15px;
+        }
+
+        .table-header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13.5px; }
+        th, td { padding: 10px 14px; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
+        th { background-color: #edf2f7; color: #4a5568; font-weight: 600; }
+
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11.5px;
+            font-weight: 700;
+        }
+        .status-ok { background-color: #c6f6d5; color: #22543d; }
+        .status-problem { background-color: #fed7d7; color: #742a2a; }
+
+        .btn-export {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            color: #fff;
+            background-color: #2f855a;
+        }
+        .btn-export:hover { background-color: #276749; }
+
+        .footer-copyright {
+            position: fixed;
+            bottom: 0; left: 250px;
+            width: calc(100% - 250px);
+            background-color: #edf2f7;
+            border-top: 1px solid #cbd5e1;
+            text-align: center;
+            font-size: 12px;
+            color: #4a5568;
+            padding: 8px 0;
+            z-index: 9999;
+        }
+
+        .footer-copyright.expanded {
+            left: 56px;
+            width: calc(100% - 56px);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .main-content { margin-left: 0; width: 100%; }
+            .footer-copyright { left: 0; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR NAVIGASI -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span style="font-size: 24px;">📊</span>
+            <h3>Monitoring Toko<br><span style="font-size: 12px; color: #94a3b8; font-weight: normal;">EDP Samarinda</span></h3>
+            <button class="btn-toggle-sidebar" onclick="toggleSidebar()" title="Buka/Tutup Sidebar">☰</button>
+        </div>
+
+        <ul class="sidebar-menu">
+            <li><a href="index.html" title="Rekap SE"><span>📈</span> <span>Rekap SE</span></a></li>
+            <li><a href="upload-data.html" title="Upload Data"><span>📤</span> <span>Upload Data</span></a></li>
+            <li class="active"><a href="filter-item.html" title="Filter Data Per Item"><span>🔍</span> <span>Filter Data Per Item</span></a></li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <button class="btn-sidebar-logout" onclick="logout()" title="Logout"><span>🚪</span> <span>Logout</span></button>
+        </div>
+    </aside>
+
+    <!-- KONTEN UTAMA -->
+    <main class="main-content">
+
+        <!-- CARD FILTER DEDIKASI -->
+        <div class="filter-card">
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <label for="filter-tanggal">Pilih Tanggal Report:</label>
+                    <input type="date" id="filter-tanggal" onchange="muatData()">
+                </div>
+
+                <div class="filter-group">
+                    <label>Pilih Kategori Parameter (Bisa Pilih Banyak):</label>
+                    <div class="checkbox-dropdown-container">
+                        <div class="checkbox-dropdown-btn" onclick="toggleDropdownCheckbox()">
+                            <span id="checkbox-label-text">Semua Parameter Dipilih</span>
+                            <span>▼</span>
+                        </div>
+
+                        <div class="checkbox-dropdown-panel" id="checkbox-panel">
+                            <div class="checkbox-actions">
+                                <button class="btn-link" type="button" onclick="pilihSemuaCheckbox(true)">Pilih Semua</button>
+                                <button class="btn-link" type="button" onclick="pilihSemuaCheckbox(false)">Kosongkan</button>
+                            </div>
+                            
+                            <label class="checkbox-item">
+                                <input type="checkbox" value="LAN_SPEED" class="param-checkbox" checked onchange="terapkanFilterItem()"> 🌐 LAN Speed
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" value="MYSQL" class="param-checkbox" checked onchange="terapkanFilterItem()"> 🗄️ Start MySQL
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" value="SUHU" class="param-checkbox" checked onchange="terapkanFilterItem()"> 🌡️ Suhu PC
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" value="BOOT_TIME" class="param-checkbox" checked onchange="terapkanFilterItem()"> ⏱️ Booting Time
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" value="AKTIVASI" class="param-checkbox" checked onchange="terapkanFilterItem()"> 🪟 Aktivasi Windows
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" value="LISTENER" class="param-checkbox" checked onchange="terapkanFilterItem()"> 📡 Status Listener
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" value="EDC_BCA" class="param-checkbox" checked onchange="terapkanFilterItem()"> 💳 EDC BCA
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" value="EDC_MANDIRI" class="param-checkbox" checked onchange="terapkanFilterItem()"> 💳 EDC Mandiri/MTI
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" value="BSOD" class="param-checkbox" checked onchange="terapkanFilterItem()"> 💻 Status BSOD
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" value="UPS" class="param-checkbox" checked onchange="terapkanFilterItem()"> 🔋 Status UPS
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" value="DVR" class="param-checkbox" checked onchange="terapkanFilterItem()"> 📹 Status DVR 1/2
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label for="select-kondisi-status">Pilih Status Kondisi:</label>
+                    <select id="select-kondisi-status" onchange="terapkanFilterItem()">
+                        <option value="NOK">⚠️ Hanya Tampilkan NOK / Problem</option>
+                        <option value="OK">✅ Hanya Tampilkan OK / Normal</option>
+                        <option value="SEMUA">🌐 Tampilkan Semua Status</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="filter-nama-edp">Filter Nama EDP:</label>
+                    <select id="filter-nama-edp" onchange="terapkanFilterItem()">
+                        <option value="semua">-- Semua EDP --</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="search-keyword">Cari Toko / Station:</label>
+                    <input type="text" id="search-keyword" placeholder="Ketik kode/nama toko..." onkeyup="terapkanFilterItem()">
+                </div>
+
+                <div>
+                    <button class="btn-reset" onclick="resetFilterItem()">Reset Filter</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SUMMARY CARDS -->
+        <div class="summary-bar">
+            <div class="summary-card" style="border-left-color: #3182ce;">
+                <div class="summary-card-title">TOTAL TOKO TERPERIKSA</div>
+                <div class="summary-card-value" id="count-total">0</div>
+            </div>
+            <div class="summary-card" style="border-left-color: #e53e3e;">
+                <div class="summary-card-title">KONDISI NOK / PROBLEM</div>
+                <div class="summary-card-value" style="color: #e53e3e;" id="count-nok">0</div>
+            </div>
+            <div class="summary-card" style="border-left-color: #38a169;">
+                <div class="summary-card-title">KONDISI OK / NORMAL</div>
+                <div class="summary-card-value" style="color: #38a169;" id="count-ok">0</div>
+            </div>
+        </div>
+
+        <!-- TABEL DATA -->
+        <div class="table-responsive">
+            <div class="table-header-bar">
+                <div style="font-size: 14px; font-weight: 700; color: #4a5568;" id="info-item-label">
+                    Menampilkan Data Parameter...
+                </div>
+                <button class="btn-export" onclick="exportExcelItem()">📊 Export Excel Per Item</button>
+            </div>
+
+            <table>
+                <thead>
+                    <tr id="tabel-header-row">
+                        <th>Kode Toko</th>
+                        <th>Nama Toko</th>
+                        <th>Station</th>
+                        <th>Nama EDP</th>
+                        <th>Nilai / Status Parameter</th>
+                        <th>Keterangan / Detail Status</th>
+                    </tr>
+                </thead>
+                <tbody id="tabel-item-body">
+                    <tr><td colspan="6" style="text-align: center;">Memuat data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+
+    <div class="footer-copyright">
+        Aldoni Jelang R. - EDP Samarinda (dibantu oleh Edi dan Rey) &copy; 2026
+    </div>
+
+    <script>
+        // --- CEK SESI LOGIN & ROLE ADMIN ---
+        if (sessionStorage.getItem("isLoggedIn") !== "true") { 
+            window.location.href = "login.html"; 
+        }
+
+        const currentRole = (sessionStorage.getItem("userRole") || "").toUpperCase();
+        if (currentRole !== "ADMIN") {
+            alert("⛔ Akses Ditolak! Halaman ini hanya dapat diakses oleh Admin.");
+            window.location.href = "index.html";
+        }
+
+        function logout() {
+            if (confirm("Apakah Anda yakin ingin keluar?")) {
+                sessionStorage.removeItem("isLoggedIn");
+                sessionStorage.removeItem("userNama");
+                sessionStorage.removeItem("userRole");
+                window.location.href = "login.html";
+            }
+        }
+
+        // --- FUNGSI TOGGLE SIDEBAR ---
+        function toggleSidebar() {
+            const sidebar = document.getElementById("sidebar");
+            const mainContent = document.querySelector(".main-content");
+            const footer = document.querySelector(".footer-copyright");
+
+            sidebar.classList.toggle("collapsed");
+            if (mainContent) mainContent.classList.toggle("expanded");
+            if (footer) footer.classList.toggle("expanded");
+
+            const isCollapsed = sidebar.classList.contains("collapsed");
+            localStorage.setItem("sidebarCollapsed", isCollapsed ? "true" : "false");
+        }
+
+        const apiUrl = "https://api.sheetbest.com/sheets/478b0475-ac28-4edd-a01e-7e87ff27ac26";
+        let semuaDataRaw = [];
+        let dataTerfilter = [];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            // Restore status sidebar dari localStorage
+            if (localStorage.getItem("sidebarCollapsed") === "true") {
+                const sidebar = document.getElementById("sidebar");
+                const mainContent = document.querySelector(".main-content");
+                const footer = document.querySelector(".footer-copyright");
+
+                if (sidebar) sidebar.classList.add("collapsed");
+                if (mainContent) mainContent.classList.add("expanded");
+                if (footer) footer.classList.add("expanded");
+            }
+
+            const today = new Date().toISOString().slice(0, 10);
+            document.getElementById("filter-tanggal").value = today;
+            muatData();
+        });
+
+        // --- MANAJEMEN DROPDOWN MULTI-CHECKBOX ---
+        function toggleDropdownCheckbox() {
+            document.getElementById("checkbox-panel").classList.toggle("show");
+        }
+
+        document.addEventListener("click", function(event) {
+            const container = document.querySelector(".checkbox-dropdown-container");
+            if (container && !container.contains(event.target)) {
+                const panel = document.getElementById("checkbox-panel");
+                if (panel) panel.classList.remove("show");
+            }
+        });
+
+        function pilihSemuaCheckbox(status) {
+            const checkboxes = document.querySelectorAll(".param-checkbox");
+            checkboxes.forEach(cb => cb.checked = status);
+            terapkanFilterItem();
+        }
+
+        // --- FUNGSI AMBIL DATA API ---
+        async function muatData() {
+            const tbody = document.getElementById("tabel-item-body");
+            const tglPilihan = document.getElementById("filter-tanggal").value;
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px;">⏳ Memuat data tanggal <strong>${tglPilihan}</strong>...</td></tr>`;
+
+            try {
+                const response = await fetch(`${apiUrl}?tanggal=${encodeURIComponent(tglPilihan)}`);
+                const dataRespon = await response.json();
+
+                semuaDataRaw = dataRespon.filter(item => {
+                    const tglItem = formatTanggalRapi(item["tanggal"] || item["TANGGAL RESPON IDM LISTENER"] || item["REQUEST"] || "");
+                    return tglItem === tglPilihan;
+                });
+
+                if (semuaDataRaw.length > 0) {
+                    isiDropdownEDP();
+                    terapkanFilterItem();
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px; color:#718096;">📂 Tidak ada data laporan untuk tanggal <strong>${tglPilihan}</strong></td></tr>`;
+                    updateCounters(0, 0, 0);
+                }
+            } catch (err) {
+                console.error("Error load item data:", err);
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#e53e3e;">⚠️ Gagal terhubung ke database spreadsheet.</td></tr>`;
+            }
+        }
+
+        function formatTanggalRapi(val) {
+            if (!val || val === '-') return '-';
+            let str = val.toString().trim();
+            if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+            if (str.length >= 10 && /^\d{4}-\d{2}-\d{2}/.test(str.substring(0, 10))) {
+                return str.substring(0, 10);
+            }
+            const d = new Date(val);
+            if (!isNaN(d.getTime())) {
+                const yyyy = d.getFullYear();
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const dd = String(d.getDate()).padStart(2, '0');
+                return `${yyyy}-${mm}-${dd}`;
+            }
+            return str;
+        }
+
+        function isiDropdownEDP() {
+            const dropdown = document.getElementById("filter-nama-edp");
+            dropdown.innerHTML = '<option value="semua">-- Semua EDP --</option>';
+            const listEdp = [...new Set(semuaDataRaw.map(d => d["EDP OPR"] || d["NAMA EDP"] || d["EDP"] || ""))].filter(Boolean).sort();
+            listEdp.forEach(e => {
+                const opt = document.createElement("option");
+                opt.value = e; opt.textContent = e;
+                dropdown.appendChild(opt);
+            });
+        }
+
+        // --- FUNGSI FILTER UTAMA ---
+        function terapkanFilterItem() {
+            const checkedBoxes = Array.from(document.querySelectorAll(".param-checkbox:checked"));
+            const selectedCategories = checkedBoxes.map(cb => cb.value);
+
+            const labelBtn = document.getElementById("checkbox-label-text");
+            const totalBox = document.querySelectorAll(".param-checkbox").length;
+            
+            if (checkedBoxes.length === 0) {
+                labelBtn.innerText = "❌ Tidak ada kategori dipilih";
+                document.getElementById("info-item-label").innerText = "Parameter: Belum Ada Kategori Dipilih";
+            } else if (checkedBoxes.length === totalBox) {
+                labelBtn.innerText = "🌐 Semua Parameter Dipilih";
+                document.getElementById("info-item-label").innerText = "Parameter: Semua Kategori Parameter";
+            } else {
+                labelBtn.innerText = `📌 ${checkedBoxes.length} Parameter Dipilih`;
+                document.getElementById("info-item-label").innerText = `Parameter: ${checkedBoxes.length} Kategori Dipilih`;
+            }
+
+            const selectedCondition = document.getElementById("select-kondisi-status").value;
+            const edpPilihan = document.getElementById("filter-nama-edp").value;
+            const keyword = document.getElementById("search-keyword").value.toLowerCase();
+
+            let hasil = semuaDataRaw.map(item => {
+                let listProblem = [];
+                let isOverallOK = true;
+
+                if (selectedCategories.includes("LAN_SPEED")) {
+                    const val = (item["STATUS LAN SPEED"] || item["LAN_SPEED"] || "").toString().toUpperCase();
+                    if (val.includes("TIDAK 1 GB") || val.includes("MATI")) {
+                        isOverallOK = false;
+                        listProblem.push(`LAN Speed (${item["STATUS LAN SPEED"] || item["LAN_SPEED"] || 'NOK'})`);
+                    }
+                }
+
+                if (selectedCategories.includes("MYSQL")) {
+                    const val = (item["STATUS DURASI START MYSQL"] || item["MYSQL"] || "").toString().toUpperCase();
+                    if (val.includes("NOK")) {
+                        isOverallOK = false;
+                        listProblem.push("MySQL NOK");
+                    }
+                }
+
+                if (selectedCategories.includes("SUHU")) {
+                    const val = (item["STATUS SUHU"] || item["SUHU"] || "").toString().toUpperCase();
+                    if (val.includes("TINGGI") || val.includes("NOK")) {
+                        isOverallOK = false;
+                        listProblem.push("Suhu Tinggi");
+                    }
+                }
+
+                if (selectedCategories.includes("BOOT_TIME")) {
+                    const val = (item["STATUS BOOT TIME"] || item["BOOT_TIME"] || "").toString().toUpperCase();
+                    if (val.includes("LEBIH") || val.includes("NOK")) {
+                        isOverallOK = false;
+                        listProblem.push("Booting > 4 Menit");
+                    }
+                }
+
+                if (selectedCategories.includes("AKTIVASI")) {
+                    const val = (item["STATUS AKTIVASI"] || item["AKTIVASI_WINDOWS"] || "").toString().toUpperCase();
+                    if (val.includes("TIDAK") || val.includes("NOK")) {
+                        isOverallOK = false;
+                        listProblem.push("Windows Tidak Aktif");
+                    }
+                }
+
+                if (selectedCategories.includes("LISTENER")) {
+                    const val = (item["STATUS LISTENER"] || item["LISTENER"] || "").toString().toUpperCase();
+                    if (val.includes("MATI") || val.includes("OFFLINE")) {
+                        isOverallOK = false;
+                        listProblem.push("Listener Mati/Offline");
+                    }
+                }
+
+                if (selectedCategories.includes("EDC_BCA")) {
+                    const val = (item["STATUS EDC BCA"] || item["EDC_BCA_LAST"] || "").toString().toUpperCase();
+                    if (!val.includes("OK") && !val.includes("NO EDC")) {
+                        isOverallOK = false;
+                        listProblem.push("EDC BCA Problem");
+                    }
+                }
+
+                if (selectedCategories.includes("EDC_MANDIRI")) {
+                    const val = (item["STATUS EDC MTI"] || item["EDC_MANDIRI_LAST"] || "").toString().toUpperCase();
+                    if (!val.includes("OK") && !val.includes("NO EDC")) {
+                        isOverallOK = false;
+                        listProblem.push("EDC Mandiri Problem");
+                    }
+                }
+
+                if (selectedCategories.includes("BSOD")) {
+                    const val = (item["STATUS BSOD"] || item["STATUS_BSOD"] || "").toString().toUpperCase();
+                    if (!val.includes("OK")) {
+                        isOverallOK = false;
+                        listProblem.push("Status BSOD");
+                    }
+                }
+
+                if (selectedCategories.includes("UPS")) {
+                    const val = (item["STATUS UPS"] || item["UPS_STATUS"] || "").toString().toUpperCase();
+                    if (val.includes("PINDAHKAN") || val.includes("NOK")) {
+                        isOverallOK = false;
+                        listProblem.push("UPS Problem");
+                    }
+                }
+
+                if (selectedCategories.includes("DVR")) {
+                    const val = `DVR1: ${item["DVR"] || '-'} | DVR2: ${item["DVR2"] || '-'}`;
+                    if (val.toUpperCase().includes("DOWN")) {
+                        isOverallOK = false;
+                        listProblem.push("DVR Down");
+                    }
+                }
+
+                const detailKeterangan = isOverallOK ? "Semua Parameter Dipilih OK" : listProblem.join(", ");
+                return { ...item, _valRaw: detailKeterangan, _isOK: isOverallOK };
+            });
+
+            if (selectedCondition === "NOK") { hasil = hasil.filter(d => !d._isOK); }
+            else if (selectedCondition === "OK") { hasil = hasil.filter(d => d._isOK); }
+
+            if (edpPilihan !== "semua") {
+                hasil = hasil.filter(d => (d["EDP OPR"] || d["NAMA EDP"] || d["EDP"]) === edpPilihan);
+            }
+
+            if (keyword.trim() !== "") {
+                hasil = hasil.filter(d => {
+                    const kdtk = (d["KDTK"] || "").toLowerCase();
+                    const nama = (d["NAMA"] || "").toLowerCase();
+                    return kdtk.includes(keyword) || nama.includes(keyword);
+                });
+            }
+
+            dataTerfilter = hasil;
+            tampilkanKeTabel(dataTerfilter);
+        }
+
+        function tampilkanKeTabel(data) {
+            const tbody = document.getElementById("tabel-item-body");
+            tbody.innerHTML = "";
+
+            let countOK = 0;
+            let countNOK = 0;
+
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px;">Tidak ada data toko yang sesuai dengan filter item ini.</td></tr>`;
+                updateCounters(0, 0, 0);
+                return;
+            }
+
+            data.forEach(item => {
+                if (item._isOK) countOK++; else countNOK++;
+
+                const badge = item._isOK 
+                    ? `<span class="status-badge status-ok">OK / NORMAL</span>`
+                    : `<span class="status-badge status-problem">NOK / PROBLEM</span>`;
+
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td><strong>${item["KDTK"] || '-'}</strong></td>
+                    <td>${item["NAMA"] || '-'}</td>
+                    <td>${item["STATION"] || '-'}</td>
+                    <td>${item["EDP OPR"] || item["NAMA EDP"] || item["EDP"] || '-'}</td>
+                    <td>${badge}</td>
+                    <td>${item._valRaw}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            updateCounters(data.length, countNOK, countOK);
+        }
+
+        function updateCounters(total, nok, ok) {
+            document.getElementById("count-total").innerText = total;
+            document.getElementById("count-nok").innerText = nok;
+            document.getElementById("count-ok").innerText = ok;
+        }
+
+        function resetFilterItem() {
+            const today = new Date().toISOString().slice(0, 10);
+            document.getElementById("filter-tanggal").value = today;
+            
+            pilihSemuaCheckbox(true);
+
+            document.getElementById("select-kondisi-status").value = "NOK";
+            document.getElementById("filter-nama-edp").value = "semua";
+            document.getElementById("search-keyword").value = "";
+            muatData();
+        }
+
+        function exportExcelItem() {
+            if (!dataTerfilter || dataTerfilter.length === 0) {
+                alert("Tidak ada data untuk diexport!");
+                return;
+            }
+
+            const dataToExport = dataTerfilter.map(d => ({
+                "Kode Toko": d["KDTK"] || '-',
+                "Nama Toko": d["NAMA"] || '-',
+                "Station": d["STATION"] || '-',
+                "Nama EDP": d["EDP OPR"] || d["NAMA EDP"] || d["EDP"] || '-',
+                "Status": d._isOK ? "OK" : "NOK",
+                "Detail Parameter": d._valRaw
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Filter Item");
+            XLSX.writeFile(workbook, `Report_Filter_Item_${new Date().toISOString().slice(0,10)}.xlsx`);
+        }
+    </script>
+</body>
+</html>

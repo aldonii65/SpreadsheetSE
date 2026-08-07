@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDP Stock Monitoring & BKB Dashboard v3.0</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SheetJS untuk Excel/CSV -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800" x-data="edpApp()" x-cloak>
+
+    <div class="flex h-screen overflow-hidden">
+        
+        <!-- SIDEBAR -->
+        <aside class="w-64 bg-slate-900 text-slate-300 hidden md:flex flex-col justify-between border-r border-slate-800">
+            <div>
+                <div class="p-6 flex items-center space-x-3 border-b border-slate-800">
+                    <div class="bg-indigo-600 p-2 rounded-lg text-white font-bold shadow-md">EDP</div>
+                    <div>
+                        <span class="text-lg font-bold text-white tracking-wide block">Stock Control</span>
+                        <span class="text-xs text-indigo-400 font-medium">Branch Management v3.0</span>
+                    </div>
+                </div>
+                <nav class="p-4 space-y-1.5">
+                    <button @click="activeTab = 'monitoring'" :class="activeTab === 'monitoring' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'hover:bg-slate-800 hover:text-white'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        <span>Monitoring Stock</span>
+                    </button>
+                    
+                    <button x-show="userRole.toUpperCase() === 'ADMIN'" @click="activeTab = 'transfer'" :class="activeTab === 'transfer' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'hover:bg-slate-800 hover:text-white'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                        <span>Top-up / Transfer Qty</span>
+                    </button>
+
+                    <!-- MENU PERMINTAAN BARANG -->
+                    <button @click="activeTab = 'request'" :class="activeTab === 'request' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'hover:bg-slate-800 hover:text-white'" class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all">
+                        <div class="flex items-center space-x-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                            <span>Permintaan Barang</span>
+                        </div>
+                        <span x-show="userRole.toUpperCase() === 'ADMIN' && pendingRequests.length > 0" class="bg-rose-500 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse" x-text="pendingRequests.length"></span>
+                    </button>
+
+                    <button @click="activeTab = 'bkb'" :class="activeTab === 'bkb' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'hover:bg-slate-800 hover:text-white'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        <span>Input BKB & Surat Jalan</span>
+                    </button>
+
+                    <button x-show="userRole.toUpperCase() === 'ADMIN'" @click="activeTab = 'master'" :class="activeTab === 'master' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'hover:bg-slate-800 hover:text-white'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
+                        <span>Master Produk EDP</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Footer Sidebar -->
+            <div class="p-4 border-t border-slate-800 space-y-3">
+                <button @click="loadDataFromSheetBest()" class="w-full flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white transition-all shadow-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    <span>Sinkronisasi Data Sheet</span>
+                </button>
+                <a href="index.html" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl text-sm font-medium bg-slate-800/60 hover:bg-rose-600 text-slate-300 hover:text-white transition-all shadow-sm">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    <span>Kembali ke index.html</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="flex-1 flex flex-col overflow-y-auto bg-slate-50">
+            
+            <!-- Top Header -->
+            <header class="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center shadow-sm sticky top-0 z-20">
+                <div class="flex items-center space-x-4">
+                    <div>
+                        <h1 class="text-xl font-bold text-slate-800" x-text="getPageTitle()"></h1>
+                        <p class="text-xs text-slate-500">Kelola dan pantau persediaan perangkat EDP secara real-time</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="hidden sm:flex items-center space-x-2 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-semibold border border-emerald-200">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span x-text="syncStatus">Terhubung ke Spreadsheet</span>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-bold text-slate-700" x-text="loggedInUser">User</p>
+                        <p class="text-xs text-indigo-600 font-semibold uppercase tracking-wider" x-text="userRole">Role</p>
+                    </div>
+                    <div class="w-10 h-10 bg-indigo-600 text-white font-bold rounded-xl flex items-center justify-center shadow-md shadow-indigo-600/20" x-text="getUserInitials()">US</div>
+                </div>
+            </header>
+
+            <!-- Content Body -->
+            <div class="p-8 space-y-6 max-w-7xl mx-auto w-full">
+
+                <!-- NOTIFIKASI / ALERT BANNER -->
+                <div x-show="notification.show" :class="notification.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800'" class="p-4 rounded-xl border flex items-center justify-between shadow-sm transition-all">
+                    <div class="flex items-center space-x-3">
+                        <svg x-show="notification.type === 'success'" class="w-5 h-5 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <svg x-show="notification.type === 'error'" class="w-5 h-5 text-rose-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        <span class="text-sm font-medium" x-text="notification.message"></span>
+                    </div>
+                    <button @click="notification.show = false" class="text-slate-400 hover:text-slate-600">&times;</button>
+                </div>
+
+                <!-- TAB 1: MONITORING STOCK -->
+                <div x-show="activeTab === 'monitoring'" class="space-y-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                            <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                            </div>
+                            <div>
+                                <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total PIC / Cabang</p>
+                                <p class="text-2xl font-bold text-slate-800" x-text="inventorySummary.length">0</p>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                            <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                            </div>
+                            <div>
+                                <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Seluruh Stock</p>
+                                <p class="text-2xl font-bold text-slate-800" x-text="inventorySummary.reduce((acc, curr) => acc + curr.qty, 0)">0</p>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                            <div class="p-3 bg-rose-50 text-rose-600 rounded-xl">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                            </div>
+                            <div>
+                                <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Stok Menipis (< 5)</p>
+                                <p class="text-2xl font-bold text-rose-600" x-text="inventorySummary.filter(i => i.qty < 5).length">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filter & Search Bar -->
+                    <div class="flex flex-col sm:flex-row justify-between gap-4 items-center bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="flex items-center space-x-3 w-full sm:w-auto">
+                            <label class="text-sm font-semibold text-slate-600">Pilih PIC / Kota:</label>
+                            <select x-model="selectedBranch" class="border border-slate-300 rounded-xl px-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
+                                <option value="ALL">Semua PIC & Kota</option>
+                                <template x-for="loc in edpLocations" :key="loc.pic + loc.kota">
+                                    <option :value="loc.pic" x-text="loc.pic + ' — ' + loc.kota"></option>
+                                </template>
+                            </select>
+                        </div>
+                        <div class="relative w-full sm:w-72">
+                            <input type="text" x-model="searchQuery" placeholder="Cari nama PIC / kota..." class="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50/50">
+                            <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </div>
+                    </div>
+
+                    <!-- Tabel Stock -->
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 text-xs uppercase font-semibold tracking-wider border-b border-slate-200">
+                                    <th class="p-5">PIC (EDP)</th>
+                                    <th class="p-5">Kota / Branch</th>
+                                    <th class="p-5 text-center">Total Qty Stock</th>
+                                    <th class="p-5 text-center">Status</th>
+                                    <th class="p-5 text-center">Aksi Cepat</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 text-sm">
+                                <template x-if="isLoading">
+                                    <tr>
+                                        <td colspan="5" class="p-12 text-center text-slate-400">
+                                            <div class="flex flex-col items-center justify-center space-y-2">
+                                                <svg class="w-8 h-8 text-indigo-600 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                                <span class="font-medium text-slate-600">Sinkronisasi data dari Google Spreadsheet...</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <template x-for="item in filteredInventory" :key="item.pic">
+                                    <tr class="hover:bg-slate-50/80 transition-colors">
+                                        <td class="p-5 font-bold text-slate-900" x-text="item.pic"></td>
+                                        <td class="p-5 text-slate-600 font-medium" x-text="item.kota"></td>
+                                        <td class="p-5 text-center font-bold text-base" :class="item.qty < 5 ? 'text-rose-600' : 'text-slate-800'" x-text="item.qty"></td>
+                                        <td class="p-5 text-center">
+                                            <span class="px-3 py-1 rounded-full text-xs font-semibold"
+                                                  :class="item.qty >= 5 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'"
+                                                  x-text="item.qty >= 5 ? 'Aman' : 'Stok Menipis'">
+                                            </span>
+                                        </td>
+                                        <td class="p-5 text-center">
+                                            <button x-show="userRole.toUpperCase() === 'ADMIN'" @click="openQuickTransfer(item)" class="text-indigo-600 hover:text-indigo-900 font-semibold text-xs bg-indigo-50 hover:bg-indigo-100 px-3.5 py-2 rounded-xl transition-all shadow-sm">Top-up Qty</button>
+                                            <span x-show="userRole.toUpperCase() !== 'ADMIN'" class="text-slate-400 text-xs italic">Akses View Only</span>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB 2: TRANSFER / TOP-UP QTY (Admin Only) -->
+                <div x-show="activeTab === 'transfer' && userRole.toUpperCase() === 'ADMIN'" class="max-w-xl mx-auto bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-800">Form Transfer / Penambahan Saldo Stock</h3>
+                        <p class="text-sm text-slate-500 mt-1">Kirim penambahan qty barang dari pusat ke PIC / Kota tujuan.</p>
+                    </div>
+                    <form @submit.prevent="submitTransfer" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Pilih PIC / Kota Tujuan</label>
+                            <select x-model="transferForm.pic" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm bg-white focus:ring-2 focus:ring-indigo-500" required>
+                                <option value="">-- Pilih PIC --</option>
+                                <template x-for="loc in edpLocations" :key="loc.pic">
+                                    <option :value="loc.pic" x-text="loc.pic + ' — ' + loc.kota"></option>
+                                </template>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Pilih Barang EDP</label>
+                            <select x-model="transferForm.itemCode" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm bg-white focus:ring-2 focus:ring-indigo-500" required>
+                                <option value="">-- Pilih Barang (Dari Master) --</option>
+                                <template x-for="prod in masterProducts" :key="prod.code">
+                                    <option :value="prod.code" x-text="prod.name + ' (' + prod.code + ')'"></option>
+                                </template>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Jumlah Qty Ditambahkan</label>
+                            <input type="number" min="1" x-model.number="transferForm.qty" placeholder="Contoh: 10" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Catatan / Keterangan</label>
+                            <textarea x-model="transferForm.note" rows="3" placeholder="Contoh: Pengiriman rutin bulanan via ekspedisi..." class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500"></textarea>
+                        </div>
+                        <button type="submit" :disabled="isSubmitting" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl text-sm shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center space-x-2">
+                            <span x-show="isSubmitting">Sedang Memproses...</span>
+                            <span x-show="!isSubmitting">Proses Transfer Qty</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- TAB PERMINTAAN BARANG (MULTI-ITEM HINGGA 5 BARANG) -->
+                <div x-show="activeTab === 'request'" class="space-y-8 max-w-4xl mx-auto">
+                    
+                    <!-- Form Permintaan Barang (Pengguna) -->
+                    <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-800">Ajukan Permintaan Barang ke Admin</h3>
+                                <p class="text-sm text-slate-500 mt-0.5">Anda dapat mengajukan hingga 5 item barang sekaligus dalam satu pengajuan.</p>
+                            </div>
+                            <button type="button" @click="addRequestRow()" x-show="requestForm.items.length < 5" class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition-all shadow-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                <span>Tambah Item (<span x-text="requestForm.items.length"></span>/5)</span>
+                            </button>
+                        </div>
+
+                        <form @submit.prevent="submitRequestBarang" class="space-y-4">
+                            <!-- Daftar Item Yang Diminta -->
+                            <div class="space-y-3">
+                                <template x-for="(row, idx) in requestForm.items" :key="idx">
+                                    <div class="flex flex-col sm:flex-row items-center gap-3 p-4 bg-slate-50/80 rounded-xl border border-slate-200">
+                                        <div class="flex items-center justify-between w-full sm:w-auto">
+                                            <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg" x-text="'Item #' + (idx + 1)"></span>
+                                            <button type="button" @click="removeRequestRow(idx)" x-show="requestForm.items.length > 1" class="sm:hidden text-rose-500 hover:text-rose-700 p-1" title="Hapus Item">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Dropdown Pilih Barang -->
+                                        <div class="flex-1 w-full">
+                                            <select x-model="row.itemCode" class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500 font-medium" required>
+                                                <option value="">-- Pilih Barang EDP --</option>
+                                                <template x-for="prod in masterProducts" :key="prod.code">
+                                                    <option :value="prod.code" x-text="prod.name + ' [' + prod.code + ']' + (getFastMovingLabel(prod.code) === 'Fast Moving' ? ' 🔥 Fast' : '')"></option>
+                                                </template>
+                                            </select>
+                                        </div>
+
+                                        <!-- Input Qty -->
+                                        <div class="w-full sm:w-32">
+                                            <input type="number" min="1" x-model.number="row.qty" placeholder="Qty" class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-indigo-500 font-bold" required>
+                                        </div>
+
+                                        <!-- Tombol Hapus Baris (Desktop) -->
+                                        <button type="button" @click="removeRequestRow(idx)" x-show="requestForm.items.length > 1" class="hidden sm:block text-rose-500 hover:text-rose-700 p-2 rounded-lg hover:bg-rose-50 transition-all" title="Hapus Item">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        </button>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Alasan / Catatan Pengajuan</label>
+                                <textarea x-model="requestForm.note" rows="2" placeholder="Contoh: Kebutuhan pergantian sparepart toko di wilayah Samarinda..." class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500"></textarea>
+                            </div>
+
+                            <button type="submit" :disabled="isSubmitting" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl text-sm shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center space-x-2">
+                                <span x-show="isSubmitting">Mengirim Pengajuan...</span>
+                                <span x-show="!isSubmitting" x-text="'Kirim ' + requestForm.items.length + ' Item Permintaan ke Admin'"></span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Daftar Permintaan Pending (Akses Khusus Admin) -->
+                    <div x-show="userRole.toUpperCase() === 'ADMIN'" class="bg-white p-8 rounded-2xl border border-amber-200 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-bold text-slate-800">Daftar Permintaan Menunggu Approval</h3>
+                                <p class="text-xs text-slate-500">Sesuaikan jumlah Qty realisasi berdasarkan historis kebutuhan pengeluaran user.</p>
+                            </div>
+                            <span class="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full" x-text="pendingRequests.length + ' Pending'"></span>
+                        </div>
+
+                        <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-50 text-slate-500 uppercase font-semibold border-b border-slate-200">
+                                    <tr>
+                                        <th class="p-3">Tanggal</th>
+                                        <th class="p-3">Pemohon (EDP)</th>
+                                        <th class="p-3">Barang</th>
+                                        <th class="p-3 text-center">Qty Diminta</th>
+                                        <th class="p-3 text-center">Tingkat Pergerakan</th>
+                                        <th class="p-3 text-center">Aksi Approval</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    <template x-if="pendingRequests.length === 0">
+                                        <tr>
+                                            <td colspan="6" class="p-6 text-center text-slate-400 italic">Tidak ada permintaan barang yang perlu diproses saat ini.</td>
+                                        </tr>
+                                    </template>
+                                    <template x-for="req in pendingRequests" :key="req['ID Request'] || req['Tanggal'] + req['Nama EDP']">
+                                        <tr class="hover:bg-amber-50/50">
+                                            <td class="p-3 text-slate-600" x-text="req['Tanggal']"></td>
+                                            <td class="p-3 font-bold text-slate-900" x-text="req['Nama EDP']"></td>
+                                            <td class="p-3 font-medium text-slate-800" x-text="req['Nama Barang'] || req['PLU / Item']"></td>
+                                            <td class="p-3 text-center font-bold text-indigo-600 text-sm" x-text="req['Qty Diminta']"></td>
+                                            <td class="p-3 text-center">
+                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                                                      :class="getFastMovingLabel(req['PLU / Item']) === 'Fast Moving' ? 'bg-rose-100 text-rose-700 border border-rose-200' : 'bg-slate-100 text-slate-600'"
+                                                      x-text="getFastMovingLabel(req['PLU / Item'])">
+                                                </span>
+                                            </td>
+                                            <td class="p-3 text-center">
+                                                <button @click="openApproveModal(req)" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-3 py-1.5 rounded-lg shadow-sm">
+                                                    Proses / Dipenuhi
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- MODAL APPROVAL ADMIN -->
+                <div x-show="approveModal.show" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4" x-cloak>
+                    <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl border border-slate-200">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-800">Proses Permintaan Barang</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Tentukan barang dan Qty realisasi yang disetujui untuk dikirim ke user.</p>
+                        </div>
+
+                        <template x-if="approveModal.item">
+                            <div class="bg-slate-50 p-4 rounded-xl space-y-1.5 text-xs text-slate-700 border border-slate-200">
+                                <p><strong>Pemohon:</strong> <span x-text="approveModal.item['Nama EDP']"></span></p>
+                                <p><strong>Barang Diminta User:</strong> <span class="font-semibold text-slate-900" x-text="(approveModal.item['Nama Barang'] || approveModal.item['PLU / Item']) + ' (Qty: ' + approveModal.item['Qty Diminta'] + ')'"></span></p>
+                            </div>
+                        </template>
+
+                        <div class="space-y-3">
+                            <!-- PILIHAN BARANG (BISA DIGANTI OLEH ADMIN) -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Barang Realisasi Disetujui (Dapat Diganti)</label>
+                                <select x-model="approveModal.itemCodeApproved" class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs bg-white focus:ring-2 focus:ring-emerald-500 font-medium">
+                                    <template x-for="prod in masterProducts" :key="prod.code">
+                                        <option :value="prod.code" x-text="prod.name + ' [' + prod.code + ']'"></option>
+                                    </template>
+                                </select>
+                                <p class="text-[11px] text-amber-600 mt-1">Ubah pilihan jika pemohon salah memilih spesifikasi barang.</p>
+                            </div>
+
+                            <!-- QTY DISETUJUI -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Qty Realisasi Disetujui Admin</label>
+                                <input type="number" min="1" x-model.number="approveModal.qtyApproved" class="w-full border border-slate-300 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-emerald-500 font-bold text-slate-800" required>
+                            </div>
+
+                            <!-- CATATAN ADMIN -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Catatan Admin</label>
+                                <input type="text" x-model="approveModal.note" placeholder="Contoh: Disetujui tipe pengganti spesifikasi sesuai..." class="w-full border border-slate-300 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-emerald-500">
+                            </div>
+                        </div>
+
+                        <div class="flex space-x-3 pt-2">
+                            <button @click="approveModal.show = false" class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl text-xs">Batal</button>
+                            <button @click="submitApprovalAdmin()" :disabled="isSubmitting" class="w-1/2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-xl text-xs shadow-md">
+                                <span x-show="!isSubmitting">Setujui & Tambah Stok</span>
+                                <span x-show="isSubmitting">Memproses...</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: INPUT BKB (BUKTI KELUAR BARANG) -->
+                <div x-show="activeTab === 'bkb'" class="max-w-2xl mx-auto bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-800">Input BKB (Bukti Keluar Barang)</h3>
+                        <p class="text-sm text-slate-500 mt-1">Catat pengeluaran barang, kurangi stok, dan kirim langsung ke Google Spreadsheet via GAS.</p>
+                    </div>
+                    <form @submit.prevent="submitBKB" class="space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5">PIC Pelapor</label>
+                                <select x-model="bkbForm.pic" @change="updateKodeToko()" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm bg-white" required>
+                                    <option value="">-- Pilih PIC --</option>
+                                    <template x-for="loc in edpLocations" :key="loc.pic">
+                                        <option :value="loc.pic" x-text="loc.pic + ' — ' + loc.kota"></option>
+                                    </template>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Kode Toko</label>
+                                <select x-model="bkbForm.kodeToko" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm bg-white focus:ring-2 focus:ring-indigo-500" required>
+                                    <option value="">-- Pilih Kode Toko --</option>
+                                    <template x-for="toko in getAvailableKodeToko()" :key="toko">
+                                        <option :value="toko" x-text="toko"></option>
+                                    </template>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Nomor Surat Jalan (SJ)</label>
+                                <input type="text" x-model="bkbForm.suratJalan" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm bg-slate-100 font-mono text-slate-700 cursor-not-allowed" readonly required>
+                                <p class="text-xs text-slate-400 mt-1">Otomatis berdasarkan tanggal.</p>
+                            </div>
+
+                            <!-- DROPDOWN BARANG -->
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Item Barang Keluar</label>
+                                <select x-model="bkbForm.itemCode" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm bg-white focus:ring-2 focus:ring-indigo-500" required>
+                                    <option value="">-- Pilih Barang (Tersedia Stok) --</option>
+                                    <template x-for="prod in getAvailableBKBItems()" :key="prod.code">
+                                        <option :value="prod.code" x-text="prod.name + ' [' + prod.code + '] — Stok: ' + prod.qty + (getFastMovingLabel(prod.code) === 'Fast Moving' ? ' 🔥' : '')"></option>
+                                    </template>
+                                </select>
+                                <p x-show="bkbForm.pic && getAvailableBKBItems().length === 0" class="text-xs text-rose-500 mt-1 font-medium">
+                                    ⚠️ PIC ini tidak memiliki stok barang yang tersedia saat ini.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5">
+                                    Qty Keluar 
+                                    <span x-show="bkbForm.itemCode" class="text-xs text-indigo-600 font-normal">
+                                        (Maks: <span x-text="getMaxStockForItem()"></span>)
+                                    </span>
+                                </label>
+                                <input type="number" min="1" :max="getMaxStockForItem()" x-model.number="bkbForm.qty" placeholder="Jumlah barang" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Tanggal BKB</label>
+                                <input type="date" x-model="bkbForm.date" @change="generateSuratJalan()" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm" required>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Upload Foto BKB / Fisik Barang</label>
+                            <input type="file" @change="handleFileUpload" accept="image/*" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm bg-slate-50 text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" required>
+                            <p class="text-xs text-slate-400 mt-1">Format: JPG, PNG (Foto akan tersimpan ke Google Drive)</p>
+                        </div>
+
+                        <button type="submit" :disabled="isSubmitting || (bkbForm.itemCode && getMaxStockForItem() <= 0)" class="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white font-semibold py-3 rounded-xl text-sm shadow-lg shadow-emerald-600/30 transition-all flex items-center justify-center space-x-2">
+                            <span x-show="isSubmitting">Mengirim BKB via GAS...</span>
+                            <span x-show="!isSubmitting">Simpan & Kirim BKB (Rekap SJ)</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- TAB 4: MASTER PRODUK (Admin Only) -->
+                <div x-show="activeTab === 'master' && userRole.toUpperCase() === 'ADMIN'" class="max-w-2xl mx-auto bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-800">Upload Master Data Produk EDP</h3>
+                        <p class="text-sm text-slate-500 mt-1">Unggah file Excel (.xlsx/.xls) atau CSV berisi daftar master produk.</p>
+                    </div>
+                    
+                    <div class="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center space-y-3 bg-slate-50/50">
+                        <svg class="w-10 h-10 text-indigo-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                        <div>
+                            <label class="cursor-pointer bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-5 py-2.5 rounded-xl text-sm shadow-md transition-all inline-block">
+                                Pilih File Master (.xlsx, .csv)
+                                <input type="file" @change="handleMasterUpload" accept=".xlsx, .xls, .csv" class="hidden">
+                            </label>
+                        </div>
+                        <p class="text-xs text-slate-500">Kolom harus memiliki informasi Kode Barang dan Nama Produk.</p>
+                    </div>
+
+                    <div>
+                        <h4 class="text-sm font-bold text-slate-700 mb-2">Daftar Produk Master & Pergerakan Barang (<span x-text="masterProducts.length"></span> item):</h4>
+                        <div class="max-h-64 overflow-y-auto border border-slate-200 rounded-xl">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-50 text-slate-500 sticky top-0 border-b border-slate-200">
+                                    <tr>
+                                        <th class="p-3">Kode Barang</th>
+                                        <th class="p-3">Nama Produk EDP</th>
+                                        <th class="p-3 text-center">Status Pergerakan (60 Hari)</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    <template x-for="prod in masterProducts" :key="prod.code">
+                                        <tr>
+                                            <td class="p-3 font-mono text-indigo-600 font-semibold" x-text="prod.code"></td>
+                                            <td class="p-3 font-medium text-slate-800" x-text="prod.name"></td>
+                                            <td class="p-3 text-center">
+                                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold"
+                                                      :class="getFastMovingLabel(prod.code) === 'Fast Moving' ? 'bg-rose-100 text-rose-700 border border-rose-200' : (getFastMovingLabel(prod.code) === 'Medium Moving' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600')"
+                                                      x-text="getFastMovingLabel(prod.code)">
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- SCRIPT LOGIC -->
+    <script>
+        const apiUrl = "https://api.sheetbest.com/sheets/478b0475-ac28-4edd-a01e-7e87ff27ac26";
+        const gasUrl = "https://script.google.com/macros/s/AKfycbynpQMCaUnWggcjYe9wWpFulIx8tcsYyfwI_MB5CPPbpa88tUW2VpOXQJ3D7KRS7aV8cA/exec"; 
+
+        function edpApp() {
+            return {
+                activeTab: 'monitoring',
+                selectedBranch: 'ALL',
+                searchQuery: '',
+                isLoading: true,
+                isSubmitting: false,
+                loggedInUser: 'User',
+                userRole: 'EDP Cabang',
+                syncStatus: 'Terhubung',
+                edpLocations: [], 
+                allEdpLocations: [],
+                sheet4Data: [],
+                inventorySummary: [], 
+                picStockDetails: {}, 
+
+                pendingRequests: [],
+                
+                // DATA STRUCTURE DIBUAT DYNAMIC REPEATER (MAKS 5 ITEM)
+                requestForm: { 
+                    items: [
+                        { itemCode: '', qty: 1 }
+                    ], 
+                    note: '' 
+                },
+                
+                approveModal: { show: false, item: null, itemCodeApproved: '', qtyApproved: 0, note: '' },
+                fastMovingMap: {},
+
+                notification: { show: false, type: 'success', message: '' },
+
+                masterProducts: [
+                    { code: 'EDP-001', name: 'Scanner Barcode USB Omnidirectional' },
+                    { code: 'EDP-002', name: 'Thermal Receipt Printer 80mm' },
+                    { code: 'EDP-003', name: 'PDA Mobile Computer Enterprise' },
+                    { code: 'EDP-004', name: 'UPS 1200VA AVR Stabilizer' },
+                    { code: 'EDP-005', name: 'Cash Drawer RJ11 Heavy Duty' }
+                ],
+
+                transferForm: { pic: '', itemCode: '', qty: '', note: '' },
+                bkbForm: { 
+                    pic: '', 
+                    kodeToko: '', 
+                    suratJalan: '', 
+                    itemCode: '', 
+                    qty: '', 
+                    date: '', 
+                    photoName: '', 
+                    base64File: '', 
+                    mimeType: '' 
+                },
+
+                async init() {
+                    if (sessionStorage.getItem("isLoggedIn") !== "true") {
+                        window.location.href = "login.html";
+                        return;
+                    }
+
+                    const storedNama = sessionStorage.getItem("userNama");
+                    const storedRole = sessionStorage.getItem("userRole");
+
+                    if (storedNama) {
+                        this.loggedInUser = storedNama;
+                        this.bkbForm.pic = storedNama; 
+                        this.transferForm.pic = storedNama;
+                    }
+                    if (storedRole) {
+                        this.userRole = storedRole;
+                    }
+
+                    const savedMaster = localStorage.getItem('masterProductsEDP');
+                    if (savedMaster) {
+                        try { this.masterProducts = JSON.parse(savedMaster); } catch(e){}
+                    }
+
+                    this.bkbForm.date = new Date().toISOString().slice(0, 10);
+                    this.generateSuratJalan();
+
+                    await this.loadDataFromSheetBest();
+                    await this.calculateFastMovingItems();
+                    await this.loadPendingRequests();
+                },
+
+                showNotification(type, message) {
+                    this.notification = { show: true, type, message };
+                    setTimeout(() => { this.notification.show = false; }, 5000);
+                },
+
+                // HELPER TAHAN MAKSIMAL 5 BARIS PERMINTAAN
+                addRequestRow() {
+                    if (this.requestForm.items.length < 5) {
+                        this.requestForm.items.push({ itemCode: '', qty: 1 });
+                    }
+                },
+
+                removeRequestRow(index) {
+                    if (this.requestForm.items.length > 1) {
+                        this.requestForm.items.splice(index, 1);
+                    }
+                },
+
+                getProductName(code) {
+                    if (!code) return '';
+                    const cleanCode = String(code).trim().toLowerCase();
+                    const master = this.masterProducts.find(p => String(p.code).trim().toLowerCase() === cleanCode);
+                    return master ? master.name : code;
+                },
+
+                getFastMovingLabel(code) {
+                    if (!code) return 'Slow Moving';
+                    const cleanCode = String(code).trim().toLowerCase();
+                    return this.fastMovingMap[cleanCode] || 'Slow Moving';
+                },
+
+                async calculateFastMovingItems() {
+                    try {
+                        const resRekapSJ = await fetch(`${apiUrl}/tabs/Rekap%20Surat%20Jalan`);
+                        const dataSJ = await resRekapSJ.json();
+
+                        if (Array.isArray(dataSJ)) {
+                            const sixtyDaysAgo = new Date();
+                            sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+                            let usageCount = {}; 
+
+                            dataSJ.forEach(row => {
+                                const tglSJ = new Date(row["Tanggal"] || row["tanggal"]);
+                                if (!isNaN(tglSJ) && tglSJ >= sixtyDaysAgo) {
+                                    let itemCode = String(row["PLU"] || row["Nama Barang"] || '').trim().toLowerCase();
+                                    let qtyOut = parseFloat(row["Qty"] || row["qty"]) || 0;
+                                    if (itemCode) {
+                                        usageCount[itemCode] = (usageCount[itemCode] || 0) + qtyOut;
+                                    }
+                                }
+                            });
+
+                            let categoryMap = {};
+                            for (let item in usageCount) {
+                                let totalOut = usageCount[item];
+                                if (totalOut >= 8) {
+                                    categoryMap[item] = "Fast Moving";
+                                } else if (totalOut >= 3) {
+                                    categoryMap[item] = "Medium Moving";
+                                } else {
+                                    categoryMap[item] = "Slow Moving";
+                                }
+                            }
+                            this.fastMovingMap = categoryMap;
+                        }
+                    } catch (e) {
+                        console.warn("Gagal menghitung kategori Fast Moving:", e);
+                    }
+                },
+
+                // PROSES PENGIRIMAN MULTI-ITEM KETIKA USER MENGISI FORM
+                async submitRequestBarang() {
+                    const validItems = this.requestForm.items.filter(i => i.itemCode && Number(i.qty) > 0);
+                    if (validItems.length === 0) {
+                        this.showNotification('error', 'Pilih minimal 1 barang dengan Qty yang valid!');
+                        return;
+                    }
+
+                    this.isSubmitting = true;
+                    try {
+                        // Iterasi pengiriman seluruh barang ke Spreadsheet
+                        for (let item of validItems) {
+                            const fullProductName = this.getProductName(item.itemCode);
+
+                            const payload = {
+                                action: "requestBarang",
+                                tanggal: new Date().toISOString().slice(0, 10),
+                                nama_edp: this.loggedInUser,
+                                plu: item.itemCode,
+                                nama_barang: fullProductName,
+                                qty_diminta: Number(item.qty),
+                                catatan: this.requestForm.note || "-"
+                            };
+
+                            await fetch(gasUrl, {
+                                method: "POST",
+                                headers: { "Content-Type": "text/plain" },
+                                body: JSON.stringify(payload)
+                            });
+                        }
+
+                        this.showNotification('success', `Berhasil mengajukan ${validItems.length} item barang ke Admin!`);
+                        
+                        // Reset Form Kembali ke 1 Baris
+                        this.requestForm = { 
+                            items: [{ itemCode: '', qty: 1 }], 
+                            note: '' 
+                        };
+                        await this.loadPendingRequests();
+                    } catch (e) {
+                        console.error(e);
+                        this.showNotification('error', 'Gagal mengirim permintaan barang.');
+                    } finally {
+                        this.isSubmitting = false;
+                    }
+                },
+
+                async loadPendingRequests() {
+                    try {
+                        const res = await fetch(`${apiUrl}/tabs/Permintaan%20Barang`);
+                        const data = await res.json();
+                        if (Array.isArray(data)) {
+                            this.pendingRequests = data.filter(r => (r["Status"] || '').trim().toUpperCase() === "PENDING");
+                        }
+                    } catch (e) {
+                        console.warn("Gagal memuat permintaan barang:", e);
+                    }
+                },
+
+                openApproveModal(req) {
+                    const currentCode = req['PLU / Item'] || req['PLU'] || '';
+                    this.approveModal = {
+                        show: true,
+                        item: req,
+                        itemCodeApproved: currentCode,
+                        qtyApproved: Number(req["Qty Diminta"] || 1),
+                        note: ''
+                    };
+                },
+
+                async submitApprovalAdmin() {
+                    if (!this.approveModal.item) return;
+                    this.isSubmitting = true;
+
+                    const fullProductName = this.getProductName(this.approveModal.itemCodeApproved);
+
+                    const payload = {
+                        action: "approveRequest",
+                        id_request: this.approveModal.item["ID Request"],
+                        nama_edp: this.approveModal.item["Nama EDP"],
+                        plu: this.approveModal.itemCodeApproved,
+                        nama_barang: fullProductName,
+                        qty_disetujui: Number(this.approveModal.qtyApproved),
+                        catatan_admin: this.approveModal.note || "Disetujui Admin"
+                    };
+
+                    try {
+                        await fetch(gasUrl, {
+                            method: "POST",
+                            headers: { "Content-Type": "text/plain" },
+                            body: JSON.stringify(payload)
+                        });
+
+                        this.showNotification('success', `Permintaan disetujui! Stok ${this.approveModal.item["Nama EDP"]} berhasil ditambahkan (${this.approveModal.qtyApproved} unit).`);
+                        this.approveModal.show = false;
+                        await this.loadPendingRequests();
+                        await this.loadDataFromSheetBest();
+                    } catch (e) {
+                        console.error(e);
+                        this.showNotification('error', 'Gagal memproses persetujuan permintaan.');
+                    } finally {
+                        this.isSubmitting = false;
+                    }
+                },
+
+                generateSuratJalan() {
+                    const dateVal = this.bkbForm.date || new Date().toISOString().slice(0, 10);
+                    const parts = dateVal.split('-');
+                    const year = parts[0];
+                    const month = parts[1];
+                    const day = parts[2];
+
+                    const counterKey = `edp_sj_counter_${year}_${month}_${day}`;
+                    let currentCount = parseInt(localStorage.getItem(counterKey) || '0') + 1;
+                    
+                    const paddedNo = String(currentCount).padStart(3, '0');
+                    this.bkbForm.suratJalan = `SJ-EDP/${year}/${month}/${day}/${paddedNo}`;
+                },
+
+                async loadDataFromSheetBest() {
+                    this.isLoading = true;
+                    this.syncStatus = 'Menghubungkan...';
+                    try {
+                        const currentNama = this.loggedInUser;
+                        const currentRole = this.userRole.toUpperCase();
+
+                        try {
+                            const resStockCabang = await fetch(`${apiUrl}/tabs/STOCK_CABANG`);
+                            const dataStockCabang = await resStockCabang.json();
+
+                            if (Array.isArray(dataStockCabang) && dataStockCabang.length > 0) {
+                                const masterMapped = dataStockCabang.map(row => {
+                                    const keys = Object.keys(row);
+                                    const pluKey = keys.find(k => k.trim().toUpperCase() === 'PLU') || keys.find(k => /plu|kode/i.test(k));
+                                    const nameKey = keys.find(k => k.trim().toUpperCase() === 'NAMA BARANG') || keys.find(k => /nama.*barang|nama|produk/i.test(k));
+
+                                    return {
+                                        code: (pluKey && row[pluKey] !== undefined) ? String(row[pluKey]).trim() : '',
+                                        name: (nameKey && row[nameKey] !== undefined) ? String(row[nameKey]).trim() : ''
+                                    };
+                                }).filter(p => p.code !== '' && p.name !== '');
+
+                                if (masterMapped.length > 0) {
+                                    this.masterProducts = masterMapped;
+                                    localStorage.setItem('masterProductsEDP', JSON.stringify(masterMapped));
+                                }
+                            }
+                        } catch (errMaster) {
+                            console.warn("Gagal memuat master produk dari STOCK_CABANG:", errMaster);
+                        }
+
+                        const resUserData = await fetch(`${apiUrl}/tabs/user_data`);
+                        const dataUserData = await resUserData.json();
+
+                        let allLocations = [];
+                        if (Array.isArray(dataUserData) && dataUserData.length > 0) {
+                            allLocations = dataUserData.map(item => {
+                                const keys = Object.keys(item);
+                                const picKey = keys.find(k => /pic|user|nama.*edp|nama/i.test(k)) || keys[0];
+                                const kotaKey = keys.find(k => /kota|branch|lokasi|area/i.test(k)) || keys[1];
+                                const bacaStockKey = keys.find(k => /baca.*stock|stock|tab|sheet/i.test(k)) || keys[2];
+
+                                return {
+                                    pic: (item[picKey] || '').toString().trim(),
+                                    kota: kotaKey ? (item[kotaKey] || '').toString().trim() : '',
+                                    bacaStock: bacaStockKey ? (item[bacaStockKey] || '').toString().trim() : '',
+                                    kodeToko: ''
+                                };
+                            }).filter(x => x.pic !== '');
+                        }
+
+                        try {
+                            const resSheet4 = await fetch(`${apiUrl}/tabs/Sheet4`);
+                            const dataSheet4 = await resSheet4.json();
+                            
+                            if (Array.isArray(dataSheet4) && dataSheet4.length > 0) {
+                                this.sheet4Data = dataSheet4;
+
+                                allLocations = allLocations.map(loc => {
+                                    const rowKeys = Object.keys(dataSheet4[0] || {});
+                                    const rowPicKey = rowKeys.find(k => /pic|user|nama/i.test(k)) || rowKeys[0];
+                                    const tokoKey = rowKeys.find(k => /kode.*toko|toko|store|kode|branch|cabang/i.test(k) && !/role|peran|pass|email/i.test(k));
+
+                                    const foundRow = dataSheet4.find(row => {
+                                        const rowPicVal = (row[rowPicKey] || '').toString().trim().toLowerCase();
+                                        return rowPicVal.includes(loc.pic.toLowerCase()) || loc.pic.toLowerCase().includes(rowPicVal);
+                                    });
+
+                                    if (foundRow && tokoKey) {
+                                        loc.kodeToko = (foundRow[tokoKey] || '').toString().trim();
+                                    }
+                                    return loc;
+                                });
+                            }
+                        } catch (err) {
+                            console.warn("Sheet4 warning:", err);
+                        }
+
+                        this.allEdpLocations = allLocations;
+
+                        let targetLocations = allLocations;
+                        if (currentRole !== "ADMIN") {
+                            targetLocations = allLocations.filter(loc => {
+                                const dbPic = loc.pic.toLowerCase().trim();
+                                const loginPic = currentNama.toLowerCase().trim();
+                                return dbPic.includes(loginPic) || loginPic.includes(dbPic);
+                            });
+
+                            if (targetLocations.length === 0) {
+                                targetLocations = [{ pic: currentNama, kota: 'Samarinda', bacaStock: '', kodeToko: '' }];
+                            }
+
+                            this.edpLocations = targetLocations;
+                            this.selectedBranch = targetLocations[0].pic;
+                        } else {
+                            this.edpLocations = allLocations;
+                        }
+
+                        this.updateKodeToko();
+
+                        let summaries = [];
+                        let stockDetailsTemp = {};
+                        
+                        for (let loc of targetLocations) {
+                            let totalQty = 0;
+                            let itemMap = {};
+                            let targetSource = loc.bacaStock || `Stock ${loc.pic}`;
+
+                            try {
+                                let fetchUrl = targetSource.startsWith("http") ? targetSource : `${apiUrl}/tabs/${encodeURIComponent(targetSource)}`;
+                                const resStock = await fetch(fetchUrl);
+                                const dataStock = await resStock.json();
+                                
+                                if (Array.isArray(dataStock)) {
+                                    dataStock.forEach(row => {
+                                        const keys = Object.keys(row);
+                                        const qtyKey = keys.find(k => k.trim().toUpperCase() === 'QTY');
+                                        const pluKey = keys.find(k => /plu|kode|item|produk/i.test(k));
+                                        
+                                        if (qtyKey && row[qtyKey] !== undefined && row[qtyKey] !== null) {
+                                            let val = parseFloat(row[qtyKey].toString().replace(/"/g, '')) || 0;
+                                            totalQty += val;
+
+                                            if (pluKey && row[pluKey]) {
+                                                let itemCode = row[pluKey].toString().trim();
+                                                itemMap[itemCode] = (itemMap[itemCode] || 0) + val;
+                                            }
+                                        }
+                                    });
+                                }
+                            } catch (err) {
+                                console.warn(`Gagal ambil stock untuk ${loc.pic}:`, err);
+                            }
+
+                            summaries.push({
+                                pic: loc.pic,
+                                kota: loc.kota || 'Samarinda',
+                                qty: totalQty
+                            });
+
+                            stockDetailsTemp[loc.pic.toLowerCase()] = itemMap;
+                        }
+
+                        this.inventorySummary = summaries;
+                        this.picStockDetails = stockDetailsTemp;
+                        this.syncStatus = 'Terhubung & Sinkron';
+                    } catch (error) {
+                        console.error("Gagal sinkronisasi SheetBest:", error);
+                        this.syncStatus = 'Gagal Sinkron (Mode Offline)';
+                        this.showNotification('error', 'Gagal memuat data dari Spreadsheet. Periksa koneksi API Anda.');
+                        this.inventorySummary = [{ pic: this.loggedInUser, kota: 'Samarinda', qty: 0 }];
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                getAvailableBKBItems() {
+                    const selectedPic = (this.bkbForm.pic || '').toLowerCase().trim();
+                    if (!selectedPic || !this.picStockDetails[selectedPic]) {
+                        return [];
+                    }
+
+                    const itemMap = this.picStockDetails[selectedPic];
+                    let availableList = [];
+
+                    for (let code in itemMap) {
+                        let currentQty = itemMap[code];
+                        if (currentQty > 0) {
+                            let name = this.getProductName(code);
+                            availableList.push({
+                                code: code,
+                                name: name,
+                                qty: currentQty
+                            });
+                        }
+                    }
+                    return availableList;
+                },
+
+                getMaxStockForItem() {
+                    const items = this.getAvailableBKBItems();
+                    const found = items.find(i => i.code === this.bkbForm.itemCode);
+                    return found ? found.qty : 0;
+                },
+
+                getAvailableKodeToko() {
+                    const selectedPic = this.bkbForm.pic;
+                    if (!selectedPic) return [];
+                    
+                    if (this.sheet4Data && Array.isArray(this.sheet4Data)) {
+                        const rowKeys = Object.keys(this.sheet4Data[0] || {});
+                        const rowPicKey = rowKeys.find(k => /pic|user|nama/i.test(k)) || rowKeys[0];
+                        const tokoKey = rowKeys.find(k => /kode.*toko|toko|store|kode|branch|cabang/i.test(k) && !/role|peran|pass|email/i.test(k));
+
+                        if (tokoKey) {
+                            const matches = this.sheet4Data.filter(row => {
+                                const rowPicVal = (row[rowPicKey] || '').toString().trim().toLowerCase();
+                                return rowPicVal.includes(selectedPic.toLowerCase()) || selectedPic.toLowerCase().includes(rowPicVal);
+                            });
+                            return [...new Set(matches.map(row => (row[tokoKey] || '').toString().trim()).filter(Boolean))];
+                        }
+                    }
+
+                    const source = this.allEdpLocations.length > 0 ? this.allEdpLocations : this.edpLocations;
+                    const matches = source.filter(l => l.pic.toLowerCase() === selectedPic.toLowerCase() && l.kodeToko);
+                    return [...new Set(matches.map(l => l.kodeToko))];
+                },
+
+                updateKodeToko() {
+                    this.bkbForm.itemCode = ''; 
+                    const tokos = this.getAvailableKodeToko();
+                    if (tokos.length === 1) {
+                        this.bkbForm.kodeToko = tokos[0];
+                    } else if (!tokos.includes(this.bkbForm.kodeToko)) {
+                        this.bkbForm.kodeToko = '';
+                    }
+                },
+
+                getPageTitle() {
+                    if (this.activeTab === 'monitoring') return 'Monitoring Stock EDP per PIC & Kota';
+                    if (this.activeTab === 'transfer') return 'Top-up / Transfer Qty Saldo Stock';
+                    if (this.activeTab === 'request') return 'Pengajuan & Approval Permintaan Barang';
+                    if (this.activeTab === 'bkb') return 'Input Bukti Keluar Barang (BKB)';
+                    if (this.activeTab === 'master') return 'Manajemen Master Produk EDP';
+                },
+
+                getUserInitials() {
+                    if (!this.loggedInUser) return 'US';
+                    const parts = this.loggedInUser.trim().split(' ');
+                    if (parts.length >= 2) {
+                        return (parts[0][0] + parts[1][0]).toUpperCase();
+                    }
+                    return this.loggedInUser.substring(0, 2).toUpperCase();
+                },
+
+                get filteredInventory() {
+                    return this.inventorySummary.filter(item => {
+                        const itemPic = item.pic.toLowerCase().trim();
+                        const branch = this.selectedBranch.toLowerCase().trim();
+                        
+                        let matchBranch = this.selectedBranch === 'ALL' || 
+                                          itemPic === branch || 
+                                          itemPic.includes(branch) || 
+                                          branch.includes(itemPic);
+                                          
+                        let matchSearch = item.pic.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
+                                          item.kota.toLowerCase().includes(this.searchQuery.toLowerCase());
+                                          
+                        return matchBranch && matchSearch;
+                    });
+                },
+
+                openQuickTransfer(item) {
+                    if (this.userRole.toUpperCase() !== 'ADMIN') return;
+                    this.activeTab = 'transfer';
+                    this.transferForm.pic = item.pic;
+                },
+
+                async submitTransfer() {
+                    if (this.userRole.toUpperCase() !== 'ADMIN') return;
+                    this.isSubmitting = true;
+                    
+                    const targetPic = this.transferForm.pic;
+                    const addQty = Number(this.transferForm.qty);
+                    
+                    const targetLoc = this.edpLocations.find(l => l.pic.toLowerCase() === targetPic.toLowerCase());
+                    const targetTab = targetLoc && targetLoc.bacaStock ? targetLoc.bacaStock : `Stock ${targetPic}`;
+
+                    try {
+                        let postUrl = targetTab.startsWith("http") ? targetTab : `${apiUrl}/tabs/${encodeURIComponent(targetTab)}`;
+                        const response = await fetch(postUrl, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify([{
+                                "PLU": this.transferForm.itemCode,
+                                "QTY": addQty,
+                                "Keterangan": this.transferForm.note || "Top-up dari Pusat",
+                                "Tanggal": new Date().toISOString().slice(0, 10)
+                            }])
+                        });
+
+                        if (!response.ok) throw new Error("Gagal mengirim data ke SheetBest API");
+
+                        this.showNotification('success', `Sukses! Qty berhasil ditambahkan ke saldo PIC ${targetPic}`);
+                        this.transferForm = { pic: '', itemCode: '', qty: '', note: '' };
+                        this.activeTab = 'monitoring';
+                        await this.loadDataFromSheetBest();
+                    } catch (e) {
+                        console.error(e);
+                        this.showNotification('error', 'Gagal mengirim data Top-up ke Google Spreadsheet.');
+                    } finally {
+                        this.isSubmitting = false;
+                    }
+                },
+
+                handleFileUpload(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        this.bkbForm.photoName = file.name;
+                        this.bkbForm.mimeType = file.type;
+
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            const rawBase64 = e.target.result.split(',')[1];
+                            this.bkbForm.base64File = rawBase64;
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                },
+
+                async submitBKB() {
+                    this.isSubmitting = true;
+                    const targetPic = this.bkbForm.pic;
+                    const outQty = Number(this.bkbForm.qty);
+                    const maxQty = this.getMaxStockForItem();
+
+                    const fullProductName = this.getProductName(this.bkbForm.itemCode);
+
+                    if (outQty > maxQty) {
+                        this.showNotification('error', `Gagal! Stok ${fullProductName} tidak mencukupi (Maksimal: ${maxQty}).`);
+                        this.isSubmitting = false;
+                        return;
+                    }
+
+                    const targetLoc = this.edpLocations.find(l => l.pic.toLowerCase() === targetPic.toLowerCase());
+                    const targetTab = targetLoc && targetLoc.bacaStock ? targetLoc.bacaStock : `Stock ${targetPic}`;
+
+                    try {
+                        let postUrl = targetTab.startsWith("http") ? targetTab : `${apiUrl}/tabs/${encodeURIComponent(targetTab)}`;
+                        const resStock = await fetch(postUrl, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify([{
+                                "PLU": this.bkbForm.itemCode,
+                                "QTY": -outQty,
+                                "Keterangan": `BKB SJ: ${this.bkbForm.suratJalan} (${fullProductName} - Toko: ${this.bkbForm.kodeToko})`,
+                                "Tanggal": this.bkbForm.date
+                            }])
+                        });
+
+                        if (!resStock.ok) throw new Error("Gagal mengupdate saldo stok");
+
+                        const payloadGAS = {
+                            action: "inputBKB",
+                            surat_jalan: this.bkbForm.suratJalan,
+                            tanggal: this.bkbForm.date,
+                            nama_barang: fullProductName,
+                            kdtk: this.bkbForm.kodeToko,
+                            nama_edp: this.bkbForm.pic,
+                            qty: outQty,
+                            base64File: this.bkbForm.base64File || "",
+                            mimeType: this.bkbForm.mimeType || "",
+                            foto: this.bkbForm.photoName || "-"
+                        };
+
+                        await fetch(gasUrl, {
+                            method: "POST",
+                            headers: { "Content-Type": "text/plain" },
+                            body: JSON.stringify(payloadGAS)
+                        });
+
+                        const parts = this.bkbForm.date.split('-');
+                        const counterKey = `edp_sj_counter_${parts[0]}_${parts[1]}_${parts[2]}`;
+                        let currentCount = parseInt(localStorage.getItem(counterKey) || '0');
+                        localStorage.setItem(counterKey, currentCount + 1);
+
+                        this.showNotification('success', `Surat Jalan ${this.bkbForm.suratJalan} berhasil disimpan & dikirim ke Rekap!`);
+                        
+                        this.bkbForm = { 
+                            pic: targetPic, 
+                            kodeToko: '', 
+                            suratJalan: '', 
+                            itemCode: '', 
+                            qty: '', 
+                            date: new Date().toISOString().slice(0, 10), 
+                            photoName: '',
+                            base64File: '',
+                            mimeType: ''
+                        };
+                        this.generateSuratJalan();
+                        this.activeTab = 'monitoring';
+
+                        await this.loadDataFromSheetBest();
+                        await this.calculateFastMovingItems();
+
+                    } catch (e) {
+                        console.error(e);
+                        this.showNotification('error', 'Terjadi kesalahan saat memproses BKB.');
+                    } finally {
+                        this.isSubmitting = false;
+                    }
+                },
+
+                handleMasterUpload(event) {
+                    if (this.userRole.toUpperCase() !== 'ADMIN') return;
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const data = new Uint8Array(e.target.result);
+                            const workbook = XLSX.read(data, { type: 'array' });
+                            const firstSheetName = workbook.SheetNames[0];
+                            const worksheet = workbook.Sheets[firstSheetName];
+                            const json = XLSX.utils.sheet_to_json(worksheet);
+
+                            if (json.length === 0) {
+                                this.showNotification('error', "File kosong atau format tidak sesuai!");
+                                return;
+                            }
+
+                            const newProducts = json.map(row => {
+                                const keys = Object.keys(row);
+                                const codeKey = keys.find(k => /kode|code|id|plu/i.test(k)) || keys[0];
+                                const nameKey = keys.find(k => /nama|name|item|produk/i.test(k)) || keys[1];
+
+                                return {
+                                    code: (row[codeKey] || '').toString().trim(),
+                                    name: (row[nameKey] || '').toString().trim()
+                                };
+                            }).filter(p => p.code && p.name);
+
+                            if (newProducts.length > 0) {
+                                this.masterProducts = newProducts;
+                                localStorage.setItem('masterProductsEDP', JSON.stringify(newProducts));
+                                this.showNotification('success', `Sukses! ${newProducts.length} data master produk berhasil diimpor.`);
+                            } else {
+                                this.showNotification('error', "Gagal mendeteksi kolom kode dan nama produk.");
+                            }
+                        } catch (err) {
+                            console.error(err);
+                            this.showNotification('error', "Terjadi kesalahan saat membaca file.");
+                        }
+                    };
+                    reader.readAsArrayBuffer(file);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
