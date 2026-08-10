@@ -17,7 +17,7 @@
             min-height: 100vh;
         }
 
-        /* --- TRANSISI HALUS (GEMINI STYLE) --- */
+        /* --- TRANSISI HALUS --- */
         .sidebar, .main-content, .footer-copyright {
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -129,21 +129,15 @@
         }
 
         /* SIDEBAR MODE DITUTUP (COLLAPSED) */
-        .sidebar.collapsed {
-            width: 56px;
-        }
+        .sidebar.collapsed { width: 56px; }
 
         .sidebar.collapsed .sidebar-header {
             padding: 12px 0;
             justify-content: center;
         }
         .sidebar.collapsed .sidebar-header span:first-child,
-        .sidebar.collapsed .sidebar-header h3 {
-            display: none;
-        }
-        .sidebar.collapsed .btn-toggle-sidebar {
-            margin-left: 0;
-        }
+        .sidebar.collapsed .sidebar-header h3 { display: none; }
+        .sidebar.collapsed .btn-toggle-sidebar { margin-left: 0; }
 
         .sidebar.collapsed .sidebar-menu {
             padding: 15px 0;
@@ -162,9 +156,7 @@
             border-radius: 50%;
             font-size: 18px;
         }
-        .sidebar.collapsed .sidebar-menu li a span:nth-child(2) {
-            display: none;
-        }
+        .sidebar.collapsed .sidebar-menu li a span:nth-child(2) { display: none; }
 
         .sidebar.collapsed .sidebar-footer {
             padding: 12px 0;
@@ -178,9 +170,7 @@
             justify-content: center;
             border-radius: 50%;
         }
-        .sidebar.collapsed .btn-sidebar-logout span:nth-child(2) {
-            display: none;
-        }
+        .sidebar.collapsed .btn-sidebar-logout span:nth-child(2) { display: none; }
 
         /* --- MAIN CONTENT --- */
         .main-content {
@@ -428,8 +418,8 @@
                 <div class="form-group">
                     <label for="tipe-laporan">Target / Jenis Laporan:</label>
                     <select id="tipe-laporan" onchange="gantiTipeLaporan()">
-                        <option value="SE">📊 Bank Data Service Excellent (SE)</option>
-                        <option value="CCTV">📹 Bank Data CCTV Online (Auto Filter DVR & DVR2)</option>
+                        <option value="SE">📊 Bank Data Service Excellent (Upload Semua Station)</option>
+                        <option value="CCTV">📹 Bank Data CCTV Online (Filter Hanya DVR & DVR2)</option>
                     </select>
                 </div>
 
@@ -513,6 +503,7 @@
             localStorage.setItem("sidebarCollapsed", isCollapsed ? "true" : "false");
         }
 
+        // Single Sheet Target Endpoint (BANK DATA SE)
         const apiUrl = "https://api.sheetbest.com/sheets/478b0475-ac28-4edd-a01e-7e87ff27ac26";
         let parsedExcelRows = [];
         let currentFileBuffer = null;
@@ -534,7 +525,7 @@
             document.getElementById("tanggal-upload").value = today;
         });
 
-        // --- 3. PENGOLAHAN FILE EXCEL & FILTRASI OTOMATIS ---
+        // --- 3. PENGOLAHAN FILE EXCEL & LOGIKA FILTER ---
         function gantiTipeLaporan() {
             if (currentFileBuffer) {
                 bacaDanOlahExcel(currentFileBuffer);
@@ -556,6 +547,68 @@
             reader.readAsArrayBuffer(file);
         }
 
+        // Normalisasi nama kolom sesuai aturan pemetaan:
+        // ADDTIME        -> RESPONSE
+        // TOKO           -> KDTK
+        // NAMA           -> NAMA
+        // STATION        -> STATION
+        // STATUS_NETWORK -> KETERANGAN
+        function normalisasiBarisData(row, tglFallback) {
+            const map = {};
+            for (let k in row) {
+                if (Object.prototype.hasOwnProperty.call(row, k)) {
+                    map[k.toString().trim().toUpperCase()] = row[k];
+                }
+            }
+
+            const responseVal = map["RESPONSE"] || map["ADDTIME"] || "-";
+            const kdtkVal     = map["KDTK"] || map["TOKO"] || map["KODE TOKO"] || "-";
+            const namaVal     = map["NAMA"] || map["NAMA TOKO"] || "-";
+            const stationVal  = map["STATION"] !== undefined ? map["STATION"].toString().trim() : "-";
+            
+            // Prioritaskan STATUS_NETWORK -> KETERANGAN
+            const ketVal      = map["KETERANGAN"] || map["STATUS_NETWORK"] || map["STATUS NETWORK"] || map["STATUS"] || "-";
+
+            let tgl = tglFallback;
+            if (map["REQUEST"] && map["REQUEST"].toString().length >= 10) {
+                const tglExtracted = map["REQUEST"].toString().substring(0, 10);
+                if (/^\d{4}-\d{2}-\d{2}$/.test(tglExtracted)) tgl = tglExtracted;
+            } else if (responseVal !== "-" && responseVal.length >= 10) {
+                const tglExtracted = responseVal.substring(0, 10);
+                if (/^\d{4}-\d{2}-\d{2}$/.test(tglExtracted)) tgl = tglExtracted;
+            }
+
+            let aktivasi = map["AKTIVASI_WINDOWS"] || map["STATUS AKTIVASI"] || "-";
+            if (aktivasi && typeof aktivasi === "string") {
+                aktivasi = aktivasi.replace(/_x00d_\n/g, " ").trim();
+            }
+
+            return {
+                tanggal: tgl,
+                KDTK: kdtkVal,
+                NAMA: namaVal,
+                STATION: stationVal,
+                KETERANGAN: ketVal,
+                RESPONSE: responseVal,
+                IP: map["IP"] || map["IP DVR"] || "-",
+                LAN_SPEED: map["LAN_SPEED"] || map["STATUS LAN SPEED"] || "-",
+                SUHU: map["SUHU"] || map["STATUS SUHU"] || "-",
+                BOOT_TIME: map["BOOT_TIME"] || map["STATUS BOOT TIME"] || "-",
+                STATUS_BSOD: map["STATUS_BSOD"] || map["STATUS BSOD"] || "-",
+                UPS_STATUS: map["UPS_STATUS"] || map["STATUS UPS"] || "-",
+                AKTIVASI_WINDOWS: aktivasi,
+                STATUS_EDC_BCA: map["STATUS EDC BCA"] || map["SETTING_BCA"] || "-",
+                STATUS_EDC_MTI: map["STATUS EDC MTI"] || map["SETTING_MTI"] || "-",
+                STATUS_DVR: map["STATUS DVR"] || "-",
+                STATUS_DVR2: map["STATUS DVR2"] || "-",
+                TGL_FOLLOW_UP: map["TGL FOLLOW UP"] || "-",
+                EDP_FOLLOW_UP: map["EDP FOLLOW UP"] || "-",
+                ANALISA_KENDALA: map["ANALISA KENDALA"] || "-",
+                HASIL_PERBAIKAN: map["HASIL PERBAIKAN"] || "-",
+                LINK_FOTO_BUKTI: map["LINK FOTO BUKTI"] || "-"
+            };
+        }
+
         function bacaDanOlahExcel(buffer) {
             const data = new Uint8Array(buffer);
             const workbook = XLSX.read(data, { type: 'array' });
@@ -571,47 +624,35 @@
             }
 
             const tipeLaporan = document.getElementById("tipe-laporan").value;
-            let finalRows = rawJson;
-            let totalBarisAwal = rawJson.length;
+            const totalBarisAwal = rawJson.length;
+            const tglPilihan = document.getElementById("tanggal-upload").value;
 
-            // 🎯 OTOMATISASI FILTER HANYA STATION = DVR ATAU DVR2
+            // 1. Normalisasi nama kolom
+            let finalRows = rawJson.map(r => normalisasiBarisData(r, tglPilihan));
+
+            // 2. ATURAN PENGADAAN FILTER BERDASARKAN OPSI DROP-DOWN:
+            // - CCTV: HANYA AMBIL STATION DVR & DVR2
+            // - SE: TERUPLOAD SEMUA (TANPA FILTER STATION)
             if (tipeLaporan === "CCTV") {
-                finalRows = rawJson.filter(row => {
-                    const st = (row["STATION"] || row["station"] || "").toString().trim().toUpperCase();
+                finalRows = finalRows.filter(row => {
+                    const st = (row.STATION || "").toString().trim().toUpperCase();
                     return st === "DVR" || st === "DVR2";
                 });
             }
 
-            // Ekstrak tanggal otomatis dari kolom REQUEST / ADDTIME jika ada
-            if (rawJson[0].REQUEST && rawJson[0].REQUEST.length >= 10) {
-                const tglExtracted = rawJson[0].REQUEST.substring(0, 10);
-                if (/^\d{4}-\d{2}-\d{2}$/.test(tglExtracted)) {
-                    document.getElementById("tanggal-upload").value = tglExtracted;
-                }
-            } else if (rawJson[0].ADDTIME && rawJson[0].ADDTIME.length >= 10) {
-                const tglExtracted = rawJson[0].ADDTIME.substring(0, 10);
-                if (/^\d{4}-\d{2}-\d{2}$/.test(tglExtracted)) {
-                    document.getElementById("tanggal-upload").value = tglExtracted;
-                }
+            if (finalRows.length > 0 && finalRows[0].tanggal && /^\d{4}-\d{2}-\d{2}$/.test(finalRows[0].tanggal)) {
+                document.getElementById("tanggal-upload").value = finalRows[0].tanggal;
             }
 
-            const tglPilihan = document.getElementById("tanggal-upload").value;
+            parsedExcelRows = finalRows;
 
-            parsedExcelRows = finalRows.map(row => {
-                return {
-                    ...row,
-                    tanggal: tglPilihan,
-                    AKTIVASI_WINDOWS: row.AKTIVASI_WINDOWS ? row.AKTIVASI_WINDOWS.toString().replace(/_x00d_\n/g, " ").trim() : undefined
-                };
-            });
-
-            // Update Badge & Informasi Jumlah Baris
+            // Update Badge & UI Info
             const badge = document.getElementById("file-badge");
             if (currentFileName) {
                 if (tipeLaporan === "CCTV") {
-                    badge.innerText = `📎 ${currentFileName} | 🎯 Filtered: ${parsedExcelRows.length} dari ${totalBarisAwal} baris (Hanya DVR & DVR2)`;
+                    badge.innerText = `📎 ${currentFileName} | 🎯 Filtered CCTV: ${parsedExcelRows.length} dari ${totalBarisAwal} baris (Hanya DVR & DVR2)`;
                 } else {
-                    badge.innerText = `📎 ${currentFileName} (${(currentFileSize / 1024).toFixed(1)} KB) - ${parsedExcelRows.length} Baris Data`;
+                    badge.innerText = `📎 ${currentFileName} (${(currentFileSize / 1024).toFixed(1)} KB) - ${parsedExcelRows.length} Baris Data (Semua Station Terupload)`;
                 }
                 badge.style.display = "inline-block";
             }
@@ -637,10 +678,8 @@
                 return;
             }
 
-            let headers = [];
-            if (tipe === "CCTV") {
-                headers = ["tanggal", "TOKO", "NAMA", "IP", "STATION", "KONEKSI", "STATUS_NETWORK", "UPTIME", "DOWNTIME", "SLA"];
-            } else {
+            let headers = ["tanggal", "KDTK", "NAMA", "STATION", "IP", "KETERANGAN", "RESPONSE"];
+            if (tipe === "SE") {
                 headers = ["tanggal", "KDTK", "NAMA", "STATION", "IP", "LAN_SPEED", "SUHU", "BOOT_TIME", "STATUS_BSOD", "UPS_STATUS"];
             }
 
@@ -662,7 +701,7 @@
             });
         }
 
-        // --- 5. PENGIRIMAN DATA KE SHEETBEST (BATCH SENDING) ---
+        // --- 5. PENGIRIMAN DATA KE SHEETBEST (LANGSUNG KE SHEET BANK DATA SE) ---
         async function kirimKeBankData() {
             if (parsedExcelRows.length === 0) return;
 
@@ -673,8 +712,8 @@
             const progressFill = document.getElementById("progress-fill");
             const progressLabel = document.getElementById("progress-label");
 
-            const namaTarget = tipeLaporan === "CCTV" ? "bank data CCTV Online" : "Bank Data Service Excellent";
-            if (!confirm(`Apakah Anda yakin ingin mengunggah ${parsedExcelRows.length} baris data ke ${namaTarget} untuk tanggal ${tglFix}?`)) {
+            const labelInfo = tipeLaporan === "CCTV" ? "Data CCTV (Hanya DVR & DVR2)" : "Data Service Excellent (Semua Station)";
+            if (!confirm(`Apakah Anda yakin ingin mengunggah ${parsedExcelRows.length} baris ${labelInfo} ke Sheet BANK DATA SE untuk tanggal ${tglFix}?`)) {
                 return;
             }
 
@@ -684,11 +723,8 @@
 
             const dataFinal = parsedExcelRows.map(r => ({ ...r, tanggal: tglFix }));
 
-            // Tentukan URL Endpoint API berdasarkan Tipe Laporan
-            let targetUrl = apiUrl;
-            if (tipeLaporan === "CCTV") {
-                targetUrl = `${apiUrl}/tabs/${encodeURIComponent("bank data CCTV Online")}`;
-            }
+            // Seluruh data dikirim terpusat ke endpoint utama BANK DATA SE
+            const targetUrl = apiUrl;
 
             const totalData = dataFinal.length;
             const chunkSize = 100;
@@ -710,7 +746,7 @@
                     progressLabel.innerText = `Mengunggah: ${persen}% (${diproses}/${totalData} baris)`;
                 }
 
-                alert(`✅ Sukses! Sebanyak ${totalData} baris data berhasil diunggah ke ${namaTarget}.`);
+                alert(`✅ Sukses! Sebanyak ${totalData} baris data berhasil diunggah ke Sheet BANK DATA SE.`);
                 location.reload();
             } catch (err) {
                 console.error("Error upload data:", err);
