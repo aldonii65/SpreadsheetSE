@@ -16,15 +16,28 @@
         body { 
             font-family: 'Inter', sans-serif; 
             -webkit-tap-highlight-color: transparent;
+            background-color: #f8fafc; /* bg-slate-50 */
         }
         [x-cloak] { display: none !important; }
 
-        /* PERBAIKAN CSS DROPDOWN & OVERFLOW HP */
-        select, option {
-            background-color: #ffffff !important;
-            color: #0f172a !important;
+        /* Gunakan dvh agar tidak glitch saat keyboard HP muncul */
+        .app-container {
+            height: 100vh;
+            height: 100dvh;
         }
 
+        select, option {
+            background-color: #ffffff;
+            color: #0f172a;
+        }
+
+        /* Mencegah background input menjadi putih mengkilap saat autofill di HP */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus {
+            -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+            -webkit-text-fill-color: #0f172a !important;
+        }
         /* Isolasi Stacking Context Modal agar Dropdown & Keyboard tidak glitch */
         .modal-backdrop {
             z-index: 9999 !important;
@@ -51,7 +64,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800" x-data="edpApp()" x-cloak>
 
-    <div class="flex h-screen overflow-hidden relative">
+    <div class="flex app-container overflow-hidden relative">
         
         <!-- OVERLAY BACKGROUND UNTUK MOBILE -->
         <div x-show="mobileSidebarOpen" 
