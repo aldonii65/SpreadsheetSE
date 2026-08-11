@@ -801,806 +801,790 @@
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            if (sessionStorage.getItem("isLoggedIn") !== "true") {
-                window.location.href = "login.html";
-                return;
+    document.addEventListener("DOMContentLoaded", () => {
+        if (sessionStorage.getItem("isLoggedIn") !== "true") {
+            window.location.href = "login.html";
+            return;
+        }
+
+        const currentRole = (sessionStorage.getItem("userRole") || "").toUpperCase();
+
+        if (currentRole !== "ADMIN") {
+            const menuUpload = document.querySelector('a[href="upload-data.html"]');
+            const menuFilter = document.querySelector('a[href="filter-item.html"]');
+
+            if (menuUpload && menuUpload.parentElement) {
+                menuUpload.parentElement.style.display = "none";
             }
-
-            const currentRole = (sessionStorage.getItem("userRole") || "").toUpperCase();
-
-            if (currentRole !== "ADMIN") {
-                const menuUpload = document.querySelector('a[href="upload-data.html"]');
-                const menuFilter = document.querySelector('a[href="filter-item.html"]');
-
-                if (menuUpload && menuUpload.parentElement) {
-                    menuUpload.parentElement.style.display = "none";
-                }
-                if (menuFilter && menuFilter.parentElement) {
-                    menuFilter.parentElement.style.display = "none";
-                }
-            }
-
-            // Jalankan mode collapse desktop jika tersimpan
-            if (window.innerWidth > 768 && localStorage.getItem("sidebarCollapsed") === "true") {
-                const sidebar = document.getElementById("sidebar");
-                const mainContent = document.querySelector(".main-content");
-                const footer = document.querySelector(".footer-copyright");
-
-                if (sidebar) sidebar.classList.add("collapsed");
-                if (mainContent) mainContent.classList.add("expanded");
-                if (footer) footer.classList.add("expanded");
-            }
-
-            const today = new Date().toISOString().slice(0, 10);
-            document.getElementById("filter-tanggal").value = today;
-            ambilData(today);
-        });
-
-        function logout() {
-            if (confirm("Apakah Anda yakin ingin keluar dari sistem?")) {
-                sessionStorage.removeItem("isLoggedIn");
-                sessionStorage.removeItem("userNama");
-                sessionStorage.removeItem("userRole");
-                window.location.href = "login.html";
+            if (menuFilter && menuFilter.parentElement) {
+                menuFilter.parentElement.style.display = "none";
             }
         }
 
-        // FUNGSI TOGGLE REVISI UNTUK DESKTOP & MOBILE
-        function toggleSidebar() {
+        if (window.innerWidth > 768 && localStorage.getItem("sidebarCollapsed") === "true") {
             const sidebar = document.getElementById("sidebar");
-            const overlay = document.getElementById("sidebar-overlay");
             const mainContent = document.querySelector(".main-content");
             const footer = document.querySelector(".footer-copyright");
 
-            if (window.innerWidth <= 768) {
-                // Mode Mobile: Slide In/Out
-                sidebar.classList.toggle("open");
-                overlay.classList.toggle("active");
-            } else {
-                // Mode Desktop: Collapse Icon Only
-                sidebar.classList.toggle("collapsed");
-                if (mainContent) mainContent.classList.toggle("expanded");
-                if (footer) footer.classList.toggle("expanded");
-
-                const isCollapsed = sidebar.classList.contains("collapsed");
-                localStorage.setItem("sidebarCollapsed", isCollapsed ? "true" : "false");
-            }
+            if (sidebar) sidebar.classList.add("collapsed");
+            if (mainContent) mainContent.classList.add("expanded");
+            if (footer) footer.classList.add("expanded");
         }
 
-        // --- DUA ENDPOINT TERPISAH (HYBRID STRATEGY) ---
-        const apiUrlSheetBest = "https://api.sheetbest.com/sheets/478b0475-ac28-4edd-a01e-7e87ff27ac26"; 
-        const gasUploadUrl = "https://script.google.com/macros/s/AKfycbynpQMCaUnWggcjYe9wWpFulIx8tcsYyfwI_MB5CPPbpa88tUW2VpOXQJ3D7KRS7aV8cA/exec"; 
+        const today = new Date().toISOString().slice(0, 10);
+        document.getElementById("filter-tanggal").value = today;
+        ambilData(today);
+    });
 
-        let semuaData = [];
-        let dataAktifTerfilter = [];
-
-        let KOLOM_EDP = "";
-        let KOLOM_NAMA_EDP = "";
-        let KOLOM_TANGGAL = "";
-        let KOLOM_STATION = "";
-        let KOLOM_KODE_TOKO = "";
-        let KOLOM_NAMA_TOKO = "";
-        let KOLOM_AKTIVASI = "";
-        let KOLOM_LAN_SPEED = "";
-        let KOLOM_MYSQL = "";
-        let KOLOM_SUHU = "";
-        let KOLOM_BOOT_TIME = "";
-        let KOLOM_LISTENER = "";
-        let KOLOM_EDC_BCA = "";
-        let KOLOM_EDC_MANDIRI = "";
-        let KOLOM_BSOD = "";
-        let KOLOM_UPS = "";
-        let KOLOM_HARI_TERLAMBAT = "HARI TERLAMBAT IDM LISTENER";
-        let KOLOM_IP_DVR = "IP_DVR";
-        let KOLOM_DVR = "DVR";
-        let KOLOM_DVR2 = "DVR2";
-
-        function renderSkeletonLoading(jumlahBaris = 5) {
-            let skeletonHtml = '';
-            for (let i = 0; i < jumlahBaris; i++) {
-                skeletonHtml += `
-                    <tr class="skeleton-row">
-                        <td><div class="skeleton-bar" style="width: 70px;"></div></td>
-                        <td><div class="skeleton-bar" style="width: 140px;"></div></td>
-                        <td><div class="skeleton-bar" style="width: 50px;"></div></td>
-                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                        <td><div class="skeleton-bar" style="width: 80px;"></div></td>
-                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                        <td><div class="skeleton-bar" style="width: 90px;"></div></td>
-                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                        <td><div class="skeleton-bar" style="width: 80px;"></div></td>
-                    </tr>
-                `;
-            }
-            return skeletonHtml;
+    function logout() {
+        if (confirm("Apakah Anda yakin ingin keluar dari sistem?")) {
+            sessionStorage.removeItem("isLoggedIn");
+            sessionStorage.removeItem("userNama");
+            sessionStorage.removeItem("userRole");
+            window.location.href = "login.html";
         }
+    }
 
-        function formatTanggalRapi(val) {
-            if (!val || val === '-') return '-';
-            let str = val.toString().trim();
+    function toggleSidebar() {
+        const sidebar = document.getElementById("sidebar");
+        const overlay = document.getElementById("sidebar-overlay");
+        const mainContent = document.querySelector(".main-content");
+        const footer = document.querySelector(".footer-copyright");
 
-            if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
-                return str;
-            }
+        if (window.innerWidth <= 768) {
+            sidebar.classList.toggle("open");
+            overlay.classList.toggle("active");
+        } else {
+            sidebar.classList.toggle("collapsed");
+            if (mainContent) mainContent.classList.toggle("expanded");
+            if (footer) footer.classList.toggle("expanded");
 
-            const d = new Date(val);
-            if (!isNaN(d.getTime())) {
-                if (d.getUTCHours() >= 15) {
-                    d.setUTCDate(d.getUTCDate() + 1);
-                }
-                const yyyy = d.getUTCFullYear();
-                const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
-                const dd = String(d.getUTCDate()).padStart(2, '0');
-                return `${yyyy}-${mm}-${dd}`;
-            }
-            return str.substring(0, 10);
+            const isCollapsed = sidebar.classList.contains("collapsed");
+            localStorage.setItem("sidebarCollapsed", isCollapsed ? "true" : "false");
         }
+    }
 
-        async function ambilData(tanggalSelected = "") {
-            const tbody = document.getElementById("isi-tabel");
-            const infoJumlah = document.getElementById("info-jumlah-data");
-            const tgl = tanggalSelected || document.getElementById("filter-tanggal").value;
+    // URL Endpoint Google Apps Script (READ & WRITE 100% via GAS)
+    const gasUploadUrl = "https://script.google.com/macros/s/AKfycbxe2ttq3gRhp7rKOdsl9cHKbX8ovvUFcpGe6NiDvAVJlSJFPmXp2e4Hk7u_KmzKLMdW/exec"; 
 
-            infoJumlah.innerHTML = `⏳ Memuat data tanggal <strong>${tgl}</strong>...`;
-            
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="17" style="padding: 30px 0;">
-                        <div class="loading-box">
-                            <span class="spinner"></span>
-                            <span class="loading-text">Sedang mengambil data laporan (${tgl})...</span>
-                        </div>
-                    </td>
+    let semuaData = [];
+    let dataAktifTerfilter = [];
+
+    let KOLOM_EDP = "";
+    let KOLOM_NAMA_EDP = "";
+    let KOLOM_TANGGAL = "";
+    let KOLOM_STATION = "";
+    let KOLOM_KODE_TOKO = "";
+    let KOLOM_NAMA_TOKO = "";
+    let KOLOM_AKTIVASI = "";
+    let KOLOM_LAN_SPEED = "";
+    let KOLOM_MYSQL = "";
+    let KOLOM_SUHU = "";
+    let KOLOM_BOOT_TIME = "";
+    let KOLOM_LISTENER = "";
+    let KOLOM_EDC_BCA = "";
+    let KOLOM_EDC_MANDIRI = "";
+    let KOLOM_BSOD = "";
+    let KOLOM_UPS = "";
+    let KOLOM_HARI_TERLAMBAT = "HARI TERLAMBAT IDM LISTENER";
+    let KOLOM_IP_DVR = "IP_DVR";
+    let KOLOM_DVR = "DVR";
+    let KOLOM_DVR2 = "DVR2";
+
+    function renderSkeletonLoading(jumlahBaris = 5) {
+        let skeletonHtml = '';
+        for (let i = 0; i < jumlahBaris; i++) {
+            skeletonHtml += `
+                <tr class="skeleton-row">
+                    <td><div class="skeleton-bar" style="width: 70px;"></div></td>
+                    <td><div class="skeleton-bar" style="width: 140px;"></div></td>
+                    <td><div class="skeleton-bar" style="width: 50px;"></div></td>
+                    <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                    <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                    <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                    <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                    <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                    <td><div class="skeleton-bar" style="width: 80px;"></div></td>
+                    <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                    <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                    <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                    <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                    <td><div class="skeleton-bar" style="width: 90px;"></div></td>
+                    <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                    <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                    <td><div class="skeleton-bar" style="width: 80px;"></div></td>
                 </tr>
-                ${renderSkeletonLoading(5)}
             `;
+        }
+        return skeletonHtml;
+    }
 
-            try {
-                let requestUrl = apiUrlSheetBest;
-                if (tgl) {
-                    requestUrl += "?tanggal=" + encodeURIComponent(tgl);
-                }
+    function formatTanggalRapi(val) {
+        if (!val || val === '-') return '-';
+        let str = val.toString().trim();
 
-                const [resMain, resFu] = await Promise.all([
-                    fetch(requestUrl),
-                    fetch(`${apiUrlSheetBest}/tabs/${encodeURIComponent("FOLLOW UP LAPANGAN")}`)
-                ]);
+        if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+            return str;
+        }
 
-                semuaData = await resMain.json();
-                let dataFuRaw = [];
+        const d = new Date(val);
+        if (!isNaN(d.getTime())) {
+            if (d.getUTCHours() >= 15) {
+                d.setUTCDate(d.getUTCDate() + 1);
+            }
+            const yyyy = d.getUTCFullYear();
+            const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+            const dd = String(d.getUTCDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+        return str.substring(0, 10);
+    }
 
-                try {
-                    dataFuRaw = await resFu.json();
-                } catch (e) {
-                    console.warn("Tab FOLLOW UP LAPANGAN belum terbaca atau masih kosong:", e);
-                }
+    async function ambilData(tanggalSelected = "") {
+        const tbody = document.getElementById("isi-tabel");
+        const infoJumlah = document.getElementById("info-jumlah-data");
+        const tgl = tanggalSelected || document.getElementById("filter-tanggal").value;
 
-                if (semuaData.length > 0) {
-                    petakanNamaKolom(semuaData[0]);
+        infoJumlah.innerHTML = `⏳ Memuat data tanggal <strong>${tgl}</strong>...`;
+        
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="17" style="padding: 30px 0;">
+                    <div class="loading-box">
+                        <span class="spinner"></span>
+                        <span class="loading-text">Sedang mengambil data laporan (${tgl})...</span>
+                    </div>
+                </td>
+            </tr>
+            ${renderSkeletonLoading(5)}
+        `;
 
-                    semuaData = semuaData.map(item => {
-                        const itemKdtk = (item[KOLOM_KODE_TOKO] || "").toString().trim().toUpperCase();
-                        const itemTgl = formatTanggalRapi(item[KOLOM_TANGGAL]);
+        try {
+            // MENGGUNAKAN GETFULLCACHE UNTUK MEMANGGIL DATA CACHE LENGKAP YANG SUDAH DI-WARM-UP
+            const requestUrl = `${gasUploadUrl}?action=getFullCache`;
+            const res = await fetch(requestUrl);
+            semuaData = await res.json();
 
-                        const matchedFu = Array.isArray(dataFuRaw) ? dataFuRaw.filter(fu => {
-                            const fuKdtk = (fu["Kode Toko"] || fu.kdtk || fu.KDTK || "").toString().trim().toUpperCase();
-                            const fuTgl = formatTanggalRapi(fu["Tanggal Report"] || fu.tanggal || "");
-                            return fuKdtk === itemKdtk && (fuTgl === itemTgl || !fu["Tanggal Report"]);
-                        }) : [];
+            if (Array.isArray(semuaData) && semuaData.length > 0) {
+                petakanNamaKolom(semuaData[0]);
 
-                        return {
-                            ...item,
-                            FOLLOW_UP_HISTORY: matchedFu
-                        };
-                    });
+                // Filter agar station DVR dan DVR2 tidak muncul sebagai baris terpisah di tabel
+                semuaData = semuaData.filter(item => {
+                    const st = (item[KOLOM_STATION] || item["STATION"] || item["station"] || "").toString().trim().toUpperCase();
+                    return st !== "DVR" && st !== "DVR2";
+                });
 
-                    buatDropdownNamaEdp();
-                    buatDropdownEDP(semuaData);
-                    jalankanFilter();
-                } else {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan='17' style='text-align: center; padding: 40px; color: #718096;'>
-                                📂 Tidak ada data report ditemukan untuk tanggal <strong>${tgl}</strong>.
-                            </td>
-                        </tr>`;
-                    document.getElementById("ringkasan-parameter-container").innerHTML = "";
-                    infoJumlah.textContent = "Menampilkan 0 data toko";
-                }
-            } catch (error) {
-                console.error("Detail Error:", error);
+                semuaData = semuaData.map(item => {
+                    const dvr1Status = item["DVR"] || item[KOLOM_DVR] || "-";
+                    let dvr2Status = item["DVR2"] || item[KOLOM_DVR2] || "-";
+                    
+                    if (!dvr2Status || dvr2Status === "-" || dvr2Status === "") {
+                        dvr2Status = "Tidak Ada DVR";
+                    }
+
+                    return {
+                        ...item,
+                        MAPPED_IP_DVR: item["IP_DVR"] || item[KOLOM_IP_DVR] || "-",
+                        MAPPED_STATUS_DVR: dvr1Status,
+                        MAPPED_STATUS_DVR2: dvr2Status,
+                        FOLLOW_UP_HISTORY: item["FOLLOW_UP_HISTORY"] || []
+                    };
+                });
+
+                buatDropdownNamaEdp();
+                buatDropdownEDP(semuaData);
+                jalankanFilter();
+            } else {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan='17' style='text-align: center; padding: 40px; color: #e53e3e;'>
-                            ⚠️ Gagal memuat data dari Spreadsheet. Pastikan koneksi internet stabil.
+                        <td colspan='17' style='text-align: center; padding: 40px; color: #718096;'>
+                            📂 Tidak ada data report ditemukan untuk tanggal <strong>${tgl}</strong>.
                         </td>
                     </tr>`;
-                infoJumlah.textContent = "Gagal memuat data";
-            }
-        }
-
-        function muatDataPerTanggal() {
-            const tgl = document.getElementById("filter-tanggal").value;
-            ambilData(tgl);
-        }
-
-        function petakanNamaKolom(sampelBaris) {
-            const keys = Object.keys(sampelBaris);
-            const cariKey = (kataKunci) => keys.find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '').includes(kataKunci)) || "";
-
-            KOLOM_EDP          = cariKey("kdtk") || "KDTK";
-            KOLOM_NAMA_EDP     = cariKey("nama edp") || cariKey("edp") || keys[57] || "NAMA EDP";
-            KOLOM_TANGGAL      = cariKey("tanggalrespon") || cariKey("listener") || "TANGGAL RESPON IDM LISTENER";
-            KOLOM_STATION      = cariKey("station") || "station";
-            KOLOM_KODE_TOKO    = cariKey("kdtk") || cariKey("kode") || "KDTK";
-            KOLOM_NAMA_TOKO    = cariKey("nama") || "NAMA";
-            KOLOM_LAN_SPEED    = cariKey("status lan speed") || "STATUS LAN SPEED";
-            KOLOM_MYSQL        = cariKey("durasi start mysql") || cariKey("mysql") || "STATUS DURASI START MYSQL";
-            KOLOM_SUHU         = cariKey("status suhu") || "STATUS SUHU";
-            KOLOM_BOOT_TIME    = cariKey("status boot time") || "STATUS BOOT TIME";
-            KOLOM_AKTIVASI     = cariKey("status aktivasi") || "STATUS AKTIVASI";
-            KOLOM_LISTENER     = cariKey("STATUS LISTENER") || "STATUS LISTENER";
-            KOLOM_EDC_BCA      = cariKey("status edc bca") || "STATUS EDC BCA";
-            KOLOM_EDC_MANDIRI  = cariKey("status edc mti") || cariKey("status edc mandiri") || "STATUS EDC MTI";
-            KOLOM_BSOD         = cariKey("status bsod") || "STATUS BSOD";
-            KOLOM_UPS          = cariKey("status ups") || "STATUS UPS";
-            KOLOM_HARI_TERLAMBAT = cariKey("HARI TERLAMBAT IDM LISTENER") || "HARI TERLAMBAT IDM LISTENER";
-            
-            KOLOM_IP_DVR       = keys.find(k => k.toUpperCase().includes("IP_DVR") || k.toUpperCase() === "IP DVR") || "IP_DVR";
-            KOLOM_DVR          = keys.find(k => k.toUpperCase() === "DVR" || k.toUpperCase() === "STATUS_DVR1") || "DVR";
-            KOLOM_DVR2         = keys.find(k => k.toUpperCase() === "DVR2" || k.toUpperCase() === "STATUS_DVR2") || "DVR2";
-        }
-
-        function buatDropdownNamaEdp() {
-            const dropdown = document.getElementById("filter-nama-edp");
-            const currentRole = (sessionStorage.getItem("userRole") || "").toUpperCase();
-            const currentNama = (sessionStorage.getItem("userNama") || "").trim();
-
-            dropdown.innerHTML = '<option value="semua">-- Semua Nama EDP --</option>';
-            const daftarNamaEdp = [...new Set(semuaData.map(item => item[KOLOM_NAMA_EDP]))].filter(Boolean).sort();
-                
-            daftarNamaEdp.forEach(nama => {
-                const opsi = document.createElement("option");
-                opsi.value = nama;
-                opsi.textContent = nama;
-                dropdown.appendChild(opsi);
-            });
-
-            if (currentRole !== "ADMIN" && currentNama) {
-                const matchedNama = daftarNamaEdp.find(nama => 
-                    nama.toLowerCase().trim().includes(currentNama.toLowerCase().trim()) || 
-                    currentNama.toLowerCase().trim().includes(nama.toLowerCase().trim())
-                );
-
-                if (matchedNama) {
-                    dropdown.value = matchedNama;
-                } else {
-                    const opsiUser = document.createElement("option");
-                    opsiUser.value = currentNama;
-                    opsiUser.textContent = currentNama;
-                    dropdown.appendChild(opsiUser);
-                    dropdown.value = currentNama;
-                }
-                dropdown.disabled = true;
-            } else {
-                dropdown.disabled = false;
-            }
-        }
-
-        function buatDropdownEDP(dataSumber) {
-            const dropdown = document.getElementById("filter-edp");
-            const nilaiTerpilihSebelumnya = dropdown.value;
-            
-            dropdown.innerHTML = '<option value="semua">-- Semua Kode Toko --</option>';
-            const daftarEDP = [...new Set(dataSumber.map(item => item[KOLOM_KODE_TOKO]))].filter(Boolean).sort();
-                        
-            daftarEDP.forEach(edp => {
-                const opsi = document.createElement("option");
-                opsi.value = edp;
-                opsi.textContent = edp;
-                dropdown.appendChild(opsi);
-            });
-
-            if (daftarEDP.includes(nilaiTerpilihSebelumnya)) {
-                dropdown.value = nilaiTerpilihSebelumnya;
-            } else {
-                dropdown.value = "semua";
-            }
-        }
-
-        function formatStatus(nilai) {
-            if (!nilai || nilai === '-') return '-';
-            const teks = nilai.toString().trim().toUpperCase();
-            if (teks === 'OK' || teks === 'NORMAL' || teks === 'ONLINE' || teks === 'UP') {
-                return `<span class="status-badge status-ok">${teks}</span>`;
-            } else if (teks === 'PROBLEM' || teks === 'TIDAK 1 GB' || teks === 'SUHU TINGGI' || teks === 'PINDAHKAN KE STATION INDUK' || teks === 'KONEKSI MATI' || teks === 'NOK' || teks === 'TIDAK' || teks === 'ERROR' || teks === 'OFFLINE' || teks === 'BSOD' || teks === 'DOWN' || teks === 'OFF') {
-                return `<span class="status-badge status-problem">${teks}</span>`;
-            }
-            return teks;
-        }
-
-        function isAman(nilai) {
-            if (!nilai) return false;
-            const teks = nilai.toString().trim().toUpperCase();
-            return (teks === 'OK' || teks === 'NORMAL' || teks === 'ONLINE'|| teks === 'NO EDC');
-        }
-
-        function cekKriteriaNOK(item) {
-            const lanSpeed = (item[KOLOM_LAN_SPEED] || "").toString().trim().toUpperCase();
-            const mysql = (item[KOLOM_MYSQL] || "").toString().trim();
-            const suhu = (item[KOLOM_SUHU] || "").toString().trim().toUpperCase();
-            const bootTime = (item[KOLOM_BOOT_TIME] || "").toString().trim();
-            const aktivasi = (item[KOLOM_AKTIVASI] || "").toString().trim().toUpperCase();
-            const edcBca = (item[KOLOM_EDC_BCA] || "").toString().trim().toUpperCase();
-            const edcMti = (item[KOLOM_EDC_MANDIRI] || "").toString().trim().toUpperCase();
-            const bsod = (item[KOLOM_BSOD] || "").toString().trim().toUpperCase();
-            const ups = (item[KOLOM_UPS] || "").toString().trim().toUpperCase();
-            
-            const dvr1 = (item[KOLOM_DVR] !== undefined && item[KOLOM_DVR] !== "") ? item[KOLOM_DVR] : (item['DVR'] || '-');
-            const dvr2 = (item[KOLOM_DVR2] !== undefined && item[KOLOM_DVR2] !== "") ? item[KOLOM_DVR2] : (item['DVR2'] || '-');
-            const dvr1Upper = dvr1.toString().trim().toUpperCase();
-            const dvr2Upper = dvr2.toString().trim().toUpperCase();
-
-            if (lanSpeed !== "" && lanSpeed !== "-" && lanSpeed.includes("TIDAK 1 GB")) return true;
-            if (mysql !== "" && mysql !== "-" && mysql.toUpperCase().includes("NOK")) return true;
-            if (suhu !== "" && suhu !== "-" && suhu.includes("TINGGI")) return true;
-            
-            if (bootTime !== "" && bootTime !== "-") {
-                const matchMenit = bootTime.match(/([\d.]+)\s*menit/i);
-                if (matchMenit && parseFloat(matchMenit[1]) > 4) return true;
-                if (!matchMenit && parseFloat(bootTime) > 4) return true;
-            }
-
-            if (aktivasi !== "" && aktivasi !== "-" && (aktivasi.includes("TIDAK AKTIF") || aktivasi === "TIDAK")) return true;
-            if (edcBca !== "" && edcBca !== "-" && edcBca !== "OK" && edcBca !== "NO EDC") return true;
-            if (edcMti !== "" && edcMti !== "-" && edcMti !== "OK" && edcMti !== "NO EDC") return true;
-            if (bsod !== "" && bsod !== "-" && (bsod === "NOK" || bsod === "BSOD" || bsod.includes("NOK"))) return true;
-            if (ups !== "" && ups !== "-" && (ups.includes("PINDAHKAN KE STATION INDUK") || (ups.includes("NOK")))) return true;
-            if (dvr1Upper !== "" && dvr1Upper !== "-" && dvr1Upper === "DOWN") return true;
-            if (dvr2Upper !== "" && dvr2Upper !== "-" && dvr2Upper === "DOWN") return true;
-
-            return false;
-        }
-
-        function cekKoneksiMati(item) {
-            const listener = (item[KOLOM_LISTENER] || "").toString().trim().toUpperCase();
-            return listener.includes("KONEKSI MATI") || listener.includes("GAGAL") || listener.includes("OFFLINE") || listener.includes("OFF");
-        }
-
-        function hitungPersentaseParameter(dataYangDigunakan) {
-            const container = document.getElementById("ringkasan-parameter-container");
-            container.innerHTML = "";
-
-            if (dataYangDigunakan.length === 0) return;
-
-            const totalData = dataYangDigunakan.length;
-            const statistik = { 
-                suhu: 0, bsod: 0, lanSpeed: 0, edcBca: 0, 
-                edcMandiri: 0, ups: 0, mysql: 0, listener: 0,
-                bootTime: 0, aktivasi: 0
-            };
-
-            dataYangDigunakan.forEach(item => {
-                if (isAman(item[KOLOM_SUHU])) statistik.suhu++;
-                if (isAman(item[KOLOM_BSOD])) statistik.bsod++;
-                if (isAman(item[KOLOM_LAN_SPEED])) statistik.lanSpeed++;
-                if (isAman(item[KOLOM_EDC_BCA])) statistik.edcBca++;
-                if (isAman(item[KOLOM_EDC_MANDIRI])) statistik.edcMandiri++;
-                if (isAman(item[KOLOM_UPS])) statistik.ups++;
-                if (isAman(item[KOLOM_MYSQL])) statistik.mysql++;
-                if (isAman(item[KOLOM_LISTENER])) statistik.listener++;
-                if (isAman(item[KOLOM_BOOT_TIME])) statistik.bootTime++;
-                if (isAman(item[KOLOM_AKTIVASI])) statistik.aktivasi++;
-            });
-
-            const daftarParameter = [
-                { label: "LAN Speed Normal", count: statistik.lanSpeed, warna: "#d69e2e" },
-                { label: "MySQL Normal", count: statistik.mysql, warna: "#319795" },
-                { label: "Suhu Normal", count: statistik.suhu, warna: "#3182ce" },
-                { label: "Listener Normal", count: statistik.listener, warna: "#805ad5" },
-                { label: "Boot Time Normal", count: statistik.bootTime, warna: "#dd6b20" },
-                { label: "Aktivasi Aman", count: statistik.aktivasi, warna: "#319795" },
-                { label: "BSOD Aman", count: statistik.bsod, warna: "#38a169" },
-                { label: "EDC BCA Normal", count: statistik.edcBca, warna: "#805ad5" },
-                { label: "EDC Mandiri Normal", count: statistik.edcMandiri, warna: "#e53e3e" },
-                { label: "UPS Normal", count: statistik.ups, warna: "#319795" }
-            ];
-
-            daftarParameter.forEach(param => {
-                const persentase = ((param.count / totalData) * 100).toFixed(1);
-                const card = document.createElement("div");
-                card.style.cssText = `background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 5px solid ${param.warna};`;
-                card.innerHTML = `
-                    <div style="font-size: 13px; color: #64748b; font-weight: 600;">${param.label}</div>
-                    <div style="font-size: 22px; font-weight: bold; color: #1e293b; margin: 5px 0;">${persentase}%</div>
-                    <div style="font-size: 12px; color: #64748b;">(${param.count} dari ${totalData})</div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        function tampilkanData(data) {
-            dataAktifTerfilter = data;
-            const tbody = document.getElementById("isi-tabel");
-            const infoJumlah = document.getElementById("info-jumlah-data");
-            let htmlContent = "";
-
-            infoJumlah.textContent = `Menampilkan ${data.length} data toko`;
-
-            if(data.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='17' style='text-align: center;'>Tidak ada data monitoring ditemukan.</td></tr>";
                 document.getElementById("ringkasan-parameter-container").innerHTML = "";
-                return;
+                infoJumlah.textContent = "Menampilkan 0 data toko";
+            }
+        } catch (error) {
+            console.error("Detail Error:", error);
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan='17' style='text-align: center; padding: 40px; color: #e53e3e;'>
+                        ⚠️ Gagal memuat data dari Apps Script. Pastikan koneksi internet stabil.
+                    </td>
+                </tr>`;
+            infoJumlah.textContent = "Gagal memuat data";
+        }
+    }
+
+    function muatDataPerTanggal() {
+        jalankanFilter();
+    }
+
+    function petakanNamaKolom(sampelBaris) {
+        const keys = Object.keys(sampelBaris);
+        const cariKey = (kataKunci) => keys.find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '').includes(kataKunci)) || "";
+
+        KOLOM_EDP          = cariKey("kdtk") || "KDTK";
+        KOLOM_NAMA_EDP     = cariKey("nama edp") || cariKey("edp") || keys[57] || "NAMA EDP";
+        KOLOM_TANGGAL      = cariKey("tanggalrespon") || cariKey("listener") || "TANGGAL RESPON IDM LISTENER";
+        KOLOM_STATION      = cariKey("station") || "station";
+        KOLOM_KODE_TOKO    = cariKey("kdtk") || cariKey("kode") || "KDTK";
+        KOLOM_NAMA_TOKO    = cariKey("nama") || "NAMA";
+        KOLOM_LAN_SPEED    = cariKey("status lan speed") || "STATUS LAN SPEED";
+        KOLOM_MYSQL        = cariKey("durasi start mysql") || cariKey("mysql") || "STATUS DURASI START MYSQL";
+        KOLOM_SUHU         = cariKey("status suhu") || "STATUS SUHU";
+        KOLOM_BOOT_TIME    = cariKey("status boot time") || "STATUS BOOT TIME";
+        KOLOM_AKTIVASI     = cariKey("status aktivasi") || "STATUS AKTIVASI";
+        KOLOM_LISTENER     = cariKey("STATUS LISTENER") || "STATUS LISTENER";
+        KOLOM_EDC_BCA      = cariKey("status edc bca") || "STATUS EDC BCA";
+        KOLOM_EDC_MANDIRI  = cariKey("status edc mti") || cariKey("status edc mandiri") || "STATUS EDC MTI";
+        KOLOM_BSOD         = cariKey("status bsod") || "STATUS BSOD";
+        KOLOM_UPS          = cariKey("status ups") || "STATUS UPS";
+        KOLOM_HARI_TERLAMBAT = cariKey("HARI TERLAMBAT IDM LISTENER") || "HARI TERLAMBAT IDM LISTENER";
+        
+        KOLOM_IP_DVR       = keys.find(k => k.toUpperCase().includes("IP_DVR") || k.toUpperCase() === "IP DVR") || "IP_DVR";
+        KOLOM_DVR          = keys.find(k => k.toUpperCase() === "DVR" || k.toUpperCase() === "STATUS_DVR1") || "DVR";
+        KOLOM_DVR2         = keys.find(k => k.toUpperCase() === "DVR2" || k.toUpperCase() === "STATUS_DVR2") || "DVR2";
+    }
+
+    function buatDropdownNamaEdp() {
+        const dropdown = document.getElementById("filter-nama-edp");
+        const currentRole = (sessionStorage.getItem("userRole") || "").toUpperCase();
+        const currentNama = (sessionStorage.getItem("userNama") || "").trim();
+
+        dropdown.innerHTML = '<option value="semua">-- Semua Nama EDP --</option>';
+        const daftarNamaEdp = [...new Set(semuaData.map(item => item[KOLOM_NAMA_EDP]))].filter(Boolean).sort();
+            
+        daftarNamaEdp.forEach(nama => {
+            const opsi = document.createElement("option");
+            opsi.value = nama;
+            opsi.textContent = nama;
+            dropdown.appendChild(opsi);
+        });
+
+        if (currentRole !== "ADMIN" && currentNama) {
+            const matchedNama = daftarNamaEdp.find(nama => 
+                nama.toLowerCase().trim().includes(currentNama.toLowerCase().trim()) || 
+                currentNama.toLowerCase().trim().includes(nama.toLowerCase().trim())
+            );
+
+            if (matchedNama) {
+                dropdown.value = matchedNama;
+            } else {
+                const opsiUser = document.createElement("option");
+                opsiUser.value = currentNama;
+                opsiUser.textContent = currentNama;
+                dropdown.appendChild(opsiUser);
+                dropdown.value = currentNama;
+            }
+            dropdown.disabled = true;
+        } else {
+            dropdown.disabled = false;
+        }
+    }
+
+    function buatDropdownEDP(dataSumber) {
+        const dropdown = document.getElementById("filter-edp");
+        const nilaiTerpilihSebelumnya = dropdown.value;
+        
+        dropdown.innerHTML = '<option value="semua">-- Semua Kode Toko --</option>';
+        const daftarEDP = [...new Set(dataSumber.map(item => item[KOLOM_KODE_TOKO]))].filter(Boolean).sort();
+                    
+        daftarEDP.forEach(edp => {
+            const opsi = document.createElement("option");
+            opsi.value = edp;
+            opsi.textContent = edp;
+            dropdown.appendChild(opsi);
+        });
+
+        if (daftarEDP.includes(nilaiTerpilihSebelumnya)) {
+            dropdown.value = nilaiTerpilihSebelumnya;
+        } else {
+            dropdown.value = "semua";
+        }
+    }
+
+    function formatStatus(nilai) {
+        if (!nilai || nilai === '-') return '-';
+        const teks = nilai.toString().trim().toUpperCase();
+        if (teks === 'OK' || teks === 'NORMAL' || teks === 'ONLINE' || teks === 'UP') {
+            return `<span class="status-badge status-ok">${teks}</span>`;
+        } else if (teks === 'PROBLEM' || teks === 'TIDAK 1 GB' || teks === 'SUHU TINGGI' || teks === 'PINDAHKAN KE STATION INDUK' || teks === 'KONEKSI MATI' || teks === 'NOK' || teks === 'TIDAK' || teks === 'ERROR' || teks === 'OFFLINE' || teks === 'BSOD' || teks === 'DOWN' || teks === 'OFF') {
+            return `<span class="status-badge status-problem">${teks}</span>`;
+        }
+        return teks;
+    }
+
+    function isAman(nilai) {
+        if (!nilai) return false;
+        const teks = nilai.toString().trim().toUpperCase();
+        return (teks === 'OK' || teks === 'NORMAL' || teks === 'ONLINE'|| teks === 'NO EDC');
+    }
+
+    function cekKriteriaNOK(item) {
+        const lanSpeed = (item[KOLOM_LAN_SPEED] || "").toString().trim().toUpperCase();
+        const mysql = (item[KOLOM_MYSQL] || "").toString().trim();
+        const suhu = (item[KOLOM_SUHU] || "").toString().trim().toUpperCase();
+        const bootTime = (item[KOLOM_BOOT_TIME] || "").toString().trim();
+        const aktivasi = (item[KOLOM_AKTIVASI] || "").toString().trim().toUpperCase();
+        const edcBca = (item[KOLOM_EDC_BCA] || "").toString().trim().toUpperCase();
+        const edcMti = (item[KOLOM_EDC_MANDIRI] || "").toString().trim().toUpperCase();
+        const bsod = (item[KOLOM_BSOD] || "").toString().trim().toUpperCase();
+        const ups = (item[KOLOM_UPS] || "").toString().trim().toUpperCase();
+        
+        const dvr1 = (item.MAPPED_STATUS_DVR || "").toString().trim().toUpperCase();
+        const dvr2 = (item.MAPPED_STATUS_DVR2 || "").toString().trim().toUpperCase();
+
+        if (lanSpeed !== "" && lanSpeed !== "-" && lanSpeed.includes("TIDAK 1 GB")) return true;
+        if (mysql !== "" && mysql !== "-" && mysql.toUpperCase().includes("NOK")) return true;
+        if (suhu !== "" && suhu !== "-" && suhu.includes("TINGGI")) return true;
+        
+        if (bootTime !== "" && bootTime !== "-") {
+            const matchMenit = bootTime.match(/([\d.]+)\s*menit/i);
+            if (matchMenit && parseFloat(matchMenit[1]) > 4) return true;
+            if (!matchMenit && parseFloat(bootTime) > 4) return true;
+        }
+
+        if (aktivasi !== "" && aktivasi !== "-" && (aktivasi.includes("TIDAK AKTIF") || aktivasi === "TIDAK")) return true;
+        if (edcBca !== "" && edcBca !== "-" && edcBca !== "OK" && edcBca !== "NO EDC") return true;
+        if (edcMti !== "" && edcMti !== "-" && edcMti !== "OK" && edcMti !== "NO EDC") return true;
+        if (bsod !== "" && bsod !== "-" && (bsod === "NOK" || bsod === "BSOD" || bsod.includes("NOK"))) return true;
+        if (ups !== "" && ups !== "-" && (ups.includes("PINDAHKAN KE STATION INDUK") || (ups.includes("NOK")))) return true;
+        
+        if (dvr1 !== "" && dvr1 !== "-" && (dvr1 === "DOWN" || dvr1 === "OFFLINE" || dvr1 === "NOK" || dvr1 === "OFF")) return true;
+        if (dvr2 !== "" && dvr2 !== "-" && dvr2 !== "TIDAK ADA DVR" && (dvr2 === "DOWN" || dvr2 === "OFFLINE" || dvr2 === "NOK" || dvr2 === "OFF")) return true;
+
+        return false;
+    }
+
+    function cekKoneksiMati(item) {
+        const listener = (item[KOLOM_LISTENER] || "").toString().trim().toUpperCase();
+        return listener.includes("KONEKSI MATI") || listener.includes("GAGAL") || listener.includes("OFFLINE") || listener.includes("OFF");
+    }
+
+    function hitungPersentaseParameter(dataYangDigunakan) {
+        const container = document.getElementById("ringkasan-parameter-container");
+        container.innerHTML = "";
+
+        if (dataYangDigunakan.length === 0) return;
+
+        const totalData = dataYangDigunakan.length;
+        const statistik = { 
+            suhu: 0, bsod: 0, lanSpeed: 0, edcBca: 0, 
+            edcMandiri: 0, ups: 0, mysql: 0, listener: 0,
+            bootTime: 0, aktivasi: 0
+        };
+
+        dataYangDigunakan.forEach(item => {
+            if (isAman(item[KOLOM_SUHU])) statistik.suhu++;
+            if (isAman(item[KOLOM_BSOD])) statistik.bsod++;
+            if (isAman(item[KOLOM_LAN_SPEED])) statistik.lanSpeed++;
+            if (isAman(item[KOLOM_EDC_BCA])) statistik.edcBca++;
+            if (isAman(item[KOLOM_EDC_MANDIRI])) statistik.edcMandiri++;
+            if (isAman(item[KOLOM_UPS])) statistik.ups++;
+            if (isAman(item[KOLOM_MYSQL])) statistik.mysql++;
+            if (isAman(item[KOLOM_LISTENER])) statistik.listener++;
+            if (isAman(item[KOLOM_BOOT_TIME])) statistik.bootTime++;
+            if (isAman(item[KOLOM_AKTIVASI])) statistik.aktivasi++;
+        });
+
+        const daftarParameter = [
+            { label: "LAN Speed Normal", count: statistik.lanSpeed, warna: "#d69e2e" },
+            { label: "MySQL Normal", count: statistik.mysql, warna: "#319795" },
+            { label: "Suhu Normal", count: statistik.suhu, warna: "#3182ce" },
+            { label: "Listener Normal", count: statistik.listener, warna: "#805ad5" },
+            { label: "Boot Time Normal", count: statistik.bootTime, warna: "#dd6b20" },
+            { label: "Aktivasi Aman", count: statistik.aktivasi, warna: "#319795" },
+            { label: "BSOD Aman", count: statistik.bsod, warna: "#38a169" },
+            { label: "EDC BCA Normal", count: statistik.edcBca, warna: "#805ad5" },
+            { label: "EDC Mandiri Normal", count: statistik.edcMandiri, warna: "#e53e3e" },
+            { label: "UPS Normal", count: statistik.ups, warna: "#319795" }
+        ];
+
+        daftarParameter.forEach(param => {
+            const persentase = ((param.count / totalData) * 100).toFixed(1);
+            const card = document.createElement("div");
+            card.style.cssText = `background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 5px solid ${param.warna};`;
+            card.innerHTML = `
+                <div style="font-size: 13px; color: #64748b; font-weight: 600;">${param.label}</div>
+                <div style="font-size: 22px; font-weight: bold; color: #1e293b; margin: 5px 0;">${persentase}%</div>
+                <div style="font-size: 12px; color: #64748b;">(${param.count} dari ${totalData})</div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function tampilkanData(data) {
+        dataAktifTerfilter = data;
+        const tbody = document.getElementById("isi-tabel");
+        const infoJumlah = document.getElementById("info-jumlah-data");
+        let htmlContent = "";
+
+        infoJumlah.textContent = `Menampilkan ${data.length} data toko`;
+
+        if(data.length === 0) {
+            tbody.innerHTML = "<tr><td colspan='17' style='text-align: center;'>Tidak ada data monitoring ditemukan.</td></tr>";
+            document.getElementById("ringkasan-parameter-container").innerHTML = "";
+            return;
+        }
+
+        data.sort((a, b) => {
+            const kodeA = (a[KOLOM_KODE_TOKO] || "").toString();
+            const kodeB = (b[KOLOM_KODE_TOKO] || "").toString();
+            let hasilSort = kodeA.localeCompare(kodeB, undefined, { numeric: true });
+            if (hasilSort === 0) {
+                const stationA = (a[KOLOM_STATION] || "").toString();
+                const stationB = (b[KOLOM_STATION] || "").toString();
+                hasilSort = stationA.localeCompare(stationB, undefined, { numeric: true });
+            }
+            return hasilSort;
+        });
+
+        hitungPersentaseParameter(data);
+
+        data.forEach((item, index) => {
+            const kdtkVal  = item[KOLOM_KODE_TOKO] || '-';
+            const ipDvrVal = item.MAPPED_IP_DVR || '-';
+            const dvrVal1  = item.MAPPED_STATUS_DVR || '-';
+            const dvrVal2  = item.MAPPED_STATUS_DVR2 || 'Tidak Ada DVR';
+
+            let statusListenerVal = formatStatus(item[KOLOM_LISTENER]);
+            const hariTerlambat = item[KOLOM_HARI_TERLAMBAT];
+            if (hariTerlambat !== undefined && hariTerlambat !== "" && hariTerlambat !== "OK" && hariTerlambat !== 0 && hariTerlambat !== "0") {
+                statusListenerVal += ` <span style="font-size:11px; color:#e53e3e;">(Terlambat ${hariTerlambat} hr)</span>`;
             }
 
-            data.sort((a, b) => {
-                const kodeA = (a[KOLOM_KODE_TOKO] || "").toString();
-                const kodeB = (b[KOLOM_KODE_TOKO] || "").toString();
-                let hasilSort = kodeA.localeCompare(kodeB, undefined, { numeric: true });
-                if (hasilSort === 0) {
-                    const stationA = (a[KOLOM_STATION] || "").toString();
-                    const stationB = (b[KOLOM_STATION] || "").toString();
-                    hasilSort = stationA.localeCompare(stationB, undefined, { numeric: true });
+            const fuHistory = item.FOLLOW_UP_HISTORY || [];
+            const fuCount = fuHistory.length;
+            let btnFuHtml = fuCount > 0 
+                ? `<button class="btn-fu-action" onclick="bukaModalFollowUp('${kdtkVal}', ${index})">📋 Detail <span class="badge-fu-count">${fuCount}</span></button>`
+                : `<button class="btn-fu-action" onclick="bukaModalFollowUp('${kdtkVal}', ${index})">➕ Follow Up</button>`;
+
+            htmlContent += `
+                <tr>
+                    <td><strong>${kdtkVal}</strong></td>
+                    <td>${item[KOLOM_NAMA_TOKO] || '-'}</td>
+                    <td>${item[KOLOM_STATION] || '-'}</td>
+                    <td>${formatStatus(item[KOLOM_LAN_SPEED])}</td>
+                    <td>${formatStatus(item[KOLOM_MYSQL])}</td>
+                    <td>${formatStatus(item[KOLOM_SUHU])}</td>
+                    <td>${formatStatus(item[KOLOM_BOOT_TIME])}</td>
+                    <td>${formatStatus(item[KOLOM_AKTIVASI])}</td>
+                    <td>${statusListenerVal}</td>
+                    <td>${formatStatus(item[KOLOM_EDC_BCA])}</td>
+                    <td>${formatStatus(item[KOLOM_EDC_MANDIRI])}</td>
+                    <td>${formatStatus(item[KOLOM_BSOD])}</td>
+                    <td>${formatStatus(item[KOLOM_UPS])}</td>
+                    <td>${ipDvrVal}</td>
+                    <td>${formatStatus(dvrVal1)}</td>
+                    <td>${formatStatus(dvrVal2)}</td>
+                    <td>${btnFuHtml}</td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = htmlContent;
+    }
+
+    function exportData(format) {
+        if (!dataAktifTerfilter || dataAktifTerfilter.length === 0) {
+            alert("Tidak ada data untuk diexport!");
+            return;
+        }
+
+        const dataExport = dataAktifTerfilter.map(item => {
+            const ipDvrVal = item.MAPPED_IP_DVR || '-';
+            const dvrVal1  = item.MAPPED_STATUS_DVR || '-';
+            const dvrVal2  = item.MAPPED_STATUS_DVR2 || 'Tidak Ada DVR';
+
+            let tglFuTerakhir = '-';
+            let namaEdpFu = '-';
+            let analisaFu = '-';
+            let hasilFu = '-';
+            let fotoFu = '-';
+
+            if (item.FOLLOW_UP_HISTORY && item.FOLLOW_UP_HISTORY.length > 0) {
+                const fuTerakhir = item.FOLLOW_UP_HISTORY[item.FOLLOW_UP_HISTORY.length - 1];
+                tglFuTerakhir = fuTerakhir["Tanggal Report"] || fuTerakhir.tanggal_fu || '-';
+                namaEdpFu     = fuTerakhir["Nama EDP"] || fuTerakhir.nama_edp || '-';
+                analisaFu     = fuTerakhir["Analisa Kendala / NOK"] || fuTerakhir.analisa || '-';
+                hasilFu       = fuTerakhir["Hasil Perbaikan"] || fuTerakhir.hasil || '-';
+                fotoFu        = fuTerakhir["Foto Bukti"] || fuTerakhir.foto || '-';
+            }
+
+            return {
+                "Kode Toko": item[KOLOM_KODE_TOKO] || '-',
+                "Nama Toko": item[KOLOM_NAMA_TOKO] || '-',
+                "Tanggal Report": formatTanggalRapi(item[KOLOM_TANGGAL]),
+                "Station": item[KOLOM_STATION] || '-',
+                "Status LAN Speed": item[KOLOM_LAN_SPEED] || '-',
+                "Status Durasi Start MySQL": item[KOLOM_MYSQL] || '-',
+                "Status Suhu": item[KOLOM_SUHU] || '-',
+                "Status Boot Time": item[KOLOM_BOOT_TIME] || '-',
+                "Status Aktivasi": item[KOLOM_AKTIVASI] || '-',
+                "Status Listener": item[KOLOM_LISTENER] || '-',
+                "Status EDC BCA": item[KOLOM_EDC_BCA] || '-',
+                "Status EDC MTI": item[KOLOM_EDC_MANDIRI] || '-',
+                "Status BSOD": item[KOLOM_BSOD] || '-',
+                "Status UPS": item[KOLOM_UPS] || '-',
+                "Nama EDP" : item[KOLOM_NAMA_EDP],
+                "IP DVR": ipDvrVal,
+                "Status DVR": dvrVal1,
+                "Status DVR2": dvrVal2,
+                "Tgl Follow Up": tglFuTerakhir,
+                "EDP Follow Up": namaEdpFu,
+                "Analisa Kendala": analisaFu,
+                "Hasil Perbaikan": hasilFu,
+                "Link Foto Bukti": fotoFu
+            };
+        });
+
+        const namaFile = "Monitoring_Status_Toko_" + new Date().toISOString().slice(0, 10);
+
+        if (format === 'csv') {
+            const worksheet = XLSX.utils.json_to_sheet(dataExport);
+            const csvOutput = XLSX.utils.sheet_to_csv(worksheet);
+            const blob = new Blob([csvOutput], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", `${namaFile}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } else if (format === 'xlsx') {
+            const worksheet = XLSX.utils.json_to_sheet(dataExport);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Data Monitoring");
+            XLSX.writeFile(workbook, `${namaFile}.xlsx`);
+        }
+    }
+
+    function bukaModalFollowUp(kdtk, dataIndex) {
+        const item = dataAktifTerfilter[dataIndex] || semuaData.find(x => x[KOLOM_KODE_TOKO] === kdtk);
+        if (!item) return;
+
+        const namaToko = item[KOLOM_NAMA_TOKO] || '';
+        const tglReport = formatTanggalRapi(item[KOLOM_TANGGAL]);
+        const namaEdpToko = item[KOLOM_NAMA_EDP] || '';
+
+        document.getElementById("modal-fu-title").innerText = `Follow Up Toko: ${kdtk} - ${namaToko}`;
+        document.getElementById("modal-kdtk").value = kdtk;
+        document.getElementById("modal-tgl-report").value = tglReport;
+        document.getElementById("modal-tgl-fu").value = new Date().toISOString().slice(0, 10);
+        
+        if (namaEdpToko) {
+            document.getElementById("modal-nama-edp-input").value = namaEdpToko;
+        }
+
+        const historyListContainer = document.getElementById("modal-fu-history-list");
+        const fuHistory = item.FOLLOW_UP_HISTORY || [];
+
+        if (fuHistory.length === 0) {
+            historyListContainer.innerHTML = `<div style="color: #a0aec0; font-style: italic;">Belum ada riwayat follow up.</div>`;
+        } else {
+            let historyHtml = '';
+            const reversedHistory = [...fuHistory].reverse();
+            reversedHistory.forEach((fu) => {
+                const tglReportVal = fu["Tanggal Report"] || fu.tanggal_fu || '-';
+                const edpVal = fu["Nama EDP"] || fu.nama_edp || '-';
+                const analisaVal = fu["Analisa Kendala / NOK"] || fu.analisa || '-';
+                const hasilVal = fu["Hasil Perbaikan"] || fu.hasil || '-';
+                const fotoVal = fu["Foto Bukti"] || fu.foto || '-';
+
+                let linkFotoHtml = '';
+                if (fotoVal && fotoVal !== '-' && fotoVal.trim() !== '') {
+                    linkFotoHtml = `<div><a href="${fotoVal}" target="_blank" style="color:#3182ce; font-weight:bold;">📷 Lihat Foto Bukti Perbaikan</a></div>`;
                 }
-                return hasilSort;
-            });
-
-            hitungPersentaseParameter(data);
-
-            data.forEach((item, index) => {
-                const kdtkVal = item[KOLOM_KODE_TOKO] || '-';
-                const ipDvrVal = (item[KOLOM_IP_DVR] !== undefined && item[KOLOM_IP_DVR] !== "") ? item[KOLOM_IP_DVR] : (item['IP_DVR'] || '-');
-                const dvrVal1  = (item[KOLOM_DVR] !== undefined && item[KOLOM_DVR] !== "") ? item[KOLOM_DVR] : (item['DVR'] || '-');
-                const dvrVal2  = (item[KOLOM_DVR2] !== undefined && item[KOLOM_DVR2] !== "") ? item[KOLOM_DVR2] : (item['DVR2'] || '-');
-
-                let statusListenerVal = formatStatus(item[KOLOM_LISTENER]);
-                const hariTerlambat = item[KOLOM_HARI_TERLAMBAT];
-                if (hariTerlambat !== undefined && hariTerlambat !== "" && hariTerlambat !== "OK" && hariTerlambat !== 0 && hariTerlambat !== "0") {
-                    statusListenerVal += ` <span style="font-size:11px; color:#e53e3e;">(Terlambat ${hariTerlambat} hr)</span>`;
-                }
-
-                const fuHistory = item.FOLLOW_UP_HISTORY || [];
-                const fuCount = fuHistory.length;
-                let btnFuHtml = fuCount > 0 
-                    ? `<button class="btn-fu-action" onclick="bukaModalFollowUp('${kdtkVal}', ${index})">📋 Detail <span class="badge-fu-count">${fuCount}</span></button>`
-                    : `<button class="btn-fu-action" onclick="bukaModalFollowUp('${kdtkVal}', ${index})">➕ Follow Up</button>`;
-
-                htmlContent += `
-                    <tr>
-                        <td><strong>${kdtkVal}</strong></td>
-                        <td>${item[KOLOM_NAMA_TOKO] || '-'}</td>
-                        <td>${item[KOLOM_STATION] || '-'}</td>
-                        <td>${formatStatus(item[KOLOM_LAN_SPEED])}</td>
-                        <td>${formatStatus(item[KOLOM_MYSQL])}</td>
-                        <td>${formatStatus(item[KOLOM_SUHU])}</td>
-                        <td>${formatStatus(item[KOLOM_BOOT_TIME])}</td>
-                        <td>${formatStatus(item[KOLOM_AKTIVASI])}</td>
-                        <td>${statusListenerVal}</td>
-                        <td>${formatStatus(item[KOLOM_EDC_BCA])}</td>
-                        <td>${formatStatus(item[KOLOM_EDC_MANDIRI])}</td>
-                        <td>${formatStatus(item[KOLOM_BSOD])}</td>
-                        <td>${formatStatus(item[KOLOM_UPS])}</td>
-                        <td>${ipDvrVal}</td>
-                        <td>${formatStatus(dvrVal1)}</td>
-                        <td>${formatStatus(dvrVal2)}</td>
-                        <td>${btnFuHtml}</td>
-                    </tr>
+                historyHtml += `
+                    <div class="fu-item">
+                        <div class="fu-item-header">
+                            <span>📅 Tgl FU: ${tglReportVal}</span>
+                            <span>👤 EDP: ${edpVal}</span>
+                        </div>
+                        <div><b>Analisa:</b> ${analisaVal}</div>
+                        <div><b>Hasil:</b> ${hasilVal}</div>
+                        ${linkFotoHtml}
+                    </div>
                 `;
             });
-            tbody.innerHTML = htmlContent;
+            historyListContainer.innerHTML = historyHtml;
         }
 
-        function exportData(format) {
-            if (!dataAktifTerfilter || dataAktifTerfilter.length === 0) {
-                alert("Tidak ada data untuk diexport!");
+        document.getElementById("modal-analisa").value = '';
+        document.getElementById("modal-hasil").value = '';
+        document.getElementById("modal-foto-file").value = '';
+
+        document.getElementById("modal-fu-overlay").classList.add("active");
+    }
+
+    function tutupModal() {
+        document.getElementById("modal-fu-overlay").classList.remove("active");
+    }
+
+    function kompresGambar(file, maxDimension = 800, quality = 0.6) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > maxDimension) {
+                            height = Math.round((height * maxDimension) / width);
+                            width = maxDimension;
+                        }
+                    } else {
+                        if (height > maxDimension) {
+                            width = Math.round((width * maxDimension) / height);
+                            height = maxDimension;
+                        }
+                    }
+
+                    const canvas = document.createElement("canvas");
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext("2d");
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    const dataUrl = canvas.toDataURL("image/jpeg", quality);
+                    resolve(dataUrl);
+                };
+                img.onerror = (err) => reject(err);
+            };
+            reader.onerror = (err) => reject(err);
+        });
+    }
+
+    async function kirimFollowUp(event) {
+        event.preventDefault();
+
+        const btnSubmit = document.getElementById("btn-submit-fu");
+        btnSubmit.disabled = true;
+        btnSubmit.innerText = "⏳ Mengunggah foto & menyimpan data...";
+
+        const fileInput = document.getElementById("modal-foto-file");
+        const kdtkVal = document.getElementById("modal-kdtk").value;
+
+        let base64String = "";
+        if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            try {
+                const fullBase64 = await kompresGambar(file, 800, 0.6);
+                base64String = fullBase64.includes(",") ? fullBase64.split(",")[1] : fullBase64;
+            } catch (e) {
+                alert(`⚠️ Gagal memproses gambar:\n${e.message}`);
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = "💾 Simpan Follow Up Lapangan";
                 return;
             }
-
-            const dataExport = dataAktifTerfilter.map(item => {
-                const ipDvrVal = (item[KOLOM_IP_DVR] !== undefined && item[KOLOM_IP_DVR] !== "") ? item[KOLOM_IP_DVR] : (item['IP_DVR'] || '-');
-                const dvrVal1  = (item[KOLOM_DVR] !== undefined && item[KOLOM_DVR] !== "") ? item[KOLOM_DVR] : (item['DVR'] || '-');
-                const dvrVal2  = (item[KOLOM_DVR2] !== undefined && item[KOLOM_DVR2] !== "") ? item[KOLOM_DVR2] : (item['DVR2'] || '-');
-
-                let tglFuTerakhir = '-';
-                let namaEdpFu = '-';
-                let analisaFu = '-';
-                let hasilFu = '-';
-                let fotoFu = '-';
-
-                if (item.FOLLOW_UP_HISTORY && item.FOLLOW_UP_HISTORY.length > 0) {
-                    const fuTerakhir = item.FOLLOW_UP_HISTORY[item.FOLLOW_UP_HISTORY.length - 1];
-                    tglFuTerakhir = fuTerakhir["Tanggal Report"] || fuTerakhir.tanggal_fu || '-';
-                    namaEdpFu     = fuTerakhir["Nama EDP"] || fuTerakhir.nama_edp || '-';
-                    analisaFu     = fuTerakhir["Analisa Kendala / NOK"] || fuTerakhir.analisa || '-';
-                    hasilFu       = fuTerakhir["Hasil Perbaikan"] || fuTerakhir.hasil || '-';
-                    fotoFu        = fuTerakhir["Foto Bukti"] || fuTerakhir.foto || '-';
-                }
-
-                return {
-                    "Kode Toko": item[KOLOM_KODE_TOKO] || '-',
-                    "Nama Toko": item[KOLOM_NAMA_TOKO] || '-',
-                    "Tanggal Report": formatTanggalRapi(item[KOLOM_TANGGAL]),
-                    "Station": item[KOLOM_STATION] || '-',
-                    "Status LAN Speed": item[KOLOM_LAN_SPEED] || '-',
-                    "Status Durasi Start MySQL": item[KOLOM_MYSQL] || '-',
-                    "Status Suhu": item[KOLOM_SUHU] || '-',
-                    "Status Boot Time": item[KOLOM_BOOT_TIME] || '-',
-                    "Status Aktivasi": item[KOLOM_AKTIVASI] || '-',
-                    "Status Listener": item[KOLOM_LISTENER] || '-',
-                    "Status EDC BCA": item[KOLOM_EDC_BCA] || '-',
-                    "Status EDC MTI": item[KOLOM_EDC_MANDIRI] || '-',
-                    "Status BSOD": item[KOLOM_BSOD] || '-',
-                    "Status UPS": item[KOLOM_UPS] || '-',
-                    "Nama EDP" : item[KOLOM_NAMA_EDP],
-                    "IP DVR": ipDvrVal,
-                    "Status DVR": dvrVal1,
-                    "Status DVR2": dvrVal2,
-                    "Tgl Follow Up": tglFuTerakhir,
-                    "EDP Follow Up": namaEdpFu,
-                    "Analisa Kendala": analisaFu,
-                    "Hasil Perbaikan": hasilFu,
-                    "Link Foto Bukti": fotoFu
-                };
-            });
-
-            const namaFile = "Monitoring_Status_Toko_" + new Date().toISOString().slice(0, 10);
-
-            if (format === 'csv') {
-                const worksheet = XLSX.utils.json_to_sheet(dataExport);
-                const csvOutput = XLSX.utils.sheet_to_csv(worksheet);
-                const blob = new Blob([csvOutput], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement("a");
-                link.href = URL.createObjectURL(blob);
-                link.setAttribute("download", `${namaFile}.csv`);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            } else if (format === 'xlsx') {
-                const worksheet = XLSX.utils.json_to_sheet(dataExport);
-                const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, "Data Monitoring");
-                XLSX.writeFile(workbook, `${namaFile}.xlsx`);
-            }
         }
 
-        function bukaModalFollowUp(kdtk, dataIndex) {
-            const item = dataAktifTerfilter[dataIndex] || semuaData.find(x => x[KOLOM_KODE_TOKO] === kdtk);
-            if (!item) return;
+        const payloadGAS = {
+            "tanggal": document.getElementById("modal-tgl-report").value || new Date().toISOString().slice(0, 10),
+            "kdtk": kdtkVal,
+            "nama_edp": document.getElementById("modal-nama-edp-input").value,
+            "analisa": document.getElementById("modal-analisa").value,
+            "hasil": document.getElementById("modal-hasil").value,
+            "base64File": base64String,
+            "mimeType": "image/jpeg"
+        };
 
-            const namaToko = item[KOLOM_NAMA_TOKO] || '';
-            const tglReport = formatTanggalRapi(item[KOLOM_TANGGAL]);
-            const namaEdpToko = item[KOLOM_NAMA_EDP] || '';
+        try {
+            const resGas = await fetch(gasUploadUrl, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify(payloadGAS)
+            });
 
-            document.getElementById("modal-fu-title").innerText = `Follow Up Toko: ${kdtk} - ${namaToko}`;
-            document.getElementById("modal-kdtk").value = kdtk;
-            document.getElementById("modal-tgl-report").value = tglReport;
-            document.getElementById("modal-tgl-fu").value = new Date().toISOString().slice(0, 10);
-            
-            if (namaEdpToko) {
-                document.getElementById("modal-nama-edp-input").value = namaEdpToko;
-            }
+            const resGasData = await resGas.json();
 
-            const historyListContainer = document.getElementById("modal-fu-history-list");
-            const fuHistory = item.FOLLOW_UP_HISTORY || [];
-
-            if (fuHistory.length === 0) {
-                historyListContainer.innerHTML = `<div style="color: #a0aec0; font-style: italic;">Belum ada riwayat follow up.</div>`;
+            if (resGasData.status === "sukses") {
+                alert("✅ Data Follow Up & Foto Bukti berhasil disimpan!");
+                tutupModal();
+                await ambilData();
             } else {
-                let historyHtml = '';
-                const reversedHistory = [...fuHistory].reverse();
-                reversedHistory.forEach((fu) => {
-                    const tglReportVal = fu["Tanggal Report"] || fu.tanggal_fu || '-';
-                    const edpVal = fu["Nama EDP"] || fu.nama_edp || '-';
-                    const analisaVal = fu["Analisa Kendala / NOK"] || fu.analisa || '-';
-                    const hasilVal = fu["Hasil Perbaikan"] || fu.hasil || '-';
-                    const fotoVal = fu["Foto Bukti"] || fu.foto || '-';
-
-                    let linkFotoHtml = '';
-                    if (fotoVal && fotoVal !== '-' && fotoVal.trim() !== '') {
-                        linkFotoHtml = `<div><a href="${fotoVal}" target="_blank" style="color:#3182ce; font-weight:bold;">📷 Lihat Foto Bukti Perbaikan</a></div>`;
-                    }
-                    historyHtml += `
-                        <div class="fu-item">
-                            <div class="fu-item-header">
-                                <span>📅 Tgl FU: ${tglReportVal}</span>
-                                <span>👤 EDP: ${edpVal}</span>
-                            </div>
-                            <div><b>Analisa:</b> ${analisaVal}</div>
-                            <div><b>Hasil:</b> ${hasilVal}</div>
-                            ${linkFotoHtml}
-                        </div>
-                    `;
-                });
-                historyListContainer.innerHTML = historyHtml;
+                throw new Error(resGasData.message || "Gagal menyimpan data via GAS.");
             }
+        } catch (err) {
+            console.error("Error submit follow up:", err);
+            alert(`⚠️ Terjadi kesalahan saat menyimpan data:\n${err.message}`);
+        } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.innerText = "💾 Simpan Follow Up Lapangan";
+        }
+    }
 
-            document.getElementById("modal-analisa").value = '';
-            document.getElementById("modal-hasil").value = '';
-            document.getElementById("modal-foto-file").value = '';
+    function jalankanFilter() {
+        const statusFilterNok = document.getElementById("filter-status-nok").value;
+        const statusFilterFu  = document.getElementById("filter-status-fu").value;
+        const namaEdpTerpilih = document.getElementById("filter-nama-edp").value;
+        const tanggalTerpilih = document.getElementById("filter-tanggal").value;
+        const keywordSearch   = document.getElementById("search-text").value.toLowerCase();
+        
+        let dataHasilFilter = semuaData;
 
-            document.getElementById("modal-fu-overlay").classList.add("active");
+        if (statusFilterNok === "nok") {
+            dataHasilFilter = dataHasilFilter.filter(item => cekKriteriaNOK(item));
+        } else if (statusFilterNok === "koneksi-mati") {
+            dataHasilFilter = dataHasilFilter.filter(item => cekKoneksiMati(item));
         }
 
-        function tutupModal() {
-            document.getElementById("modal-fu-overlay").classList.remove("active");
+        if (statusFilterFu === "ada-fu") {
+            dataHasilFilter = dataHasilFilter.filter(item => item.FOLLOW_UP_HISTORY && item.FOLLOW_UP_HISTORY.length > 0);
+        } else if (statusFilterFu === "belum-fu") {
+            dataHasilFilter = dataHasilFilter.filter(item => !item.FOLLOW_UP_HISTORY || item.FOLLOW_UP_HISTORY.length === 0);
         }
 
-        function kompresGambar(file, maxDimension = 800, quality = 0.6) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = (event) => {
-                    const img = new Image();
-                    img.src = event.target.result;
-                    img.onload = () => {
-                        let width = img.width;
-                        let height = img.height;
-
-                        if (width > height) {
-                            if (width > maxDimension) {
-                                height = Math.round((height * maxDimension) / width);
-                                width = maxDimension;
-                            }
-                        } else {
-                            if (height > maxDimension) {
-                                width = Math.round((width * maxDimension) / height);
-                                height = maxDimension;
-                            }
-                        }
-
-                        const canvas = document.createElement("canvas");
-                        canvas.width = width;
-                        canvas.height = height;
-                        const ctx = canvas.getContext("2d");
-                        ctx.drawImage(img, 0, 0, width, height);
-
-                        const dataUrl = canvas.toDataURL("image/jpeg", quality);
-                        resolve(dataUrl);
-                    };
-                    img.onerror = (err) => reject(err);
-                };
-                reader.onerror = (err) => reject(err);
+        if (namaEdpTerpilih !== "semua") {
+            dataHasilFilter = dataHasilFilter.filter(item => {
+                const namaVal = (item[KOLOM_NAMA_EDP] || "").toString().toLowerCase().trim();
+                const targetVal = namaEdpTerpilih.toLowerCase().trim();
+                return namaVal === targetVal || namaVal.includes(targetVal) || targetVal.includes(namaVal);
             });
         }
 
-            async function kirimFollowUp(event) {
-                event.preventDefault();
-
-                const btnSubmit = document.getElementById("btn-submit-fu");
-                btnSubmit.disabled = true;
-                btnSubmit.innerText = "⏳ Mengunggah foto & menyimpan data...";
-
-                const fileInput = document.getElementById("modal-foto-file");
-                const kdtkVal = document.getElementById("modal-kdtk").value;
-
-                let base64String = "";
-                if (fileInput.files.length > 0) {
-                    const file = fileInput.files[0];
-                    try {
-                        const fullBase64 = await kompresGambar(file, 800, 0.6);
-                        base64String = fullBase64.includes(",") ? fullBase64.split(",")[1] : fullBase64;
-                    } catch (e) {
-                        alert(`⚠️ Gagal memproses gambar:\n${e.message}`);
-                        btnSubmit.disabled = false;
-                        btnSubmit.innerText = "💾 Simpan Follow Up Lapangan";
-                        return;
-                    }
-                }
-
-                // 1. Susun payload LENGKAP untuk dikirim HANYA ke GAS
-                const payloadGAS = {
-                    "tanggal": document.getElementById("modal-tgl-report").value || new Date().toISOString().slice(0, 10),
-                    "kdtk": kdtkVal,
-                    "nama_edp": document.getElementById("modal-nama-edp-input").value,
-                    "analisa": document.getElementById("modal-analisa").value,
-                    "hasil": document.getElementById("modal-hasil").value,
-                    "base64File": base64String,
-                    "mimeType": "image/jpeg"
-                };
-
-                try {
-                    // 2. CUKUP PANGGIL GAS SAJA (Tanpa SheetBest)
-                    const resGas = await fetch(gasUploadUrl, {
-                        method: "POST",
-                        headers: { "Content-Type": "text/plain" },
-                        body: JSON.stringify(payloadGAS)
-                    });
-
-                    const resGasData = await resGas.json();
-
-                    if (resGasData.status === "sukses") {
-                        alert("✅ Data Follow Up & Foto Bukti berhasil disimpan!");
-                        tutupModal();
-                        await ambilData(); // Refresh tabel setelah simpan
-                    } else {
-                        throw new Error(resGasData.message || "Gagal menyimpan data via GAS.");
-                    }
-                } catch (err) {
-                    console.error("Error submit follow up:", err);
-                    alert(`⚠️ Terjadi kesalahan saat menyimpan data:\n${err.message}`);
-                } finally {
-                    btnSubmit.disabled = false;
-                    btnSubmit.innerText = "💾 Simpan Follow Up Lapangan";
-                }
-            }
-
-        function jalankanFilter() {
-            const statusFilterNok = document.getElementById("filter-status-nok").value;
-            const statusFilterFu  = document.getElementById("filter-status-fu").value;
-            const namaEdpTerpilih = document.getElementById("filter-nama-edp").value;
-            const tanggalTerpilih = document.getElementById("filter-tanggal").value;
-            const keywordSearch   = document.getElementById("search-text").value.toLowerCase();
-            
-            let dataHasilFilter = semuaData;
-
-            if (statusFilterNok === "nok") {
-                dataHasilFilter = dataHasilFilter.filter(item => cekKriteriaNOK(item));
-            } else if (statusFilterNok === "koneksi-mati") {
-                dataHasilFilter = dataHasilFilter.filter(item => cekKoneksiMati(item));
-            }
-
-            if (statusFilterFu === "ada-fu") {
-                dataHasilFilter = dataHasilFilter.filter(item => item.FOLLOW_UP_HISTORY && item.FOLLOW_UP_HISTORY.length > 0);
-            } else if (statusFilterFu === "belum-fu") {
-                dataHasilFilter = dataHasilFilter.filter(item => !item.FOLLOW_UP_HISTORY || item.FOLLOW_UP_HISTORY.length === 0);
-            }
-
-            if (namaEdpTerpilih !== "semua") {
-                dataHasilFilter = dataHasilFilter.filter(item => {
-                    const namaVal = (item[KOLOM_NAMA_EDP] || "").toString().toLowerCase().trim();
-                    const targetVal = namaEdpTerpilih.toLowerCase().trim();
-                    return namaVal === targetVal || namaVal.includes(targetVal) || targetVal.includes(namaVal);
-                });
-            }
-
-            if (tanggalTerpilih !== "semua") {
-                dataHasilFilter = dataHasilFilter.filter(item => formatTanggalRapi(item[KOLOM_TANGGAL]) === tanggalTerpilih);
-            }
-
-            buatDropdownEDP(dataHasilFilter);
-
-            const edpTerpilih = document.getElementById("filter-edp").value;
-            if (edpTerpilih !== "semua") {
-                dataHasilFilter = dataHasilFilter.filter(item => item[KOLOM_KODE_TOKO] === edpTerpilih);
-            }
-
-            if (keywordSearch.trim() !== "") {
-                dataHasilFilter = dataHasilFilter.filter(item => {
-                    const kode = (item[KOLOM_KODE_TOKO] || "").toLowerCase();
-                    const nama = (item[KOLOM_NAMA_TOKO] || "").toLowerCase();
-                    return kode.includes(keywordSearch) || nama.includes(keywordSearch);
-                });
-            }
-
-            tampilkanData(dataHasilFilter);
+        if (tanggalTerpilih !== "semua") {
+            dataHasilFilter = dataHasilFilter.filter(item => formatTanggalRapi(item[KOLOM_TANGGAL]) === tanggalTerpilih);
         }
 
-        function resetFilter() {
-            const today = new Date().toISOString().slice(0, 10);
-            const currentRole = (sessionStorage.getItem("userRole") || "").toUpperCase();
+        buatDropdownEDP(dataHasilFilter);
 
-            document.getElementById("filter-tanggal").value = today;
-            document.getElementById("filter-status-nok").value = "semua";
-            document.getElementById("filter-status-fu").value  = "semua";
-            
-            if (currentRole === "ADMIN") {
-                document.getElementById("filter-nama-edp").value = "semua";
-            }
-            
-            document.getElementById("filter-edp").value         = "semua";
-            document.getElementById("search-text").value        = "";
-            
-            ambilData(today);
+        const edpTerpilih = document.getElementById("filter-edp").value;
+        if (edpTerpilih !== "semua") {
+            dataHasilFilter = dataHasilFilter.filter(item => item[KOLOM_KODE_TOKO] === edpTerpilih);
         }
-    </script>
+
+        if (keywordSearch.trim() !== "") {
+            dataHasilFilter = dataHasilFilter.filter(item => {
+                const kode = (item[KOLOM_KODE_TOKO] || "").toLowerCase();
+                const nama = (item[KOLOM_NAMA_TOKO] || "").toLowerCase();
+                return kode.includes(keywordSearch) || nama.includes(keywordSearch);
+            });
+        }
+
+        tampilkanData(dataHasilFilter);
+    }
+
+    function resetFilter() {
+        const today = new Date().toISOString().slice(0, 10);
+        const currentRole = (sessionStorage.getItem("userRole") || "").toUpperCase();
+
+        document.getElementById("filter-tanggal").value = today;
+        document.getElementById("filter-status-nok").value = "semua";
+        document.getElementById("filter-status-fu").value  = "semua";
+        
+        if (currentRole === "ADMIN") {
+            document.getElementById("filter-nama-edp").value = "semua";
+        }
+        
+        document.getElementById("filter-edp").value         = "semua";
+        document.getElementById("search-text").value        = "";
+        
+        jalankanFilter();
+    }
+</script>
 </body>
 </html>
