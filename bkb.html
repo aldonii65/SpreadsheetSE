@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>EDP Stock Monitoring & BKB Dashboard v3.0</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -13,8 +13,40 @@
     <!-- Google Fonts Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            -webkit-tap-highlight-color: transparent;
+        }
         [x-cloak] { display: none !important; }
+
+        /* PERBAIKAN CSS DROPDOWN & OVERFLOW HP */
+        select, option {
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+        }
+
+        /* Isolasi Stacking Context Modal agar Dropdown & Keyboard tidak glitch */
+        .modal-backdrop {
+            z-index: 9999 !important;
+            background-color: rgba(15, 23, 42, 0.65) !important;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-card {
+            z-index: 10000 !important;
+            background-color: #ffffff !important;
+            max-height: 85vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Prevent Layout Glitch / Breaking saat Keyboard Mobile Aktif */
+        @media (max-width: 768px) {
+            .app-main-content {
+                height: calc(100vh - 60px);
+                overflow-y: auto;
+            }
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800" x-data="edpApp()" x-cloak>
@@ -93,7 +125,7 @@
         </aside>
 
         <!-- MAIN CONTENT AREA -->
-        <main class="flex-1 flex flex-col overflow-y-auto bg-slate-50 w-full" x-ref="mainContent">
+        <main class="flex-1 flex flex-col overflow-y-auto bg-slate-50 w-full app-main-content" x-ref="mainContent">
             
             <!-- Top Header -->
             <header class="bg-white border-b border-slate-200 px-4 sm:px-8 py-3.5 flex justify-between items-center shadow-sm sticky top-0 z-20">
@@ -123,7 +155,7 @@
             <div class="p-3.5 sm:p-8 space-y-5 max-w-7xl mx-auto w-full">
 
                 <!-- NOTIFIKASI -->
-                <div x-show="notification.show" :class="notification.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800'" class="p-3.5 rounded-xl border flex items-center justify-between shadow-sm transition-all">
+                <div x-show="notification.show" :class="notification.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800'" class="p-3.5 rounded-xl border flex items-center justify-between shadow-sm transition-all" x-cloak>
                     <div class="flex items-center space-x-2.5">
                         <svg x-show="notification.type === 'success'" class="w-5 h-5 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                         <svg x-show="notification.type === 'error'" class="w-5 h-5 text-rose-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
@@ -158,7 +190,7 @@
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                             </div>
                             <div>
-                                <p class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Stok Menipis (< 5)</p>
+                                <p class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Stok Menipis (&lt; 5)</p>
                                 <p class="text-xl sm:text-2xl font-bold text-rose-600" x-text="inventorySummary.filter(i => i.qty < 5).length">0</p>
                             </div>
                         </div>
@@ -393,8 +425,8 @@
                 </div>
 
                 <!-- MODAL APPROVAL ADMIN -->
-                <div x-show="approveModal.show" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4" x-cloak>
-                    <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl border border-slate-200">
+                <div x-show="approveModal.show" class="fixed inset-0 modal-backdrop flex items-center justify-center p-4" x-cloak>
+                    <div class="modal-card rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl border border-slate-200">
                         <div>
                             <h3 class="text-base font-bold text-slate-800">Proses Permintaan Barang</h3>
                             <p class="text-[11px] text-slate-500">Tentukan barang dan Qty realisasi yang disetujui untuk dikirim ke user.</p>
@@ -460,7 +492,7 @@
                                     </select>
                                 </template>
 
-                                <!-- JIKA USER NON-ADMIN: DIPAKSI REANONLY TERISI OTOMATIS -->
+                                <!-- JIKA USER NON-ADMIN: DIPAKSA READONLY TERISI OTOMATIS -->
                                 <template x-if="userRole.toUpperCase() !== 'ADMIN'">
                                     <input type="text" x-model="bkbForm.pic" class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs bg-slate-100 font-bold text-slate-700 cursor-not-allowed" readonly required>
                                 </template>
@@ -770,11 +802,16 @@
                                 catatan: this.requestForm.note || "-"
                             };
 
-                            await fetch(gasUrl, {
+                            const response = await fetch(gasUrl, {
                                 method: "POST",
                                 headers: { "Content-Type": "text/plain" },
                                 body: JSON.stringify(payload)
                             });
+                            
+                            const resJson = await response.json();
+                            if (resJson.status !== "sukses" && resJson.result !== "success") {
+                                throw new Error(resJson.message || "Gagal mengirim barang: " + plu);
+                            }
                         }
 
                         this.showNotification('success', `Berhasil mengajukan ${validItems.length} item barang ke Admin!`);
@@ -786,7 +823,7 @@
                         await this.loadPendingRequests();
                     } catch (e) {
                         console.error(e);
-                        this.showNotification('error', 'Gagal mengirim permintaan barang.');
+                        this.showNotification('error', 'Gagal mengirim permintaan barang: ' + e.message);
                     } finally {
                         this.isSubmitting = false;
                     }
@@ -842,11 +879,16 @@
                     };
 
                     try {
-                        await fetch(gasUrl, {
+                        const response = await fetch(gasUrl, {
                             method: "POST",
                             headers: { "Content-Type": "text/plain" },
                             body: JSON.stringify(payload)
                         });
+
+                        const resJson = await response.json();
+                        if (resJson.status !== "sukses" && resJson.result !== "success") {
+                            throw new Error(resJson.message || "Gagal menyetujui permintaan");
+                        }
 
                         this.showNotification('success', `Permintaan disetujui! Stok ${this.approveModal.item["Nama EDP"]} berhasil ditambahkan (${this.approveModal.qtyApproved} unit).`);
                         this.approveModal.show = false;
@@ -854,7 +896,7 @@
                         await this.loadDataFromGAS();
                     } catch (e) {
                         console.error(e);
-                        this.showNotification('error', 'Gagal memproses persetujuan permintaan.');
+                        this.showNotification('error', 'Gagal memproses persetujuan permintaan: ' + e.message);
                     } finally {
                         this.isSubmitting = false;
                     }
@@ -961,7 +1003,6 @@
 
                             this.edpLocations = targetLocations;
                             this.selectedBranch = targetLocations[0].pic;
-                            // OTOMATIS TENTUKAN PIC USER NON-ADMIN & TRIGGER DAFTAR TOKO
                             this.bkbForm.pic = targetLocations[0].pic || currentNama;
                         } else {
                             this.edpLocations = allLocations;
@@ -1161,7 +1202,7 @@
                         });
 
                         const resData = await response.json();
-                        if (resData.status !== "sukses") throw new Error(resData.message || "Gagal mengupdate stok");
+                        if (resData.status !== "sukses" && resData.result !== "success") throw new Error(resData.message || "Gagal mengupdate stok");
 
                         this.showNotification('success', `Sukses! Qty berhasil ditambahkan ke saldo PIC ${targetPic}`);
                         this.transferForm = { pic: '', itemCode: '', qty: '', note: '' };
@@ -1260,7 +1301,7 @@
                         });
 
                         const resStockJson = await resStock.json();
-                        if (resStockJson.status !== "sukses") throw new Error(resStockJson.message || "Gagal mengupdate saldo stok");
+                        if (resStockJson.status !== "sukses" && resStockJson.result !== "success") throw new Error(resStockJson.message || "Gagal mengupdate saldo stok");
 
                         const payloadGAS = {
                             action: "inputBKB",
@@ -1282,7 +1323,7 @@
                         });
 
                         const resBkbJson = await resBkb.json();
-                        if (resBkbJson.status !== "sukses") throw new Error(resBkbJson.message || "Gagal menyimpan BKB");
+                        if (resBkbJson.status !== "sukses" && resBkbJson.result !== "success") throw new Error(resBkbJson.message || "Gagal menyimpan BKB");
 
                         const parts = this.bkbForm.date.split('-');
                         const counterKey = `edp_sj_counter_${parts[0]}_${parts[1]}_${parts[2]}`;
