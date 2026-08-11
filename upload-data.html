@@ -215,7 +215,7 @@
             transition: all 0.2s ease;
         }
 
-        .dropzone:hover {
+        .dropzone:hover, .dropzone.dragover {
             border-color: #3182ce;
             background-color: #ebf8ff;
         }
@@ -256,7 +256,7 @@
             flex-direction: column;
             gap: 5px;
             flex: 1;
-            min-width: 200px;
+            min-width: 180px;
         }
 
         label {
@@ -404,9 +404,15 @@
 
         <div class="card-upload">
             <div class="card-title">
-                <span>📂</span> Form Import Data Laporan (.xlsx)
+                <span>📂</span> Form Import Data Laporan (.xlsx) ke BANK DATA SE
             </div>
 
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label for="web-app-url">URL Web App Apps Script:</label>
+                <input type="text" id="web-app-url" value="https://script.google.com/macros/s/AKfycbxe2ttq3gRhp7rKOdsl9cHKbX8ovvUFcpGe6NiDvAVJlSJFPmXp2e4Hk7u_KmzKLMdW/exec" placeholder="https://script.google.com/macros/s/.../exec">
+            </div>
+
+            <!-- Dropzone Drag and Drop -->
             <div class="dropzone" id="dropzone" onclick="document.getElementById('file-input').click()">
                 <div class="dropzone-icon">📄</div>
                 <div class="dropzone-text">Klik di sini atau seret file <strong>Report Excel (.xlsx)</strong></div>
@@ -416,10 +422,18 @@
 
             <div class="form-row">
                 <div class="form-group">
-                    <label for="tipe-laporan">Target / Jenis Laporan:</label>
+                    <label for="tipe-laporan">Aturan Pemrosesan Report:</label>
                     <select id="tipe-laporan" onchange="gantiTipeLaporan()">
-                        <option value="SE">📊 Bank Data Service Excellent (Upload Semua Station)</option>
-                        <option value="CCTV">📹 Bank Data CCTV Online (Filter Hanya DVR & DVR2)</option>
+                        <option value="SE">📊 Report Service Excellent (Upload Semua Station)</option>
+                        <option value="CCTV">📹 Report Station (Filter Hanya DVR & DVR2)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="mode-upload">Mode Penulisan Data:</label>
+                    <select id="mode-upload">
+                        <option value="replace" selected>🔄 Timpa / Hapus Data Lama (Replace)</option>
+                        <option value="append">➕ Data Baru / Tambahkan (Append)</option>
                     </select>
                 </div>
 
@@ -450,7 +464,7 @@
         <!-- Tabel Preview Data -->
         <div class="card-upload" id="preview-card" style="display: none;">
             <div class="card-title">
-                <span>👁️</span> Preview 5 Baris Pertama Data Hasil Filter
+                <span>👁️</span> Preview 5 Baris Pertama Data Hasil Olahan
             </div>
             <div class="table-responsive">
                 <table>
@@ -503,9 +517,23 @@
             localStorage.setItem("sidebarCollapsed", isCollapsed ? "true" : "false");
         }
 
-        // Single Sheet Target Endpoint (BANK DATA SE)
-        const apiUrl = "https://api.sheetbest.com/sheets/478b0475-ac28-4edd-a01e-7e87ff27ac26";
-        let parsedExcelRows = [];
+        // Pemetaan 57 Kolom di Sheet BANK DATA SE (sesuai struktur Report Service)
+        const HEADERS = [
+            'CLICK_FOR_ACTION', 'KODE', 'KETERANGAN', 'REQUEST', 'RESPONSE', 'KDCAB', 
+            'KDTK', 'NAMA', 'STATION', 'IP', 'OS', 'ARSITEKTUR', 'CPU_INFO', 
+            'CPU_USAGE', 'MEMORY_USAGE', 'MEMORY_TERPASANG', 'MEMORY_TERBACA', 
+            'HDD_NAME', 'HDD_TOTAL', 'HDD_USED', 'HDD_FREE', 'HDD_HEALTH', 'MEDIA_TYPE', 
+            'SETTING_HIBERNATE', 'UPS_STATUS', 'DEVICE_ID', 'AKTIVASI_WINDOWS', 
+            'PARTIAL_KEY_WINDOWS', 'LAST_INSTALL', 'LAN_SPEED', 'UPTIME', 'SUHU', 
+            'BOOT_TIME', 'LIST_IP', 'SETTING_BCA', 'EDC_BCA_ON', 'EDC_BCA_OFF', 
+            'EDC_BCA_LAST', 'SETTING_MANDIRI', 'EDC_MANDIRI_ON', 'EDC_MANDIRI_OFF', 
+            'EDC_MANDIRI_LAST', 'SETTING_MTI', 'EDC_MTI_ON', 'EDC_MTI_OFF', 
+            'EDC_MTI_LAST', 'REKOMENDASI_PERBAIKAN', 'STATUS_BSOD', 
+            'FOLDER_BACKOFF_SHARING_MODE', 'IS_INDUK', 'ADA_UBAHAN_JAM', 'TIME_CREATED', 
+            'PREVIOUS_TIME', 'NEW_TIME', 'PROCESS_NAME', 'METODE', 'id'
+        ];
+
+        let parsedRowsArray = [];
         let currentFileBuffer = null;
         let currentFileName = "";
         let currentFileSize = 0;
@@ -523,9 +551,26 @@
 
             const today = new Date().toISOString().slice(0, 10);
             document.getElementById("tanggal-upload").value = today;
+
+            // Handlers Drag & Drop File
+            const dropzone = document.getElementById("dropzone");
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropzone.addEventListener(eventName, (e) => { e.preventDefault(); dropzone.classList.add('dragover'); }, false);
+            });
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, (e) => { e.preventDefault(); dropzone.classList.remove('dragover'); }, false);
+            });
+            dropzone.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                if (files.length > 0) {
+                    document.getElementById('file-input').files = files;
+                    prosesFileExcel({ target: { files: files } });
+                }
+            });
         });
 
-        // --- 3. PENGOLAHAN FILE EXCEL & LOGIKA FILTER ---
+        // --- 3. PENGOLAHAN FILE EXCEL & LOGIKA FILTER + AUTO DETECT NAMA FILE ---
         function gantiTipeLaporan() {
             if (currentFileBuffer) {
                 bacaDanOlahExcel(currentFileBuffer);
@@ -539,6 +584,16 @@
             currentFileName = file.name;
             currentFileSize = file.size;
 
+            const nameLower = currentFileName.toLowerCase().trim();
+            const tipeSelect = document.getElementById("tipe-laporan");
+
+            // JAGAAN OTOMATIS BERDASARKAN NAMA FILE
+            if (nameLower.startsWith("report service excellent") || nameLower.includes("report service excellent")) {
+                tipeSelect.value = "SE";
+            } else if (nameLower.startsWith("report station") || nameLower.includes("report station")) {
+                tipeSelect.value = "CCTV";
+            }
+
             const reader = new FileReader();
             reader.onload = function(e) {
                 currentFileBuffer = e.target.result;
@@ -547,120 +602,57 @@
             reader.readAsArrayBuffer(file);
         }
 
-        // Normalisasi nama kolom sesuai aturan pemetaan:
-        // ADDTIME        -> RESPONSE
-        // TOKO           -> KDTK
-        // NAMA           -> NAMA
-        // STATION        -> STATION
-        // STATUS_NETWORK -> KETERANGAN
-        function normalisasiBarisData(row, tglFallback) {
-            const map = {};
-            for (let k in row) {
-                if (Object.prototype.hasOwnProperty.call(row, k)) {
-                    map[k.toString().trim().toUpperCase()] = row[k];
-                }
-            }
-
-            const responseVal = map["RESPONSE"] || map["ADDTIME"] || "-";
-            const kdtkVal     = map["KDTK"] || map["TOKO"] || map["KODE TOKO"] || "-";
-            const namaVal     = map["NAMA"] || map["NAMA TOKO"] || "-";
-            const stationVal  = map["STATION"] !== undefined ? map["STATION"].toString().trim() : "-";
-            
-            // Prioritaskan STATUS_NETWORK -> KETERANGAN
-            const ketVal      = map["KETERANGAN"] || map["STATUS_NETWORK"] || map["STATUS NETWORK"] || map["STATUS"] || "-";
-
-            let tgl = tglFallback;
-            if (map["REQUEST"] && map["REQUEST"].toString().length >= 10) {
-                const tglExtracted = map["REQUEST"].toString().substring(0, 10);
-                if (/^\d{4}-\d{2}-\d{2}$/.test(tglExtracted)) tgl = tglExtracted;
-            } else if (responseVal !== "-" && responseVal.length >= 10) {
-                const tglExtracted = responseVal.substring(0, 10);
-                if (/^\d{4}-\d{2}-\d{2}$/.test(tglExtracted)) tgl = tglExtracted;
-            }
-
-            let aktivasi = map["AKTIVASI_WINDOWS"] || map["STATUS AKTIVASI"] || "-";
-            if (aktivasi && typeof aktivasi === "string") {
-                aktivasi = aktivasi.replace(/_x00d_\n/g, " ").trim();
-            }
-
-            return {
-                tanggal: tgl,
-                KDTK: kdtkVal,
-                NAMA: namaVal,
-                STATION: stationVal,
-                KETERANGAN: ketVal,
-                RESPONSE: responseVal,
-                IP: map["IP"] || map["IP DVR"] || "-",
-                LAN_SPEED: map["LAN_SPEED"] || map["STATUS LAN SPEED"] || "-",
-                SUHU: map["SUHU"] || map["STATUS SUHU"] || "-",
-                BOOT_TIME: map["BOOT_TIME"] || map["STATUS BOOT TIME"] || "-",
-                STATUS_BSOD: map["STATUS_BSOD"] || map["STATUS BSOD"] || "-",
-                UPS_STATUS: map["UPS_STATUS"] || map["STATUS UPS"] || "-",
-                AKTIVASI_WINDOWS: aktivasi,
-                STATUS_EDC_BCA: map["STATUS EDC BCA"] || map["SETTING_BCA"] || "-",
-                STATUS_EDC_MTI: map["STATUS EDC MTI"] || map["SETTING_MTI"] || "-",
-                STATUS_DVR: map["STATUS DVR"] || "-",
-                STATUS_DVR2: map["STATUS DVR2"] || "-",
-                TGL_FOLLOW_UP: map["TGL FOLLOW UP"] || "-",
-                EDP_FOLLOW_UP: map["EDP FOLLOW UP"] || "-",
-                ANALISA_KENDALA: map["ANALISA KENDALA"] || "-",
-                HASIL_PERBAIKAN: map["HASIL PERBAIKAN"] || "-",
-                LINK_FOTO_BUKTI: map["LINK FOTO BUKTI"] || "-"
-            };
-        }
-
         function bacaDanOlahExcel(buffer) {
             const data = new Uint8Array(buffer);
             const workbook = XLSX.read(data, { type: 'array' });
-
-            const firstSheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[firstSheetName];
-
-            const rawJson = XLSX.utils.sheet_to_json(worksheet, { defval: "-" });
-
-            if (rawJson.length === 0) {
-                alert("⚠️ File Excel tidak berisi data!");
-                return;
-            }
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
 
             const tipeLaporan = document.getElementById("tipe-laporan").value;
-            const totalBarisAwal = rawJson.length;
-            const tglPilihan = document.getElementById("tanggal-upload").value;
 
-            // 1. Normalisasi nama kolom
-            let finalRows = rawJson.map(r => normalisasiBarisData(r, tglPilihan));
+            if (tipeLaporan === "SE") {
+                // Report Service Excellent: Upload semua data (2D Array tanpa header)
+                const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                if (rawData.length <= 1) {
+                    alert("⚠️ File Excel Report Service kosong atau hanya berisi header!");
+                    return;
+                }
+                parsedRowsArray = rawData.slice(1).filter(r => r && r.length > 0 && r.some(cell => cell !== "" && cell !== null && cell !== undefined));
+            } else {
+                // Report Station: Filter HANYA STATION DVR & DVR2, petakan ke 57 Kolom BANK DATA SE
+                const jsonStn = XLSX.utils.sheet_to_json(sheet);
+                const filteredStn = jsonStn.filter(row => {
+                    const st = String(row.STATION || '').trim().toUpperCase();
+                    return st === 'DVR' || st === 'DVR2';
+                });
 
-            // 2. ATURAN PENGADAAN FILTER BERDASARKAN OPSI DROP-DOWN:
-            // - CCTV: HANYA AMBIL STATION DVR & DVR2
-            // - SE: TERUPLOAD SEMUA (TANPA FILTER STATION)
-            if (tipeLaporan === "CCTV") {
-                finalRows = finalRows.filter(row => {
-                    const st = (row.STATION || "").toString().trim().toUpperCase();
-                    return st === "DVR" || st === "DVR2";
+                parsedRowsArray = filteredStn.map(row => {
+                    let newRow = new Array(HEADERS.length).fill('');
+                    
+                    newRow[HEADERS.indexOf('RESPONSE')] = row.ADDTIME !== undefined ? String(row.ADDTIME) : '';
+                    newRow[HEADERS.indexOf('KDTK')] = row.TOKO !== undefined ? String(row.TOKO) : '';
+                    newRow[HEADERS.indexOf('NAMA')] = row.NAMA !== undefined ? String(row.NAMA) : '';
+                    newRow[HEADERS.indexOf('IP')] = row.IP !== undefined ? String(row.IP) : '';
+                    newRow[HEADERS.indexOf('STATION')] = row.STATION !== undefined ? String(row.STATION) : '';
+                    newRow[HEADERS.indexOf('KETERANGAN')] = row.STATUS_NETWORK !== undefined ? String(row.STATUS_NETWORK) : '';
+
+                    return newRow;
                 });
             }
 
-            if (finalRows.length > 0 && finalRows[0].tanggal && /^\d{4}-\d{2}-\d{2}$/.test(finalRows[0].tanggal)) {
-                document.getElementById("tanggal-upload").value = finalRows[0].tanggal;
-            }
-
-            parsedExcelRows = finalRows;
-
             // Update Badge & UI Info
             const badge = document.getElementById("file-badge");
-            if (currentFileName) {
-                if (tipeLaporan === "CCTV") {
-                    badge.innerText = `📎 ${currentFileName} | 🎯 Filtered CCTV: ${parsedExcelRows.length} dari ${totalBarisAwal} baris (Hanya DVR & DVR2)`;
-                } else {
-                    badge.innerText = `📎 ${currentFileName} (${(currentFileSize / 1024).toFixed(1)} KB) - ${parsedExcelRows.length} Baris Data (Semua Station Terupload)`;
-                }
-                badge.style.display = "inline-block";
+            if (tipeLaporan === "CCTV") {
+                const totalStnData = XLSX.utils.sheet_to_json(sheet).length;
+                badge.innerText = `📎 ${currentFileName} | 🎯 Filtered CCTV (DVR & DVR2): ${parsedRowsArray.length} dari ${totalStnData} baris`;
+            } else {
+                badge.innerText = `📎 ${currentFileName} (${(currentFileSize / 1024).toFixed(1)} KB) - ${parsedRowsArray.length} Baris Data (Semua Station Terupload)`;
             }
+            badge.style.display = "inline-block";
 
-            document.getElementById("total-baris-info").value = `${parsedExcelRows.length} Baris Data`;
-            document.getElementById("btn-upload-bank").disabled = (parsedExcelRows.length === 0);
+            document.getElementById("total-baris-info").value = `${parsedRowsArray.length} Baris Data`;
+            document.getElementById("btn-upload-bank").disabled = (parsedRowsArray.length === 0);
 
-            tampilkanPreviewData(parsedExcelRows, tipeLaporan);
+            tampilkanPreviewData(parsedRowsArray, tipeLaporan);
         }
 
         // --- 4. TAMPILKAN PREVIEW DATA ---
@@ -674,46 +666,56 @@
             tbody.innerHTML = "";
 
             if (rows.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px; color:#e53e3e;">⚠️ Tidak ada baris data yang cocok dengan kriteria filter.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:#ef4444;">⚠️ Tidak ada baris data yang memenuhi kriteria filter.</td></tr>`;
                 return;
             }
 
-            let headers = ["tanggal", "KDTK", "NAMA", "STATION", "IP", "KETERANGAN", "RESPONSE"];
-            if (tipe === "SE") {
-                headers = ["tanggal", "KDTK", "NAMA", "STATION", "IP", "LAN_SPEED", "SUHU", "BOOT_TIME", "STATUS_BSOD", "UPS_STATUS"];
-            }
+            let previewCols = [
+                { name: 'RESPONSE', idx: HEADERS.indexOf('RESPONSE') },
+                { name: 'KDTK', idx: HEADERS.indexOf('KDTK') },
+                { name: 'NAMA', idx: HEADERS.indexOf('NAMA') },
+                { name: 'STATION', idx: HEADERS.indexOf('STATION') },
+                { name: 'IP', idx: HEADERS.indexOf('IP') },
+                { name: 'KETERANGAN', idx: HEADERS.indexOf('KETERANGAN') }
+            ];
 
-            headers.forEach(h => {
+            previewCols.forEach(col => {
                 const th = document.createElement("th");
-                th.innerText = h;
+                th.innerText = col.name;
                 thead.appendChild(th);
             });
 
             const sampleRows = rows.slice(0, 5);
             sampleRows.forEach(r => {
                 const tr = document.createElement("tr");
-                headers.forEach(h => {
+                previewCols.forEach(col => {
                     const td = document.createElement("td");
-                    td.innerText = r[h] !== undefined ? r[h] : "-";
+                    td.innerText = (r[col.idx] !== undefined && r[col.idx] !== "") ? r[col.idx] : "-";
                     tr.appendChild(td);
                 });
                 tbody.appendChild(tr);
             });
         }
 
-        // --- 5. PENGIRIMAN DATA KE SHEETBEST (LANGSUNG KE SHEET BANK DATA SE) ---
+        // --- 5. PENGIRIMAN DATA BERTAHAP (CHUNK UPLOAD WITH TIMPA / APPEND MODE) ---
         async function kirimKeBankData() {
-            if (parsedExcelRows.length === 0) return;
+            const webAppUrl = document.getElementById("web-app-url").value.trim();
+            if (!webAppUrl) {
+                alert("⚠️ Harap masukkan URL Web App Google Apps Script terlebih dahulu!");
+                return;
+            }
 
-            const tglFix = document.getElementById("tanggal-upload").value;
-            const tipeLaporan = document.getElementById("tipe-laporan").value;
+            if (parsedRowsArray.length === 0) return;
+
+            const modeUpload = document.getElementById("mode-upload").value; // "replace" atau "append"
+            const modeText = modeUpload === "replace" ? "MENIMPA / HAPUS DATA LAMA" : "MENAMBAHKAN DATA BARU";
+
             const btnUpload = document.getElementById("btn-upload-bank");
             const progressBox = document.getElementById("progress-box");
             const progressFill = document.getElementById("progress-fill");
             const progressLabel = document.getElementById("progress-label");
 
-            const labelInfo = tipeLaporan === "CCTV" ? "Data CCTV (Hanya DVR & DVR2)" : "Data Service Excellent (Semua Station)";
-            if (!confirm(`Apakah Anda yakin ingin mengunggah ${parsedExcelRows.length} baris ${labelInfo} ke Sheet BANK DATA SE untuk tanggal ${tglFix}?`)) {
+            if (!confirm(`Apakah Anda yakin ingin mengunggah ${parsedRowsArray.length} baris data ke BANK DATA SE dengan mode ${modeText}?`)) {
                 return;
             }
 
@@ -721,23 +723,28 @@
             btnUpload.innerText = "⏳ Sedang Mengunggah...";
             progressBox.style.display = "block";
 
-            const dataFinal = parsedExcelRows.map(r => ({ ...r, tanggal: tglFix }));
-
-            // Seluruh data dikirim terpusat ke endpoint utama BANK DATA SE
-            const targetUrl = apiUrl;
-
-            const totalData = dataFinal.length;
-            const chunkSize = 100;
+            const chunkSize = 200; // Dikirim per batch 200 baris
+            const totalData = parsedRowsArray.length;
             let diproses = 0;
 
             try {
                 for (let i = 0; i < totalData; i += chunkSize) {
-                    const chunk = dataFinal.slice(i, i + chunkSize);
+                    const chunk = parsedRowsArray.slice(i, i + chunkSize);
+                    const isLastChunk = (i + chunkSize) >= totalData;
+                    const isFirstChunk = (i === 0);
 
-                    await fetch(targetUrl, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(chunk)
+                    const payload = {
+                        action: "uploadReport",
+                        sheetName: "BANK DATA SE",
+                        data: chunk,
+                        skipCache: !isLastChunk, // Warm-up cache hanya dipicu pada chunk terakhir
+                        clearData: (isFirstChunk && modeUpload === "replace") // Timpa data lama hanya di batch pertama
+                    };
+
+                    await fetch(webAppUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify(payload)
                     });
 
                     diproses += chunk.length;
@@ -746,11 +753,11 @@
                     progressLabel.innerText = `Mengunggah: ${persen}% (${diproses}/${totalData} baris)`;
                 }
 
-                alert(`✅ Sukses! Sebanyak ${totalData} baris data berhasil diunggah ke Sheet BANK DATA SE.`);
+                alert(`✅ Berhasil! Sebanyak ${totalData} baris data diunggah ke BANK DATA SE (Mode: ${modeUpload.toUpperCase()}) & Cache otomatis diperbarui.`);
                 location.reload();
             } catch (err) {
                 console.error("Error upload data:", err);
-                alert("⚠️ Terjadi kesalahan koneksi saat mengunggah data.");
+                alert("❌ Terjadi kesalahan saat mengunggah data: " + err.message);
             } finally {
                 btnUpload.disabled = false;
                 btnUpload.innerText = "🚀 Unggah Data";
