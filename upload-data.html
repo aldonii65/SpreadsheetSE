@@ -409,7 +409,7 @@
 
             <div class="form-group" style="margin-bottom: 15px;">
                 <label for="web-app-url">URL Web App Apps Script:</label>
-                <input type="text" id="web-app-url" value="https://script.google.com/macros/s/AKfycbzZkJYaSYJVTPzI0zzVgN-lN0eRWOMcyFDPNtXhVWIzPLb3LL2BzE5Ah3gn_JQq9RDZ/exec" placeholder="https://script.google.com/macros/s/.../exec">
+                <input type="text" id="web-app-url" value="https://script.google.com/macros/s/AKfycbzjKkjzXeRcumo3p4EAS-hQuilalUoVPtzfu9ETXevoY6DdU4-oHAljLs-DLN7m_U-z/exec" placeholder="https://script.google.com/macros/s/.../exec">
             </div>
 
             <!-- Dropzone Drag and Drop -->
@@ -723,7 +723,7 @@
             btnUpload.innerText = "⏳ Sedang Mengunggah...";
             progressBox.style.display = "block";
 
-            const chunkSize = 200; // Dikirim per batch 200 baris
+            const chunkSize = 100; // Dikirim per batch 100 baris
             const totalData = parsedRowsArray.length;
             let diproses = 0;
 
