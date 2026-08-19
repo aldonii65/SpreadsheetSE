@@ -162,109 +162,15 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-                /* --- TRANSISI HALUS (GEMINI STYLE) --- */
-        .sidebar, .main-content, .footer-copyright {
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* TOMBOL TOGGLE SIDEBAR */
-        .btn-toggle-sidebar {
-            background: none;
-            border: none;
-            color: #94a3b8;
-            font-size: 18px;
-            cursor: pointer;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s, color 0.2s;
-            margin-left: auto;
-        }
-        .btn-toggle-sidebar:hover {
-            background-color: #334155;
-            color: #ffffff;
-        }
-
-        /* ========================================================
-        SIDEBAR MODE DITUTUP (COLLAPSED / RAMPING STYLE GEMINI)
-        ======================================================== */
-        .sidebar.collapsed {
-            width: 56px; /* Sangat ringkas khas Gemini */
-        }
-
-        /* Header saat Ditutup: Sembunyikan Logo & Judul, Hanya Sisa Tombol ☰ Di Tengah */
-        .sidebar.collapsed .sidebar-header {
-            padding: 12px 0;
-            justify-content: center;
-        }
-        .sidebar.collapsed .sidebar-header span:first-child,
-        .sidebar.collapsed .sidebar-header h3 {
-            display: none;
-        }
-        .sidebar.collapsed .btn-toggle-sidebar {
-            margin-left: 0;
-        }
-
-        /* Menu saat Ditutup: Ikon Lingkaran Presisi Di Tengah */
-        .sidebar.collapsed .sidebar-menu {
-            padding: 15px 0;
-            align-items: center;
-        }
-        .sidebar.collapsed .sidebar-menu li {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-        }
-        .sidebar.collapsed .sidebar-menu li a {
-            width: 40px;
-            height: 40px;
-            padding: 0;
-            justify-content: center;
-            border-radius: 50%; /* Ikon berbentuk lingkaran melayang */
-            font-size: 18px;
-        }
-        .sidebar.collapsed .sidebar-menu li a span:nth-child(2) {
-            display: none; /* Sembunyikan Teks Menu */
-        }
-
-        /* Footer Logout saat Ditutup */
-        .sidebar.collapsed .sidebar-footer {
-            padding: 12px 0;
-            display: flex;
-            justify-content: center;
-        }
-        .sidebar.collapsed .btn-sidebar-logout {
-            width: 40px;
-            height: 40px;
-            padding: 0;
-            justify-content: center;
-            border-radius: 50%;
-        }
-        .sidebar.collapsed .btn-sidebar-logout span:nth-child(2) {
-            display: none; /* Sembunyikan Teks Logout */
-        }
-
-        /* PENYESUAIAN AREA KONTEN & FOOTER */
-        .main-content.expanded {
-            margin-left: 56px;
-            width: calc(100% - 56px);
-        }
-        .footer-copyright.expanded {
-            left: 56px;
-            width: calc(100% - 56px);
-        }
     </style>
 </head>
 <body>
 
-        <div class="login-card">
-            <div class="login-header">
-                <h2>Portal Monitoring Toko</h2>
-                <p>EDP Samarinda</p>
-            </div>
+    <div class="login-card">
+        <div class="login-header">
+            <h2>Portal Monitoring Toko</h2>
+            <p>EDP Samarinda</p>
+        </div>
 
         <div id="alert-error" class="error-message"></div>
 
@@ -287,39 +193,14 @@
             </button>
         </form>
 
-        
-
         <div class="login-footer">
             Aldoni Jelang R. - EDP Samarinda &copy; 2026
         </div>
     </div>
 
-    
     <script>
-    function toggleSidebar() {
-        const sidebar = document.getElementById("sidebar");
-        const mainContent = document.querySelector(".main-content");
-        const footer = document.querySelector(".footer-copyright");
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzjKkjzXeRcumo3p4EAS-hQuilalUoVPtzfu9ETXevoY6DdU4-oHAljLs-DLN7m_U-z/exec";
 
-        sidebar.classList.toggle("collapsed");
-        if (mainContent) mainContent.classList.toggle("expanded");
-        if (footer) footer.classList.toggle("expanded");
-
-        const isCollapsed = sidebar.classList.contains("collapsed");
-        localStorage.setItem("sidebarCollapsed", isCollapsed ? "true" : "false");
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-        if (localStorage.getItem("sidebarCollapsed") === "true") {
-            const sidebar = document.getElementById("sidebar");
-            const mainContent = document.querySelector(".main-content");
-            const footer = document.querySelector(".footer-copyright");
-
-            if (sidebar) sidebar.classList.add("collapsed");
-            if (mainContent) mainContent.classList.add("expanded");
-            if (footer) footer.classList.add("expanded");
-        }
-    });
         function togglePasswordVisibility() {
             const pwdInput = document.getElementById("password");
             pwdInput.type = pwdInput.type === "password" ? "text" : "password";
@@ -333,32 +214,48 @@
             const btnText = document.getElementById("btn-text");
             const alertError = document.getElementById("alert-error");
 
-            // Sembunyikan alert error lama
             alertError.style.display = "none";
             alertError.innerText = "";
 
-            // Set state tombol ke loading
             btnSubmit.disabled = true;
             btnText.innerHTML = '<span class="spinner-login"></span> Memeriksa...';
 
             try {
-                // Mengakses tab user_data pada SheetBest
-                const response = await fetch("https://api.sheetbest.com/sheets/478b0475-ac28-4edd-a01e-7e87ff27ac26/tabs/user_data");
+                // 1. Ambil data dari GAS endpoint dengan tab user_data
+                const response = await fetch(`${GAS_URL}?tab=${encodeURIComponent('user_data')}`);
+                if (!response.ok) throw new Error("Gagal mengambil data dari server GAS.");
+
+                // 2. Parse hasil JSON dari server
                 const dataUser = await response.json();
 
-                // Mencari username dan password yang cocok
-                const userValid = dataUser.find(u => 
-                    (u.USERNAME || "").toString().toLowerCase() === userIn.toLowerCase() &&
-                    (u.PASSWORD || "").toString() === passIn
-                );
+                if (!Array.isArray(dataUser) || dataUser.length === 0) {
+                    throw new Error("Data pengguna tidak ditemukan pada sheet user_data.");
+                }
+
+                // 3. Cari pengguna secara fleksibel (pencocokan nama kolom otomatis)
+                const userValid = dataUser.find(u => {
+                    const keys = Object.keys(u);
+                    const userKey = keys.find(k => /username|user|nik|id/i.test(k));
+                    const passKey = keys.find(k => /password|pass|pin/i.test(k));
+
+                    const usernameVal = userKey && u[userKey] !== undefined ? String(u[userKey]).trim().toLowerCase() : "";
+                    const passwordVal = passKey && u[passKey] !== undefined ? String(u[passKey]).trim() : "";
+
+                    return usernameVal === userIn.toLowerCase() && passwordVal === passIn;
+                });
 
                 if (userValid) {
-                    // Simpan status login, nama, dan role ke sessionStorage
-                    sessionStorage.setItem("isLoggedIn", "true");
-                    sessionStorage.setItem("userNama", userValid.NAMA_EDP || userValid.USERNAME);
-                    sessionStorage.setItem("userRole", userValid.ROLE || "Pengguna");
+                    const keys = Object.keys(userValid);
+                    const namaKey = keys.find(k => /nama.*edp|nama|user|pic/i.test(k));
+                    const roleKey = keys.find(k => /role|peran|jabatan|akses/i.test(k));
 
-                    // Langsung redirect ke dashboard utama
+                    const namaUser = namaKey && userValid[namaKey] ? String(userValid[namaKey]).trim() : userIn;
+                    const roleUser = roleKey && userValid[roleKey] ? String(userValid[roleKey]).trim() : "EDP Cabang";
+
+                    sessionStorage.setItem("isLoggedIn", "true");
+                    sessionStorage.setItem("userNama", namaUser);
+                    sessionStorage.setItem("userRole", roleUser);
+
                     window.location.href = "index.html";
                 } else {
                     alertError.innerText = "Username atau Password salah!";
@@ -366,7 +263,7 @@
                 }
             } catch (err) {
                 console.error("Login error:", err);
-                alertError.innerText = "Gagal terhubung ke database user.";
+                alertError.innerText = err.message || "Gagal terhubung ke database user.";
                 alertError.style.display = "block";
             } finally {
                 btnSubmit.disabled = false;
