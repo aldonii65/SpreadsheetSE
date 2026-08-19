@@ -865,7 +865,7 @@
     }
 
     // URL Endpoint Google Apps Script (READ & WRITE 100% via GAS)
-    const gasUploadUrl = "https://script.google.com/macros/s/AKfycbzZkJYaSYJVTPzI0zzVgN-lN0eRWOMcyFDPNtXhVWIzPLb3LL2BzE5Ah3gn_JQq9RDZ/exec"; 
+    const gasUploadUrl = "https://script.google.com/macros/s/AKfycbzjKkjzXeRcumo3p4EAS-hQuilalUoVPtzfu9ETXevoY6DdU4-oHAljLs-DLN7m_U-z/exec"; 
 
     let semuaData = [];
     let dataAktifTerfilter = [];
@@ -1107,9 +1107,9 @@
     function formatStatus(nilai) {
         if (!nilai || nilai === '-') return '-';
         const teks = nilai.toString().trim().toUpperCase();
-        if (teks === 'OK' || teks === 'NORMAL' || teks === 'ONLINE' || teks === 'UP') {
+        if (teks === 'OK' || teks === 'NORMAL' || teks === 'ONLINE' || teks === 'UP'|| teks === 'KONEKSI MATI') {
             return `<span class="status-badge status-ok">${teks}</span>`;
-        } else if (teks === 'PROBLEM' || teks === 'TIDAK 1 GB' || teks === 'SUHU TINGGI' || teks === 'PINDAHKAN KE STATION INDUK' || teks === 'KONEKSI MATI' || teks === 'NOK' || teks === 'TIDAK' || teks === 'ERROR' || teks === 'OFFLINE' || teks === 'BSOD' || teks === 'DOWN' || teks === 'OFF') {
+        } else if (teks === 'PROBLEM' ||teks === 'PROBLEM' || teks === 'TIDAK 1 GB' || teks === 'SUHU TINGGI' || teks === 'PINDAHKAN KE STATION INDUK' || teks === 'KONEKSI MATI' || teks === 'NOK' || teks === 'TIDAK' || teks === 'ERROR' || teks === 'OFFLINE' || teks === 'BSOD' || teks === 'DOWN' || teks === 'OFF') {
             return `<span class="status-badge status-problem">${teks}</span>`;
         }
         return teks;
@@ -1118,7 +1118,7 @@
     function isAman(nilai) {
         if (!nilai) return false;
         const teks = nilai.toString().trim().toUpperCase();
-        return (teks === 'OK' || teks === 'NORMAL' || teks === 'ONLINE'|| teks === 'NO EDC');
+        return (teks === 'TIDAK ADA DVR' ||teks === 'OK' || teks === 'NORMAL' || teks === 'ONLINE'|| teks === 'NO EDC');
     }
 
     function cekKriteriaNOK(item) {
