@@ -3,57 +3,260 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Monitoring Status Toko & Follow Up Lapangan</title>
+    <title>Upload Data - Monitoring Status Toko</title>
+    <!-- Pustaka SheetJS untuk membaca file Excel (.xlsx / .xls) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #ebf8ff 0%, #edf2f7 100%);
+            background-color: #f5f7fa;
+            color: #333;
+            display: flex;
             min-height: 100vh;
+        }
+
+        /* --- TRANSISI HALUS --- */
+        .sidebar, .main-content, .footer-copyright {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* --- SIDEBAR STYLES --- */
+        .sidebar {
+            width: 250px;
+            background-color: #1e293b;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0; bottom: 0; left: 0;
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .sidebar-header {
+            padding: 20px 15px;
+            background-color: #0f172a;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-header h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #60a5fa;
+            line-height: 1.2;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 15px 10px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .sidebar-menu li a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-menu li a:hover {
+            background-color: #334155;
+            color: #f8fafc;
+        }
+
+        .sidebar-menu li.active a {
+            background-color: #2563eb;
+            color: #ffffff;
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+        }
+
+        .sidebar-footer {
+            padding: 15px 10px;
+            border-top: 1px solid #334155;
+        }
+
+        .btn-sidebar-logout {
+            width: 100%;
+            padding: 10px;
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #333;
-            padding: 20px;
+            gap: 8px;
         }
 
-        .login-card {
-            background: #ffffff;
+        .btn-sidebar-logout:hover { background-color: #dc2626; }
+
+        /* TOMBOL TOGGLE SIDEBAR */
+        .btn-toggle-sidebar {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 18px;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s;
+            margin-left: auto;
+        }
+        .btn-toggle-sidebar:hover {
+            background-color: #334155;
+            color: #ffffff;
+        }
+
+        /* SIDEBAR MODE DITUTUP (COLLAPSED) */
+        .sidebar.collapsed { width: 56px; }
+
+        .sidebar.collapsed .sidebar-header {
+            padding: 12px 0;
+            justify-content: center;
+        }
+        .sidebar.collapsed .sidebar-header span:first-child,
+        .sidebar.collapsed .sidebar-header h3 { display: none; }
+        .sidebar.collapsed .btn-toggle-sidebar { margin-left: 0; }
+
+        .sidebar.collapsed .sidebar-menu {
+            padding: 15px 0;
+            align-items: center;
+        }
+        .sidebar.collapsed .sidebar-menu li {
             width: 100%;
-            max-width: 420px;
-            padding: 40px 30px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-            border: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: center;
+        }
+        .sidebar.collapsed .sidebar-menu li a {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 18px;
+        }
+        .sidebar.collapsed .sidebar-menu li a span:nth-child(2) { display: none; }
+
+        .sidebar.collapsed .sidebar-footer {
+            padding: 12px 0;
+            display: flex;
+            justify-content: center;
+        }
+        .sidebar.collapsed .btn-sidebar-logout {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        .sidebar.collapsed .btn-sidebar-logout span:nth-child(2) { display: none; }
+
+        /* --- MAIN CONTENT --- */
+        .main-content {
+            margin-left: 250px;
+            flex: 1;
+            padding: 20px;
+            padding-bottom: 70px;
+            width: calc(100% - 250px);
         }
 
-        .login-header {
-            text-align: center;
-            margin-bottom: 30px;
+        .main-content.expanded {
+            margin-left: 56px;
+            width: calc(100% - 56px);
         }
 
-        .login-header h2 {
-            font-size: 22px;
-            color: #2b6cb0;
+        .card-upload {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 18px;
             font-weight: 700;
-            margin-bottom: 6px;
+            color: #1e293b;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .login-header p {
+        /* UPLOAD BOX DROPZONE */
+        .dropzone {
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 35px 20px;
+            text-align: center;
+            background-color: #f8fafc;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .dropzone:hover, .dropzone.dragover {
+            border-color: #3182ce;
+            background-color: #ebf8ff;
+        }
+
+        .dropzone-icon {
+            font-size: 42px;
+            margin-bottom: 10px;
+        }
+
+        .dropzone-text {
+            font-size: 14px;
+            color: #4a5568;
+            font-weight: 600;
+        }
+
+        .file-info-badge {
+            margin-top: 15px;
+            display: inline-block;
+            background: #e2e8f0;
+            padding: 6px 12px;
+            border-radius: 20px;
             font-size: 13px;
-            color: #718096;
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        /* FORM BATCH CONTROLS */
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            align-items: flex-end;
         }
 
         .form-group {
-            margin-bottom: 20px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 5px;
+            flex: 1;
+            min-width: 180px;
         }
 
         label {
@@ -62,212 +265,502 @@
             color: #4a5568;
         }
 
-        .input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        input[type="text"],
-        input[type="password"] {
-            width: 100%;
-            padding: 10px 14px;
+        select, input[type="date"], input[type="text"] {
+            padding: 9px 12px;
             border: 1px solid #cbd5e1;
             border-radius: 6px;
             font-size: 14px;
             outline: none;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            background-color: #fff;
         }
 
-        input[type="text"]:focus,
-        input[type="password"]:focus {
-            border-color: #3182ce;
-            box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.15);
-        }
+        select:focus, input:focus { border-color: #3182ce; }
 
-        .toggle-password {
-            position: absolute;
-            right: 12px;
-            background: none;
-            border: none;
-            color: #718096;
-            cursor: pointer;
-            font-size: 13px;
-            user-select: none;
-        }
-
-        .btn-login {
-            width: 100%;
-            padding: 12px;
-            background-color: #2b6cb0;
-            color: #ffffff;
+        .btn-process {
+            padding: 10px 20px;
+            background-color: #2f855a;
+            color: #fff;
             border: none;
             border-radius: 6px;
-            font-size: 15px;
-            font-weight: 600;
+            font-size: 14px;
+            font-weight: 700;
             cursor: pointer;
-            transition: background-color 0.2s ease, transform 0.1s ease;
-            margin-top: 10px;
-            display: flex;
+            height: 40px;
+            display: inline-flex;
             align-items: center;
-            justify-content: center;
             gap: 8px;
+            transition: background 0.2s;
         }
 
-        .btn-login:hover {
-            background-color: #2c5282;
-        }
+        .btn-process:hover { background-color: #276749; }
+        .btn-process:disabled { background-color: #a0aec0; cursor: not-allowed; }
 
-        .btn-login:active {
-            transform: scale(0.99);
-        }
-
-        .btn-login:disabled {
-            background-color: #a0aec0;
-            cursor: not-allowed;
-        }
-
-        .error-message {
-            background-color: #fed7d7;
-            color: #9b2c2c;
-            padding: 10px;
-            border-radius: 6px;
-            font-size: 13px;
-            text-align: center;
-            margin-bottom: 20px;
+        /* PROGRESS BAR */
+        .progress-container {
+            margin-top: 20px;
             display: none;
         }
 
-        .login-footer {
-            margin-top: 25px;
+        .progress-bar-bg {
+            background-color: #e2e8f0;
+            border-radius: 8px;
+            height: 18px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            background-color: #3182ce;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 12px;
+            color: #4a5568;
+            margin-top: 6px;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        /* PREVIEW TABLE */
+        .table-responsive {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            overflow-x: auto;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            white-space: nowrap;
+        }
+
+        th {
+            background-color: #edf2f7;
+            color: #4a5568;
+            font-weight: 600;
+        }
+
+        .footer-copyright {
+            position: fixed;
+            bottom: 0; left: 250px;
+            width: calc(100% - 250px);
+            background-color: #edf2f7;
+            border-top: 1px solid #cbd5e1;
             text-align: center;
             font-size: 12px;
-            color: #a0aec0;
-            border-top: 1px dashed #e2e8f0;
-            padding-top: 15px;
+            color: #4a5568;
+            padding: 8px 0;
+            z-index: 9999;
         }
 
-        /* Loading Spinner */
-        .spinner-login {
-            width: 16px;
-            height: 16px;
-            border: 2px solid #ffffff;
-            border-bottom-color: transparent;
-            border-radius: 50%;
-            display: inline-block;
-            animation: spin 0.8s linear infinite;
+        .footer-copyright.expanded {
+            left: 56px;
+            width: calc(100% - 56px);
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .main-content { margin-left: 0; width: 100%; }
+            .footer-copyright { left: 0; width: 100%; }
         }
     </style>
 </head>
 <body>
 
-    <div class="login-card">
-        <div class="login-header">
-            <h2>Portal Monitoring Toko</h2>
-            <p>EDP Samarinda</p>
+    <!-- SIDEBAR NAVIGASI -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span style="font-size: 24px;">📊</span>
+            <h3>Monitoring Toko<br><span style="font-size: 12px; color: #94a3b8; font-weight: normal;">EDP Samarinda</span></h3>
+            <button class="btn-toggle-sidebar" onclick="toggleSidebar()" title="Buka/Tutup Sidebar">☰</button>
         </div>
 
-        <div id="alert-error" class="error-message"></div>
+        <ul class="sidebar-menu">
+            <li><a href="index.html" title="Monitoring Toko & Follow UP"><span>📈</span> <span>Monitoring Toko & Follow UP</span></a></li>
+            <li class="active"><a href="upload-data.html" title="Upload Data"><span>📤</span> <span>Upload Data</span></a></li>
+            <li><a href="filter-item.html" title="Filter Data Per Item"><span>🔍</span> <span>Filter Data Per Item</span></a></li>
+        </ul>
 
-        <form id="form-login" onsubmit="prosesLogin(event)">
-            <div class="form-group">
-                <label for="username">Username / NIK</label>
-                <input type="text" id="username" placeholder="Masukkan username..." required autocomplete="off">
+        <div class="sidebar-footer">
+            <button class="btn-sidebar-logout" onclick="logout()" title="Logout"><span>🚪</span> <span>Logout</span></button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="main-content">
+
+        <div class="card-upload">
+            <div class="card-title">
+                <span>📂</span> Form Import Data Laporan (.xlsx) ke BANK DATA SE
             </div>
 
-            <div class="form-group">
-                <label for="password">Password</label>
-                <div class="input-wrapper">
-                    <input type="password" id="password" placeholder="Masukkan password..." required>
-                    <button type="button" class="toggle-password" onclick="togglePasswordVisibility()">👁️</button>
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label for="web-app-url">URL Web App Apps Script:</label>
+                <input type="text" id="web-app-url" value="https://script.google.com/macros/s/AKfycbz_tNHAoQAjhsEvny5l2_aUYwwdTegK3j4X-jEyS9KN06LUGV17suZkOZdYP19V_P_1/exec" placeholder="https://script.google.com/macros/s/.../exec">
+            </div>
+
+            <!-- Dropzone Drag and Drop -->
+            <div class="dropzone" id="dropzone" onclick="document.getElementById('file-input').click()">
+                <div class="dropzone-icon">📄</div>
+                <div class="dropzone-text">Klik di sini atau seret file <strong>Report Excel (.xlsx)</strong></div>
+                <input type="file" id="file-input" accept=".xlsx, .xls, .csv" style="display: none;" onchange="prosesFileExcel(event)">
+                <div id="file-badge" class="file-info-badge" style="display: none;"></div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="tipe-laporan">Aturan Pemrosesan Report:</label>
+                    <select id="tipe-laporan" onchange="gantiTipeLaporan()">
+                        <option value="SE">📊 Report Service Excellent (Upload Semua Station)</option>
+                        <option value="CCTV">📹 Report Station (Filter Hanya DVR & DVR2)</option>
+                    </select>
                 </div>
+
+                <div class="form-group">
+                    <label for="mode-upload">Mode Penulisan Data:</label>
+                    <select id="mode-upload">
+                        <option value="replace" selected>🔄 Timpa / Hapus Data Lama (Replace)</option>
+                        <option value="append">➕ Data Baru / Tambahkan (Append)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="tanggal-upload">Tanggal Laporan Data:</label>
+                    <input type="date" id="tanggal-upload">
+                </div>
+
+                <div class="form-group">
+                    <label for="total-baris-info">Jumlah Baris Terbaca:</label>
+                    <input type="text" id="total-baris-info" value="0 Baris" readonly style="background-color: #f1f5f9;">
+                </div>
+
+                <button class="btn-process" id="btn-upload-bank" onclick="kirimKeBankData()" disabled>
+                    <span>🚀</span> Unggah Data
+                </button>
             </div>
 
-            <button type="submit" class="btn-login" id="btn-submit">
-                <span id="btn-text">Masuk Sistem</span>
-            </button>
-        </form>
-
-        <div class="login-footer">
-            Aldoni Jelang R. - EDP Samarinda &copy; 2026
+            <!-- Progress Bar -->
+            <div class="progress-container" id="progress-box">
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="progress-fill"></div>
+                </div>
+                <div class="progress-text" id="progress-label">Mengunggah: 0%</div>
+            </div>
         </div>
+
+        <!-- Tabel Preview Data -->
+        <div class="card-upload" id="preview-card" style="display: none;">
+            <div class="card-title">
+                <span>👁️</span> Preview 5 Baris Pertama Data Hasil Olahan
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr id="preview-header"></tr>
+                    </thead>
+                    <tbody id="preview-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <div class="footer-copyright">
+        Aldoni Jelang R. - EDP Samarinda (dibantu oleh Edi dan Rey) &copy; 2026
     </div>
 
     <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbz_tNHAoQAjhsEvny5l2_aUYwwdTegK3j4X-jEyS9KN06LUGV17suZkOZdYP19V_P_1/exec";
-
-        function togglePasswordVisibility() {
-            const pwdInput = document.getElementById("password");
-            pwdInput.type = pwdInput.type === "password" ? "text" : "password";
+        // --- 1. VERIFIKASI SESI & ROLE ADMIN ---
+        if (sessionStorage.getItem("isLoggedIn") !== "true") {
+            window.location.href = "login.html";
         }
 
-        async function prosesLogin(e) {
-            e.preventDefault();
-            const userIn = document.getElementById("username").value.trim();
-            const passIn = document.getElementById("password").value.trim();
-            const btnSubmit = document.getElementById("btn-submit");
-            const btnText = document.getElementById("btn-text");
-            const alertError = document.getElementById("alert-error");
+        const currentRole = (sessionStorage.getItem("userRole") || "").toUpperCase();
+        if (currentRole !== "ADMIN") {
+            alert("⛔ Akses Ditolak! Halaman ini hanya dapat diakses oleh Admin.");
+            window.location.href = "index.html";
+        }
 
-            alertError.style.display = "none";
-            alertError.innerText = "";
+        function logout() {
+            if (confirm("Apakah Anda yakin ingin keluar dari sistem?")) {
+                sessionStorage.removeItem("isLoggedIn");
+                sessionStorage.removeItem("userNama");
+                sessionStorage.removeItem("userRole");
+                window.location.href = "login.html";
+            }
+        }
 
-            btnSubmit.disabled = true;
-            btnText.innerHTML = '<span class="spinner-login"></span> Memeriksa...';
+        // --- 2. MANAJEMEN TOGGLE SIDEBAR ---
+        function toggleSidebar() {
+            const sidebar = document.getElementById("sidebar");
+            const mainContent = document.querySelector(".main-content");
+            const footer = document.querySelector(".footer-copyright");
 
-            try {
-                // 1. Ambil data dari GAS endpoint dengan tab user_data
-                const response = await fetch(`${GAS_URL}?tab=${encodeURIComponent('user_data')}`);
-                if (!response.ok) throw new Error("Gagal mengambil data dari server GAS.");
+            sidebar.classList.toggle("collapsed");
+            if (mainContent) mainContent.classList.toggle("expanded");
+            if (footer) footer.classList.toggle("expanded");
 
-                // 2. Parse hasil JSON dari server
-                const dataUser = await response.json();
+            const isCollapsed = sidebar.classList.contains("collapsed");
+            localStorage.setItem("sidebarCollapsed", isCollapsed ? "true" : "false");
+        }
 
-                if (!Array.isArray(dataUser) || dataUser.length === 0) {
-                    throw new Error("Data pengguna tidak ditemukan pada sheet user_data.");
+        // Pemetaan 57 Kolom di Sheet BANK DATA SE (sesuai struktur Report Service)
+        const HEADERS = [
+            'CLICK_FOR_ACTION', 'KODE', 'KETERANGAN', 'REQUEST', 'RESPONSE', 'KDCAB', 
+            'KDTK', 'NAMA', 'STATION', 'IP', 'OS', 'ARSITEKTUR', 'CPU_INFO', 
+            'CPU_USAGE', 'MEMORY_USAGE', 'MEMORY_TERPASANG', 'MEMORY_TERBACA', 
+            'HDD_NAME', 'HDD_TOTAL', 'HDD_USED', 'HDD_FREE', 'HDD_HEALTH', 'MEDIA_TYPE', 
+            'SETTING_HIBERNATE', 'UPS_STATUS', 'DEVICE_ID', 'AKTIVASI_WINDOWS', 
+            'PARTIAL_KEY_WINDOWS', 'LAST_INSTALL', 'LAN_SPEED', 'UPTIME', 'SUHU', 
+            'BOOT_TIME', 'LIST_IP', 'SETTING_BCA', 'EDC_BCA_ON', 'EDC_BCA_OFF', 
+            'EDC_BCA_LAST', 'SETTING_MANDIRI', 'EDC_MANDIRI_ON', 'EDC_MANDIRI_OFF', 
+            'EDC_MANDIRI_LAST', 'SETTING_MTI', 'EDC_MTI_ON', 'EDC_MTI_OFF', 
+            'EDC_MTI_LAST', 'REKOMENDASI_PERBAIKAN', 'STATUS_BSOD', 
+            'FOLDER_BACKOFF_SHARING_MODE', 'IS_INDUK', 'ADA_UBAHAN_JAM', 'TIME_CREATED', 
+            'PREVIOUS_TIME', 'NEW_TIME', 'PROCESS_NAME', 'METODE', 'id'
+        ];
+
+        let parsedRowsArray = [];
+        let currentFileBuffer = null;
+        let currentFileName = "";
+        let currentFileSize = 0;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            if (localStorage.getItem("sidebarCollapsed") === "true") {
+                const sidebar = document.getElementById("sidebar");
+                const mainContent = document.querySelector(".main-content");
+                const footer = document.querySelector(".footer-copyright");
+
+                if (sidebar) sidebar.classList.add("collapsed");
+                if (mainContent) mainContent.classList.add("expanded");
+                if (footer) footer.classList.add("expanded");
+            }
+
+            const today = new Date().toISOString().slice(0, 10);
+            document.getElementById("tanggal-upload").value = today;
+
+            // Handlers Drag & Drop File
+            const dropzone = document.getElementById("dropzone");
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropzone.addEventListener(eventName, (e) => { e.preventDefault(); dropzone.classList.add('dragover'); }, false);
+            });
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, (e) => { e.preventDefault(); dropzone.classList.remove('dragover'); }, false);
+            });
+            dropzone.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                if (files.length > 0) {
+                    document.getElementById('file-input').files = files;
+                    prosesFileExcel({ target: { files: files } });
                 }
+            });
+        });
 
-                // 3. Cari pengguna secara fleksibel (pencocokan nama kolom otomatis)
-                const userValid = dataUser.find(u => {
-                    const keys = Object.keys(u);
-                    const userKey = keys.find(k => /username|user|nik|id/i.test(k));
-                    const passKey = keys.find(k => /password|pass|pin/i.test(k));
+        // --- 3. PENGOLAHAN FILE EXCEL & LOGIKA FILTER + AUTO DETECT NAMA FILE ---
+        function gantiTipeLaporan() {
+            if (currentFileBuffer) {
+                bacaDanOlahExcel(currentFileBuffer);
+            }
+        }
 
-                    const usernameVal = userKey && u[userKey] !== undefined ? String(u[userKey]).trim().toLowerCase() : "";
-                    const passwordVal = passKey && u[passKey] !== undefined ? String(u[passKey]).trim() : "";
+        function prosesFileExcel(event) {
+            const file = event.target.files[0];
+            if (!file) return;
 
-                    return usernameVal === userIn.toLowerCase() && passwordVal === passIn;
+            currentFileName = file.name;
+            currentFileSize = file.size;
+
+            const nameLower = currentFileName.toLowerCase().trim();
+            const tipeSelect = document.getElementById("tipe-laporan");
+
+            // JAGAAN OTOMATIS BERDASARKAN NAMA FILE
+            if (nameLower.startsWith("report service excellent") || nameLower.includes("report service excellent")) {
+                tipeSelect.value = "SE";
+            } else if (nameLower.startsWith("report station") || nameLower.includes("report station")) {
+                tipeSelect.value = "CCTV";
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                currentFileBuffer = e.target.result;
+                bacaDanOlahExcel(currentFileBuffer);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function bacaDanOlahExcel(buffer) {
+            const data = new Uint8Array(buffer);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+
+            const tipeLaporan = document.getElementById("tipe-laporan").value;
+
+            if (tipeLaporan === "SE") {
+                // Report Service Excellent: Upload semua data (2D Array tanpa header)
+                const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                if (rawData.length <= 1) {
+                    alert("⚠️ File Excel Report Service kosong atau hanya berisi header!");
+                    return;
+                }
+                parsedRowsArray = rawData.slice(1).filter(r => r && r.length > 0 && r.some(cell => cell !== "" && cell !== null && cell !== undefined));
+            } else {
+                // Report Station: Filter HANYA STATION DVR & DVR2, petakan ke 57 Kolom BANK DATA SE
+                const jsonStn = XLSX.utils.sheet_to_json(sheet);
+                const filteredStn = jsonStn.filter(row => {
+                    const st = String(row.STATION || '').trim().toUpperCase();
+                    return st === 'DVR' || st === 'DVR2';
                 });
 
-                if (userValid) {
-                    const keys = Object.keys(userValid);
-                    const namaKey = keys.find(k => /nama.*edp|nama|user|pic/i.test(k));
-                    const roleKey = keys.find(k => /role|peran|jabatan|akses/i.test(k));
+                parsedRowsArray = filteredStn.map(row => {
+                    let newRow = new Array(HEADERS.length).fill('');
+                    
+                    newRow[HEADERS.indexOf('RESPONSE')] = row.ADDTIME !== undefined ? String(row.ADDTIME) : '';
+                    newRow[HEADERS.indexOf('KDTK')] = row.TOKO !== undefined ? String(row.TOKO) : '';
+                    newRow[HEADERS.indexOf('NAMA')] = row.NAMA !== undefined ? String(row.NAMA) : '';
+                    newRow[HEADERS.indexOf('IP')] = row.IP !== undefined ? String(row.IP) : '';
+                    newRow[HEADERS.indexOf('STATION')] = row.STATION !== undefined ? String(row.STATION) : '';
+                    newRow[HEADERS.indexOf('KETERANGAN')] = row.STATUS_NETWORK !== undefined ? String(row.STATUS_NETWORK) : '';
 
-                    const namaUser = namaKey && userValid[namaKey] ? String(userValid[namaKey]).trim() : userIn;
-                    const roleUser = roleKey && userValid[roleKey] ? String(userValid[roleKey]).trim() : "EDP Cabang";
+                    return newRow;
+                });
+            }
 
-                    sessionStorage.setItem("isLoggedIn", "true");
-                    sessionStorage.setItem("userNama", namaUser);
-                    sessionStorage.setItem("userRole", roleUser);
+            // Update Badge & UI Info
+            const badge = document.getElementById("file-badge");
+            if (tipeLaporan === "CCTV") {
+                const totalStnData = XLSX.utils.sheet_to_json(sheet).length;
+                badge.innerText = `📎 ${currentFileName} | 🎯 Filtered CCTV (DVR & DVR2): ${parsedRowsArray.length} dari ${totalStnData} baris`;
+            } else {
+                badge.innerText = `📎 ${currentFileName} (${(currentFileSize / 1024).toFixed(1)} KB) - ${parsedRowsArray.length} Baris Data (Semua Station Terupload)`;
+            }
+            badge.style.display = "inline-block";
 
-                    window.location.href = "index.html";
-                } else {
-                    alertError.innerText = "Username atau Password salah!";
-                    alertError.style.display = "block";
+            document.getElementById("total-baris-info").value = `${parsedRowsArray.length} Baris Data`;
+            document.getElementById("btn-upload-bank").disabled = (parsedRowsArray.length === 0);
+
+            tampilkanPreviewData(parsedRowsArray, tipeLaporan);
+        }
+
+        // --- 4. TAMPILKAN PREVIEW DATA ---
+        function tampilkanPreviewData(rows, tipe) {
+            const card = document.getElementById("preview-card");
+            const thead = document.getElementById("preview-header");
+            const tbody = document.getElementById("preview-body");
+
+            card.style.display = "block";
+            thead.innerHTML = "";
+            tbody.innerHTML = "";
+
+            if (rows.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:#ef4444;">⚠️ Tidak ada baris data yang memenuhi kriteria filter.</td></tr>`;
+                return;
+            }
+
+            let previewCols = [
+                { name: 'RESPONSE', idx: HEADERS.indexOf('RESPONSE') },
+                { name: 'KDTK', idx: HEADERS.indexOf('KDTK') },
+                { name: 'NAMA', idx: HEADERS.indexOf('NAMA') },
+                { name: 'STATION', idx: HEADERS.indexOf('STATION') },
+                { name: 'IP', idx: HEADERS.indexOf('IP') },
+                { name: 'KETERANGAN', idx: HEADERS.indexOf('KETERANGAN') }
+            ];
+
+            previewCols.forEach(col => {
+                const th = document.createElement("th");
+                th.innerText = col.name;
+                thead.appendChild(th);
+            });
+
+            const sampleRows = rows.slice(0, 5);
+            sampleRows.forEach(r => {
+                const tr = document.createElement("tr");
+                previewCols.forEach(col => {
+                    const td = document.createElement("td");
+                    td.innerText = (r[col.idx] !== undefined && r[col.idx] !== "") ? r[col.idx] : "-";
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- 5. PENGIRIMAN DATA BERTAHAP (CHUNK UPLOAD WITH TIMPA / APPEND MODE) ---
+        async function kirimKeBankData() {
+            const webAppUrl = document.getElementById("web-app-url").value.trim();
+            if (!webAppUrl) {
+                alert("⚠️ Harap masukkan URL Web App Google Apps Script terlebih dahulu!");
+                return;
+            }
+
+            if (parsedRowsArray.length === 0) return;
+
+            const modeUpload = document.getElementById("mode-upload").value; // "replace" atau "append"
+            const modeText = modeUpload === "replace" ? "MENIMPA / HAPUS DATA LAMA" : "MENAMBAHKAN DATA BARU";
+
+            const btnUpload = document.getElementById("btn-upload-bank");
+            const progressBox = document.getElementById("progress-box");
+            const progressFill = document.getElementById("progress-fill");
+            const progressLabel = document.getElementById("progress-label");
+
+            if (!confirm(`Apakah Anda yakin ingin mengunggah ${parsedRowsArray.length} baris data ke BANK DATA SE dengan mode ${modeText}?`)) {
+                return;
+            }
+
+            btnUpload.disabled = true;
+            btnUpload.innerText = "⏳ Sedang Mengunggah...";
+            progressBox.style.display = "block";
+
+            const chunkSize = 100; // Dikirim per batch 100 baris
+            const totalData = parsedRowsArray.length;
+            let diproses = 0;
+
+            try {
+                for (let i = 0; i < totalData; i += chunkSize) {
+                    const chunk = parsedRowsArray.slice(i, i + chunkSize);
+                    const isLastChunk = (i + chunkSize) >= totalData;
+                    const isFirstChunk = (i === 0);
+
+                    const payload = {
+                        action: "uploadReport",
+                        sheetName: "BANK DATA SE",
+                        data: chunk,
+                        skipCache: !isLastChunk, // Warm-up cache hanya dipicu pada chunk terakhir
+                        clearData: (isFirstChunk && modeUpload === "replace") // Timpa data lama hanya di batch pertama
+                    };
+
+                    await fetch(webAppUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    diproses += chunk.length;
+                    const persen = Math.min(Math.round((diproses / totalData) * 100), 100);
+                    progressFill.style.width = `${persen}%`;
+                    progressLabel.innerText = `Mengunggah: ${persen}% (${diproses}/${totalData} baris)`;
                 }
+
+                alert(`✅ Berhasil! Sebanyak ${totalData} baris data diunggah ke BANK DATA SE (Mode: ${modeUpload.toUpperCase()}) & Cache otomatis diperbarui.`);
+                location.reload();
             } catch (err) {
-                console.error("Login error:", err);
-                alertError.innerText = err.message || "Gagal terhubung ke database user.";
-                alertError.style.display = "block";
+                console.error("Error upload data:", err);
+                alert("❌ Terjadi kesalahan saat mengunggah data: " + err.message);
             } finally {
-                btnSubmit.disabled = false;
-                btnText.innerText = "Masuk Sistem";
+                btnUpload.disabled = false;
+                btnUpload.innerText = "🚀 Unggah Data";
             }
         }
     </script>
