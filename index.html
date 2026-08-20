@@ -675,10 +675,10 @@
 
         if (currentRole !== "ADMIN") {
             const menuUpload = document.querySelector('a[href="upload-data.html"]');
-            const menuFilter = document.querySelector('a[href="filter-item.html"]');
+            //const menuFilter = document.querySelector('a[href="filter-item.html"]');
 
             if (menuUpload && menuUpload.parentElement) menuUpload.parentElement.style.display = "none";
-            if (menuFilter && menuFilter.parentElement) menuFilter.parentElement.style.display = "none";
+            //if (menuFilter && menuFilter.parentElement) menuFilter.parentElement.style.display = "none";
         }
 
         if (window.innerWidth > 768 && localStorage.getItem("sidebarCollapsed") === "true") {
