@@ -11,110 +11,134 @@
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f7fa;
-            color: #333;
+            background-color: #f8fafc;
+            color: #1e293b;
             display: flex;
             min-height: 100vh;
         }
 
         .sidebar, .main-content, .footer-copyright {
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        /* --- SIDEBAR STYLING --- */
         .sidebar {
-            width: 250px;
-            background-color: #1e293b;
-            color: #fff;
+            width: 260px;
+            background-color: #0f172a;
+            color: #cbd5e1;
             display: flex;
             flex-direction: column;
             position: fixed;
             top: 0; bottom: 0; left: 0;
             z-index: 1000;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.08);
+            border-right: 1px solid #1e293b;
         }
 
         .sidebar-header {
-            padding: 20px 15px;
-            background-color: #0f172a;
-            border-bottom: 1px solid #334155;
+            padding: 20px 18px;
+            background-color: #090d16;
+            border-bottom: 1px solid #1e293b;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
 
         .sidebar-header h3 {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
             color: #60a5fa;
-            line-height: 1.2;
+            line-height: 1.3;
         }
 
         .sidebar-menu {
             list-style: none;
-            padding: 15px 10px;
+            padding: 16px 12px;
             flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 6px;
+            overflow-y: auto;
+        }
+
+        .sidebar-menu::-webkit-scrollbar {
+            width: 4px;
+        }
+        .sidebar-menu::-webkit-scrollbar-thumb {
+            background-color: #334155;
+            border-radius: 4px;
         }
 
         .sidebar-menu li a {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 12px 15px;
+            padding: 11px 14px;
             color: #94a3b8;
             text-decoration: none;
-            font-size: 14px;
-            font-weight: 600;
-            border-radius: 6px;
+            font-size: 13.5px;
+            font-weight: 500;
+            border-radius: 8px;
             transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .sidebar-menu li a span:first-child {
+            font-size: 16px;
+            min-width: 20px;
+            text-align: center;
         }
 
         .sidebar-menu li a:hover {
-            background-color: #334155;
-            color: #f8fafc;
+            background-color: #1e293b;
+            color: #f1f5f9;
         }
 
         .sidebar-menu li.active a {
             background-color: #2563eb;
             color: #ffffff;
-            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
         }
 
         .sidebar-footer {
-            padding: 15px 10px;
-            border-top: 1px solid #334155;
+            padding: 14px 12px;
+            border-top: 1px solid #1e293b;
+            background-color: #090d16;
         }
 
         .btn-sidebar-logout {
             width: 100%;
-            padding: 10px;
-            background-color: #ef4444;
+            padding: 10px 14px;
+            background-color: #dc2626;
             color: white;
             border: none;
-            border-radius: 6px;
-            font-size: 14px;
+            border-radius: 8px;
+            font-size: 13.5px;
             font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            transition: background-color 0.2s;
+            gap: 10px;
+            transition: background-color 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 6px rgba(220, 38, 38, 0.2);
         }
 
-        .btn-sidebar-logout:hover { background-color: #dc2626; }
+        .btn-sidebar-logout:hover { 
+            background-color: b91c1c; 
+            box-shadow: 0 4px 10px rgba(220, 38, 38, 0.3);
+        }
 
         .btn-toggle-sidebar {
-            background: none;
+            background: transparent;
             border: none;
             color: #94a3b8;
             font-size: 18px;
             cursor: pointer;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -122,44 +146,46 @@
             margin-left: auto;
         }
         .btn-toggle-sidebar:hover {
-            background-color: #334155;
+            background-color: #1e293b;
             color: #ffffff;
         }
 
-        .sidebar.collapsed { width: 56px; }
-        .sidebar.collapsed .sidebar-header { padding: 12px 0; justify-content: center; }
-        .sidebar.collapsed .sidebar-header span:first-child,
+        /* --- COLLAPSED STATE --- */
+        .sidebar.collapsed { width: 70px; }
+        .sidebar.collapsed .sidebar-header { padding: 16px 0; justify-content: center; }
+        .sidebar.collapsed .sidebar-header > span:first-child,
         .sidebar.collapsed .sidebar-header h3 { display: none; }
         .sidebar.collapsed .btn-toggle-sidebar { margin-left: 0; }
-        .sidebar.collapsed .sidebar-menu { padding: 15px 0; align-items: center; }
+        .sidebar.collapsed .sidebar-menu { padding: 16px 8px; align-items: center; }
         .sidebar.collapsed .sidebar-menu li { width: 100%; display: flex; justify-content: center; }
-        .sidebar.collapsed .sidebar-menu li a { width: 40px; height: 40px; padding: 0; justify-content: center; border-radius: 50%; font-size: 18px; }
+        .sidebar.collapsed .sidebar-menu li a { width: 44px; height: 44px; padding: 0; justify-content: center; border-radius: 10px; }
         .sidebar.collapsed .sidebar-menu li a span:nth-child(2) { display: none; }
-        .sidebar.collapsed .sidebar-footer { padding: 12px 0; display: flex; justify-content: center; }
-        .sidebar.collapsed .btn-sidebar-logout { width: 40px; height: 40px; padding: 0; justify-content: center; border-radius: 50%; }
+        .sidebar.collapsed .sidebar-footer { padding: 14px 8px; display: flex; justify-content: center; }
+        .sidebar.collapsed .btn-sidebar-logout { width: 44px; height: 44px; padding: 0; justify-content: center; border-radius: 10px; }
         .sidebar.collapsed .btn-sidebar-logout span:nth-child(2) { display: none; }
 
+        /* --- MOBILE TOPBAR & OVERLAY --- */
         .mobile-topbar {
             display: none;
-            background-color: #1e293b;
+            background-color: #0f172a;
             color: #fff;
-            padding: 12px 15px;
+            padding: 14px 18px;
             align-items: center;
             justify-content: space-between;
             position: sticky;
             top: 0;
             z-index: 900;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
 
-        .mobile-topbar h3 { font-size: 15px; color: #60a5fa; }
+        .mobile-topbar h3 { font-size: 15px; color: #60a5fa; font-weight: 700; }
 
         .btn-mobile-menu {
-            background: #334155;
+            background: #1e293b;
             border: none;
             color: #fff;
-            font-size: 20px;
-            padding: 6px 12px;
+            font-size: 18px;
+            padding: 6px 10px;
             border-radius: 6px;
             cursor: pointer;
         }
@@ -168,29 +194,32 @@
             display: none;
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(2px);
             z-index: 999;
         }
         .sidebar-overlay.active { display: block; }
 
+        /* --- MAIN CONTENT & LAYOUT --- */
         .main-content {
-            margin-left: 250px;
+            margin-left: 260px;
             flex: 1;
-            padding: 20px;
+            padding: 24px;
             padding-bottom: 70px;
-            width: calc(100% - 250px);
+            width: calc(100% - 260px);
         }
 
-        .main-content.expanded { margin-left: 56px; width: calc(100% - 56px); }
+        .main-content.expanded { margin-left: 70px; width: calc(100% - 70px); }
         
         .filter-container {
             display: flex;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 16px;
             background: #fff;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
             margin-bottom: 20px;
             align-items: flex-end;
         }
@@ -198,46 +227,49 @@
         .filter-group {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 6px;
             flex: 1;
             min-width: 180px;
         }
 
-        label { font-size: 14px; font-weight: 600; color: #4a5568; }
+        label { font-size: 13px; font-weight: 600; color: #475569; }
 
         select, input[type="text"], input[type="date"], input[type="file"], textarea {
-            padding: 8px 12px;
+            padding: 9px 12px;
             border: 1px solid #cbd5e1;
-            border-radius: 6px;
+            border-radius: 8px;
             background-color: #fff;
-            font-size: 14px;
+            font-size: 13.5px;
+            color: #1e293b;
             outline: none;
             width: 100%;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
 
         select:disabled { background-color: #f1f5f9; color: #64748b; cursor: not-allowed; border-color: #e2e8f0; }
-        select:focus, input:focus, textarea:focus { border-color: #3182ce; }
+        select:focus, input:focus, textarea:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
 
         .btn-reset {
-            padding: 8px 16px;
-            background-color: #e2e8f0;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
+            padding: 9px 16px;
+            background-color: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 13.5px;
             font-weight: 600;
-            color: #4a5568;
+            color: #475569;
             cursor: pointer;
-            height: 38px;
+            height: 39px;
+            transition: all 0.2s;
         }
-        .btn-reset:hover { background-color: #cbd5e1; }
+        .btn-reset:hover { background-color: #e2e8f0; color: #1e293b; }
         
         .table-action-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 12px;
         }
 
         .export-buttons { display: flex; gap: 10px; }
@@ -245,7 +277,7 @@
         .btn-export {
             padding: 8px 14px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 13px;
             font-weight: 600;
             cursor: pointer;
@@ -253,33 +285,35 @@
             align-items: center;
             gap: 6px;
             color: #fff;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            transition: filter 0.2s;
         }
 
-        .btn-csv { background-color: #2b6cb0; }
-        .btn-csv:hover { background-color: #2c5282; }
-        .btn-excel { background-color: #2f855a; }
-        .btn-excel:hover { background-color: #276749; }
+        .btn-csv { background-color: #2563eb; }
+        .btn-csv:hover { background-color: #1d4ed8; }
+        .btn-excel { background-color: #16a34a; }
+        .btn-excel:hover { background-color: #15803d; }
 
         #ringkasan-parameter-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 16px;
             margin-bottom: 20px;
         }
 
         .table-responsive {
             background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+            padding: 20px;
         }
 
         .table-scroll-wrapper {
             max-height: 520px;
             overflow: auto;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
             position: relative;
         }
 
@@ -288,65 +322,67 @@
             border-collapse: separate;
             border-spacing: 0;
             text-align: left;
-            font-size: 14px;
+            font-size: 13.5px;
         }
 
         th, td {
-            padding: 10px 14px;
-            border-bottom: 1px solid #e2e8f0;
+            padding: 11px 16px;
+            border-bottom: 1px solid #f1f5f9;
             border-right: 1px solid #f1f5f9;
             white-space: nowrap;
             background-color: #fff;
         }
 
         th {
-            background-color: #edf2f7;
-            color: #4a5568;
+            background-color: #f8fafc;
+            color: #475569;
             font-weight: 600;
             position: sticky;
             top: 0;
             z-index: 10;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
         }
 
         th:first-child, td:first-child {
             position: sticky;
             left: 0;
             z-index: 15;
-            box-shadow: 2px 0 4px rgba(0,0,0,0.05);
+            box-shadow: 2px 0 4px rgba(0,0,0,0.03);
         }
-        th:first-child { z-index: 20; background-color: #edf2f7; }
+        th:first-child { z-index: 20; background-color: #f8fafc; }
 
         tr:hover td { background-color: #f8fafc; }
 
         .status-badge {
             display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11.5px;
+            font-weight: 700;
             text-align: center;
+            letter-spacing: 0.3px;
         }
-        .status-ok { background-color: #c6f6d5; color: #22543d; }
-        .status-problem { background-color: #fed7d7; color: #742a2a; }
+        .status-ok { background-color: #dcfce7; color: #166534; }
+        .status-problem { background-color: #fee2e2; color: #991b1b; }
 
         .btn-fu-action {
-            padding: 5px 10px;
+            padding: 6px 12px;
             border: 1px solid #cbd5e1;
             background-color: #ffffff;
-            border-radius: 5px;
+            border-radius: 6px;
             font-size: 12px;
             font-weight: 600;
             cursor: pointer;
-            color: #2b6cb0;
+            color: #2563eb;
             display: inline-flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
+            transition: all 0.2s;
         }
-        .btn-fu-action:hover { background-color: #ebf8ff; border-color: #3182ce; }
+        .btn-fu-action:hover { background-color: #eff6ff; border-color: #2563eb; }
 
         .badge-fu-count {
-            background-color: #3182ce;
+            background-color: #2563eb;
             color: #fff;
             border-radius: 10px;
             padding: 1px 6px;
@@ -356,31 +392,32 @@
 
         .footer-copyright {
             position: fixed;
-            bottom: 0; left: 250px;
-            width: calc(100% - 250px);
-            background-color: #edf2f7;
-            border-top: 1px solid #cbd5e1;
+            bottom: 0; left: 260px;
+            width: calc(100% - 260px);
+            background-color: #ffffff;
+            border-top: 1px solid #e2e8f0;
             text-align: center;
             font-size: 12px;
-            color: #4a5568;
-            padding: 8px 0;
-            z-index: 9999;
-            box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+            color: #64748b;
+            padding: 10px 0;
+            z-index: 999;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.02);
         }
-        .footer-copyright.expanded { left: 56px; width: calc(100% - 56px); }
+        .footer-copyright.expanded { left: 70px; width: calc(100% - 70px); }
 
         .modal-overlay {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(2px);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 10000;
             opacity: 0;
             visibility: hidden;
-            transition: all 0.2s ease;
+            transition: all 0.25s ease;
         }
         .modal-overlay.active { opacity: 1; visibility: visible; }
 
@@ -389,63 +426,67 @@
             width: 90%;
             max-width: 600px;
             max-height: 85vh;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
 
         .modal-header {
-            padding: 15px 20px;
-            background-color: #2b6cb0;
+            padding: 16px 20px;
+            background-color: #0f172a;
             color: #fff;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid #1e293b;
         }
-        .modal-header h3 { margin: 0; font-size: 16px; }
-        .btn-close-modal { background: transparent; border: none; color: #fff; font-size: 20px; cursor: pointer; }
+        .modal-header h3 { margin: 0; font-size: 15px; color: #60a5fa; }
+        .btn-close-modal { background: transparent; border: none; color: #94a3b8; font-size: 22px; cursor: pointer; transition: color 0.2s; }
+        .btn-close-modal:hover { color: #fff; }
 
         .modal-body {
             padding: 20px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 16px;
         }
 
         .fu-item {
-            background: #f7fafc;
+            background: #f8fafc;
             border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            padding: 10px;
-            font-size: 12px;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 13px;
             margin-bottom: 8px;
         }
 
         .fu-item-header {
             display: flex;
             justify-content: space-between;
-            font-weight: bold;
-            color: #2b6cb0;
-            border-bottom: 1px solid #cbd5e1;
-            padding-bottom: 4px;
-            margin-bottom: 4px;
+            font-weight: 600;
+            color: #2563eb;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 6px;
+            margin-bottom: 6px;
         }
 
         .btn-submit-fu {
-            background-color: #2f855a;
+            background-color: #16a34a;
             color: #fff;
             padding: 10px;
             border: none;
-            border-radius: 6px;
-            font-weight: bold;
+            border-radius: 8px;
+            font-weight: 600;
             cursor: pointer;
             width: 100%;
+            font-size: 14px;
+            transition: background-color 0.2s;
         }
-        .btn-submit-fu:hover { background-color: #276749; }
-        .btn-submit-fu:disabled { background-color: #a0aec0; cursor: not-allowed; }
+        .btn-submit-fu:hover { background-color: #15803d; }
+        .btn-submit-fu:disabled { background-color: #94a3b8; cursor: not-allowed; }
 
         .loading-box {
             display: flex;
@@ -457,10 +498,10 @@
         }
 
         .spinner {
-            width: 48px;
-            height: 48px;
-            border: 5px solid #e2e8f0;
-            border-bottom-color: #2b6cb0;
+            width: 42px;
+            height: 42px;
+            border: 4px solid #e2e8f0;
+            border-bottom-color: #2563eb;
             border-radius: 50%;
             display: inline-block;
             box-sizing: border-box;
@@ -472,15 +513,15 @@
             100% { transform: rotate(360deg); }
         }
 
-        .loading-text { font-size: 14px; font-weight: 600; color: #4a5568; letter-spacing: 0.5px; }
+        .loading-text { font-size: 13.5px; font-weight: 600; color: #64748b; letter-spacing: 0.3px; }
 
-        .skeleton-row td { padding: 12px 15px; }
+        .skeleton-row td { padding: 12px 16px; }
         .skeleton-bar {
             height: 16px;
-            background: linear-gradient(90deg, #edf2f7 25%, #e2e8f0 50%, #edf2f7 75%);
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
             background-size: 200% 100%;
             animation: skeleton-loading 1.5s infinite;
-            border-radius: 4px;
+            border-radius: 6px;
         }
 
         @keyframes skeleton-loading {
@@ -491,9 +532,9 @@
         @media (max-width: 768px) {
             body { flex-direction: column; }
             .mobile-topbar { display: flex; }
-            .sidebar { transform: translateX(-100%); width: 250px !important; }
+            .sidebar { transform: translateX(-100%); width: 260px !important; }
             .sidebar.open { transform: translateX(0); }
-            .main-content { margin-left: 0 !important; width: 100% !important; padding: 10px; padding-bottom: 60px; }
+            .main-content { margin-left: 0 !important; width: 100% !important; padding: 12px; padding-bottom: 70px; }
             .footer-copyright { left: 0 !important; width: 100% !important; }
             .filter-group { min-width: 100%; }
         }
@@ -511,19 +552,42 @@
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <span style="font-size: 24px;">📊</span>
-            <h3>Monitoring Toko<br><span style="font-size: 12px; color: #94a3b8; font-weight: normal;">EDP Samarinda</span></h3>
+            <h3>Monitoring Toko<br><span style="font-size: 11.5px; color: #94a3b8; font-weight: normal;">EDP Samarinda</span></h3>
             <button class="btn-toggle-sidebar" onclick="toggleSidebar()" title="Buka/Tutup Sidebar">☰</button>
         </div>
 
         <ul class="sidebar-menu">
-            <li class="active"><a href="index.html" title="Monitoring Toko & Follow UP"><span>📈</span> <span>Monitoring Toko & Follow UP</span></a></li>
-            <li><a href="upload-data.html" title="Upload Data"><span>📤</span> <span>Upload Data</span></a></li>
-            <li><a href="filter-item.html" title="Filter Data Per Item"><span>🔍</span> <span>Filter Data Per Item</span></a></li>
-            <li><a href="bkb.html" title="Monitoring Stock EDP"><span>📦</span> <span>Monitoring Stock EDP</span></a></li>
+            <li class="active">
+                <a href="index.html" title="Monitoring Toko & Follow UP">
+                    <span>📈</span> <span>Monitoring Toko & Follow UP</span>
+                </a>
+            </li>
+            <li>
+                <a href="upload-data.html" title="Upload Data">
+                    <span>📤</span> <span>Upload Data</span>
+                </a>
+            </li>
+            <li>
+                <a href="filter-item.html" title="Filter Data Per Item">
+                    <span>🔍</span> <span>Filter Data Per Item</span>
+                </a>
+            </li>
+            <li>
+                <a href="bkb.html" title="Monitoring Stock EDP">
+                    <span>📦</span> <span>Monitoring Stock EDP</span>
+                </a>
+            </li>
+            <li>
+                <a href="audit-log.html" title="Audit Log Web">
+                    <span>📋</span> <span>Audit Log Web</span>
+                </a>
+            </li>
         </ul>
 
         <div class="sidebar-footer">
-            <button class="btn-sidebar-logout" onclick="logout()" title="Logout"><span>🚪</span> <span>Logout</span></button>
+            <button class="btn-sidebar-logout" onclick="logout()" title="Logout">
+                <span>🚪</span> <span>Logout</span>
+            </button>
         </div>
     </aside>
 
@@ -574,7 +638,7 @@
 
         <div class="table-responsive">
             <div class="table-action-bar">
-                <div style="font-size: 14px; font-weight: 600; color: #4a5568;" id="info-jumlah-data">
+                <div style="font-size: 13.5px; font-weight: 600; color: #475569;" id="info-jumlah-data">
                     Memuat data...
                 </div>
                 <div class="export-buttons">
@@ -626,13 +690,13 @@
             </div>
             <div class="modal-body">
                 <div>
-                    <strong style="font-size: 13px; color: #2d3748;">📜 Riwayat Perbaikan Lapangan:</strong>
+                    <strong style="font-size: 13px; color: #334155;">📜 Riwayat Perbaikan Lapangan:</strong>
                     <div id="modal-fu-history-list" style="margin-top: 8px;"></div>
                 </div>
-                <hr style="border: 0; border-top: 1px dashed #cbd5e1; margin: 10px 0;">
+                <hr style="border: 0; border-top: 1px dashed #cbd5e1; margin: 6px 0;">
                 <div>
-                    <strong style="font-size: 13px; color: #2d3748;">📝 Form Input Follow Up Baru:</strong>
-                    <form id="form-fu" onsubmit="kirimFollowUp(event)" style="margin-top: 8px; display: flex; flex-direction: column; gap: 8px;">
+                    <strong style="font-size: 13px; color: #334155;">📝 Form Input Follow Up Baru:</strong>
+                    <form id="form-fu" onsubmit="kirimFollowUp(event)" style="margin-top: 8px; display: flex; flex-direction: column; gap: 10px;">
                         <input type="hidden" id="modal-kdtk">
                         <input type="hidden" id="modal-tgl-report">
 
@@ -665,829 +729,1203 @@
     </div>
 
     <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        if (sessionStorage.getItem("isLoggedIn") !== "true") {
-            window.location.href = "login.html";
-            return;
+        const API_URL = "https://slouching-extrovert-frosty.ngrok-free.dev/api/data";
+
+        document.addEventListener("DOMContentLoaded", () => {
+            if (sessionStorage.getItem("isLoggedIn") !== "true") {
+                window.location.href = "login.html";
+                return;
+            }
+
+            const currentRole = (sessionStorage.getItem("userRole") || "").toUpperCase();
+
+            if (currentRole !== "ADMIN") {
+                const menuUpload = document.querySelector('a[href="upload-data.html"]');
+                if (menuUpload && menuUpload.parentElement) menuUpload.parentElement.style.display = "none";
+            }
+
+            if (window.innerWidth > 768 && localStorage.getItem("sidebarCollapsed") === "true") {
+                const sidebar = document.getElementById("sidebar");
+                const mainContent = document.querySelector(".main-content");
+                const footer = document.querySelector(".footer-copyright");
+
+                if (sidebar) sidebar.classList.add("collapsed");
+                if (mainContent) mainContent.classList.add("expanded");
+                if (footer) footer.classList.add("expanded");
+            }
+
+            const today = new Date().toISOString().slice(0, 10);
+            document.getElementById("filter-tanggal").value = today;
+            
+            ambilData(today);
+        });
+
+        async function logout() {
+            if (confirm("Apakah Anda yakin ingin keluar dari sistem?")) {
+                const userNama = sessionStorage.getItem("userNama") || "Sistem";
+                const userRole = sessionStorage.getItem("userRole") || "Pengguna";
+
+                try {
+                    await fetch(API_URL, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "ngrok-skip-browser-warning": "true"
+                        },
+                        body: JSON.stringify({
+                            action: "catatLog",
+                            user: userNama,
+                            role: userRole,
+                            aksi: "LOGOUT_SISTEM",
+                            keterangan: "Pengguna keluar dari web portal"
+                        }),
+                        keepalive: true 
+                    });
+                } catch (err) {
+                    console.warn("Gagal mencatat log logout:", err);
+                }
+
+                sessionStorage.clear();
+                window.location.href = "login.html";
+            }
         }
 
-        const currentRole = (sessionStorage.getItem("userRole") || "").toUpperCase();
-
-        if (currentRole !== "ADMIN") {
-            const menuUpload = document.querySelector('a[href="upload-data.html"]');
-            //const menuFilter = document.querySelector('a[href="filter-item.html"]');
-
-            if (menuUpload && menuUpload.parentElement) menuUpload.parentElement.style.display = "none";
-            //if (menuFilter && menuFilter.parentElement) menuFilter.parentElement.style.display = "none";
-        }
-
-        if (window.innerWidth > 768 && localStorage.getItem("sidebarCollapsed") === "true") {
+        function toggleSidebar() {
             const sidebar = document.getElementById("sidebar");
+            const overlay = document.getElementById("sidebar-overlay");
             const mainContent = document.querySelector(".main-content");
             const footer = document.querySelector(".footer-copyright");
 
-            if (sidebar) sidebar.classList.add("collapsed");
-            if (mainContent) mainContent.classList.add("expanded");
-            if (footer) footer.classList.add("expanded");
-        }
-
-        const today = new Date().toISOString().slice(0, 10);
-        document.getElementById("filter-tanggal").value = today;
-        
-        ambilData(today);
-    });
-
-    function logout() {
-        if (confirm("Apakah Anda yakin ingin keluar dari sistem?")) {
-            sessionStorage.removeItem("isLoggedIn");
-            sessionStorage.removeItem("userNama");
-            sessionStorage.removeItem("userRole");
-            window.location.href = "login.html";
-        }
-    }
-
-    function toggleSidebar() {
-        const sidebar = document.getElementById("sidebar");
-        const overlay = document.getElementById("sidebar-overlay");
-        const mainContent = document.querySelector(".main-content");
-        const footer = document.querySelector(".footer-copyright");
-
-        if (window.innerWidth <= 768) {
-            sidebar.classList.toggle("open");
-            overlay.classList.toggle("active");
-        } else {
-            sidebar.classList.toggle("collapsed");
-            if (mainContent) mainContent.classList.toggle("expanded");
-            if (footer) footer.classList.toggle("expanded");
-
-            const isCollapsed = sidebar.classList.contains("collapsed");
-            localStorage.setItem("sidebarCollapsed", isCollapsed ? "true" : "false");
-        }
-    }
-
-    const gasUploadUrl = "https://script.google.com/macros/s/AKfycbz_tNHAoQAjhsEvny5l2_aUYwwdTegK3j4X-jEyS9KN06LUGV17suZkOZdYP19V_P_1/exec"; 
-
-    let semuaData = [];
-    let dataAktifTerfilter = [];
-
-    let KOLOM_EDP = "";
-    let KOLOM_NAMA_EDP = "";
-    let KOLOM_TANGGAL = "";
-    let KOLOM_STATION = "";
-    let KOLOM_KODE_TOKO = "";
-    let KOLOM_NAMA_TOKO = "";
-    let KOLOM_AKTIVASI = "";
-    let KOLOM_LAN_SPEED = "";
-    let KOLOM_MYSQL = "";
-    let KOLOM_SUHU = "";
-    let KOLOM_BOOT_TIME = "";
-    let KOLOM_LISTENER = "";
-    let KOLOM_EDC_BCA = "";
-    let KOLOM_EDC_MANDIRI = "";
-    let KOLOM_BSOD = "";
-    let KOLOM_UPS = "";
-    let KOLOM_HARI_TERLAMBAT = "HARI TERLAMBAT IDM LISTENER";
-    let KOLOM_IP_DVR = "IP_DVR";
-    let KOLOM_DVR = "DVR";
-    let KOLOM_DVR2 = "DVR2";
-
-    // --- HELPER INDEXEDDB (Bypass Batas 5MB localStorage) ---
-    function simpanKeIndexedDB(data) {
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open("MonitoringTokoDB", 1);
-            request.onupgradeneeded = (e) => {
-                const db = e.target.result;
-                if (!db.objectStoreNames.contains("cacheStore")) {
-                    db.createObjectStore("cacheStore");
-                }
-            };
-            request.onsuccess = (e) => {
-                const db = e.target.result;
-                const tx = db.transaction("cacheStore", "readwrite");
-                const store = tx.objectStore("cacheStore");
-                store.put(data, "cache_semua_data");
-                tx.oncomplete = () => resolve();
-                tx.onerror = (err) => reject(err);
-            };
-            request.onerror = (err) => reject(err);
-        });
-    }
-
-    function ambilDariIndexedDB() {
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open("MonitoringTokoDB", 1);
-            request.onupgradeneeded = (e) => {
-                const db = e.target.result;
-                if (!db.objectStoreNames.contains("cacheStore")) {
-                    db.createObjectStore("cacheStore");
-                }
-            };
-            request.onsuccess = (e) => {
-                const db = e.target.result;
-                const tx = db.transaction("cacheStore", "readonly");
-                const store = tx.objectStore("cacheStore");
-                const getReq = store.get("cache_semua_data");
-                getReq.onsuccess = () => resolve(getReq.result);
-                getReq.onerror = (err) => reject(err);
-            };
-            request.onerror = (err) => reject(err);
-        });
-    }
-
-    function renderSkeletonLoading(jumlahBaris = 5) {
-        let skeletonHtml = '';
-        for (let i = 0; i < jumlahBaris; i++) {
-            skeletonHtml += `
-                <tr class="skeleton-row">
-                    <td><div class="skeleton-bar" style="width: 70px;"></div></td>
-                    <td><div class="skeleton-bar" style="width: 140px;"></div></td>
-                    <td><div class="skeleton-bar" style="width: 50px;"></div></td>
-                    <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                    <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                    <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                    <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                    <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                    <td><div class="skeleton-bar" style="width: 80px;"></div></td>
-                    <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                    <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                    <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                    <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                    <td><div class="skeleton-bar" style="width: 90px;"></div></td>
-                    <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                    <td><div class="skeleton-bar" style="width: 60px;"></div></td>
-                    <td><div class="skeleton-bar" style="width: 80px;"></div></td>
-                </tr>
-            `;
-        }
-        return skeletonHtml;
-    }
-
-    function formatTanggalRapi(val) {
-        if (!val || val === '-') return '-';
-        let str = val.toString().trim();
-
-        if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
-
-        const d = new Date(val);
-        if (!isNaN(d.getTime())) {
-            if (d.getUTCHours() >= 15) d.setUTCDate(d.getUTCDate() + 1);
-            const yyyy = d.getUTCFullYear();
-            const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
-            const dd = String(d.getUTCDate()).padStart(2, '0');
-            return `${yyyy}-${mm}-${dd}`;
-        }
-        return str.substring(0, 10);
-    }
-
-    // --- FUNGSI UTAMA (MENGGUNAKAN INDEXEDDB UNTUK DATA > 5MB) ---
-    async function ambilData(tanggalSelected = "") {
-        const tbody = document.getElementById("isi-tabel");
-        const infoJumlah = document.getElementById("info-jumlah-data");
-        const tgl = tanggalSelected || document.getElementById("filter-tanggal").value;
-
-        // 1. AMBIL DARI INDEXEDDB (Instant Load)
-        try {
-            const cachedData = await ambilDariIndexedDB();
-            if (cachedData && Array.isArray(cachedData) && cachedData.length > 0) {
-                semuaData = cachedData;
-                petakanNamaKolom(semuaData[0]);
-                prosesDanTampilkanData(semuaData);
-            }
-        } catch (e) {
-            console.log("Belum ada cache IndexedDB.");
-        }
-
-        if (!semuaData || semuaData.length === 0) {
-            tbody.innerHTML = `
-                <tr><td colspan="17" style="padding: 30px 0;">
-                    <div class="loading-box">
-                        <span class="spinner"></span>
-                        <span class="loading-text">Sedang memuat data laporan (${tgl})...</span>
-                    </div>
-                </td></tr>
-                ${renderSkeletonLoading(5)}
-            `;
-        }
-
-        // 2. BACKGROUND SYNC (Ambil data terbaru dari server)
-        try {
-            const requestUrl = `${gasUploadUrl}?action=getFullCache`;
-            const res = await fetch(requestUrl);
-            const dataBaru = await res.json();
-
-            if (Array.isArray(dataBaru) && dataBaru.length > 0) {
-                semuaData = dataBaru;
-                // Simpan ke IndexedDB (Aman menampung data > 5MB)
-                await simpanKeIndexedDB(semuaData);
-
-                petakanNamaKolom(semuaData[0]);
-                prosesDanTampilkanData(semuaData);
-            }
-        } catch (error) {
-            console.warn("Gagal terhubung ke server (Offline). Menggunakan data lokal IndexedDB.");
-            if (!semuaData || semuaData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan='17' style='text-align: center; padding: 40px; color: #e53e3e;'>⚠️ Gagal memuat data. Periksa koneksi internet Anda.</td></tr>`;
-                infoJumlah.textContent = "Gagal memuat data";
-            }
-        }
-    }
-
-    function prosesDanTampilkanData(dataSumber) {
-        dataSumber = dataSumber.filter(item => {
-            const st = (item[KOLOM_STATION] || item["STATION"] || item["station"] || "").toString().trim().toUpperCase();
-            return st !== "DVR" && st !== "DVR2";
-        });
-
-        dataSumber = dataSumber.map(item => {
-            const dvr1Status = item["DVR"] || item[KOLOM_DVR] || "-";
-            let dvr2Status = item["DVR2"] || item[KOLOM_DVR2] || "-";
-            
-            if (!dvr2Status || dvr2Status === "-" || dvr2Status === "") {
-                dvr2Status = "Tidak Ada DVR";
-            }
-
-            return {
-                ...item,
-                MAPPED_IP_DVR: item["IP_DVR"] || item[KOLOM_IP_DVR] || "-",
-                MAPPED_STATUS_DVR: dvr1Status,
-                MAPPED_STATUS_DVR2: dvr2Status,
-                FOLLOW_UP_HISTORY: item["FOLLOW_UP_HISTORY"] || []
-            };
-        });
-
-        semuaData = dataSumber;
-        buatDropdownNamaEdp();
-        buatDropdownEDP(semuaData);
-        jalankanFilter();
-    }
-
-    function muatDataPerTanggal() {
-        jalankanFilter();
-    }
-
-    function petakanNamaKolom(sampelBaris) {
-        const keys = Object.keys(sampelBaris);
-        const cariKey = (kataKunci) => keys.find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '').includes(kataKunci)) || "";
-
-        KOLOM_EDP          = cariKey("kdtk") || "KDTK";
-        KOLOM_NAMA_EDP     = cariKey("nama edp") || cariKey("edp") || keys[57] || "NAMA EDP";
-        KOLOM_TANGGAL      = cariKey("tanggalrespon") || cariKey("listener") || "TANGGAL RESPON IDM LISTENER";
-        KOLOM_STATION      = cariKey("station") || "station";
-        KOLOM_KODE_TOKO    = cariKey("kdtk") || cariKey("kode") || "KDTK";
-        KOLOM_NAMA_TOKO    = cariKey("nama") || "NAMA";
-        KOLOM_LAN_SPEED    = cariKey("status lan speed") || "STATUS LAN SPEED";
-        KOLOM_MYSQL        = cariKey("durasi start mysql") || cariKey("mysql") || "STATUS DURASI START MYSQL";
-        KOLOM_SUHU         = cariKey("status suhu") || "STATUS SUHU";
-        KOLOM_BOOT_TIME    = cariKey("status boot time") || "STATUS BOOT TIME";
-        KOLOM_AKTIVASI     = cariKey("status aktivasi") || "STATUS AKTIVASI";
-        KOLOM_LISTENER     = cariKey("STATUS LISTENER") || "STATUS LISTENER";
-        KOLOM_EDC_BCA      = cariKey("status edc bca") || "STATUS EDC BCA";
-        KOLOM_EDC_MANDIRI  = cariKey("status edc mti") || cariKey("status edc mandiri") || "STATUS EDC MTI";
-        KOLOM_BSOD         = cariKey("status bsod") || "STATUS BSOD";
-        KOLOM_UPS          = cariKey("status ups") || "STATUS UPS";
-        KOLOM_HARI_TERLAMBAT = cariKey("HARI TERLAMBAT IDM LISTENER") || "HARI TERLAMBAT IDM LISTENER";
-        
-        KOLOM_IP_DVR       = keys.find(k => k.toUpperCase().includes("IP_DVR") || k.toUpperCase() === "IP DVR") || "IP_DVR";
-        KOLOM_DVR          = keys.find(k => k.toUpperCase() === "DVR" || k.toUpperCase() === "STATUS_DVR1") || "DVR";
-        KOLOM_DVR2         = keys.find(k => k.toUpperCase() === "DVR2" || k.toUpperCase() === "STATUS_DVR2") || "DVR2";
-    }
-
-    function buatDropdownNamaEdp() {
-        const dropdown = document.getElementById("filter-nama-edp");
-        const currentRole = (sessionStorage.getItem("userRole") || "").toUpperCase();
-        const currentNama = (sessionStorage.getItem("userNama") || "").trim();
-
-        dropdown.innerHTML = '<option value="semua">-- Semua Nama EDP --</option>';
-        const daftarNamaEdp = [...new Set(semuaData.map(item => item[KOLOM_NAMA_EDP]))].filter(Boolean).sort();
-            
-        daftarNamaEdp.forEach(nama => {
-            const opsi = document.createElement("option");
-            opsi.value = nama;
-            opsi.textContent = nama;
-            dropdown.appendChild(opsi);
-        });
-
-        if (currentRole !== "ADMIN" && currentNama) {
-            const matchedNama = daftarNamaEdp.find(nama => 
-                nama.toLowerCase().trim().includes(currentNama.toLowerCase().trim()) || 
-                currentNama.toLowerCase().trim().includes(nama.toLowerCase().trim())
-            );
-
-            if (matchedNama) {
-                dropdown.value = matchedNama;
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle("open");
+                overlay.classList.toggle("active");
             } else {
-                const opsiUser = document.createElement("option");
-                opsiUser.value = currentNama;
-                opsiUser.textContent = currentNama;
-                dropdown.appendChild(opsiUser);
-                dropdown.value = currentNama;
+                sidebar.classList.toggle("collapsed");
+                if (mainContent) mainContent.classList.toggle("expanded");
+                if (footer) footer.classList.toggle("expanded");
+
+                const isCollapsed = sidebar.classList.contains("collapsed");
+                localStorage.setItem("sidebarCollapsed", isCollapsed ? "true" : "false");
             }
-            dropdown.disabled = true;
-        } else {
-            dropdown.disabled = false;
-        }
-    }
-
-    function buatDropdownEDP(dataSumber) {
-        const dropdown = document.getElementById("filter-edp");
-        const nilaiTerpilihSebelumnya = dropdown.value;
-        
-        dropdown.innerHTML = '<option value="semua">-- Semua Kode Toko --</option>';
-        const daftarEDP = [...new Set(dataSumber.map(item => item[KOLOM_KODE_TOKO]))].filter(Boolean).sort();
-                    
-        daftarEDP.forEach(edp => {
-            const opsi = document.createElement("option");
-            opsi.value = edp;
-            opsi.textContent = edp;
-            dropdown.appendChild(opsi);
-        });
-
-        if (daftarEDP.includes(nilaiTerpilihSebelumnya)) {
-            dropdown.value = nilaiTerpilihSebelumnya;
-        } else {
-            dropdown.value = "semua";
-        }
-    }
-
-    function formatStatus(nilai) {
-        if (!nilai || nilai === '-') return '-';
-        const teks = nilai.toString().trim().toUpperCase();
-        if (teks === 'OK' || teks === 'NORMAL' || teks === 'ONLINE' || teks === 'UP' || teks === 'KONEKSI MATI') {
-            return `<span class="status-badge status-ok">${teks}</span>`;
-        } else if (teks === 'PROBLEM' || teks === 'TIDAK 1 GB' || teks === 'SUHU TINGGI' || teks === 'PINDAHKAN KE STATION INDUK' || teks === 'NOK' || teks === 'TIDAK' || teks === 'ERROR' || teks === 'OFFLINE' || teks === 'BSOD' || teks === 'DOWN' || teks === 'OFF') {
-            return `<span class="status-badge status-problem">${teks}</span>`;
-        }
-        return teks;
-    }
-
-    function isAman(nilai) {
-        if (!nilai) return false;
-        const teks = nilai.toString().trim().toUpperCase();
-        return (teks === 'TIDAK ADA DVR' || teks === 'OK' || teks === 'NORMAL' || teks === 'ONLINE' || teks === 'NO EDC');
-    }
-
-    function cekKriteriaNOK(item) {
-        const lanSpeed = (item[KOLOM_LAN_SPEED] || "").toString().trim().toUpperCase();
-        const mysql = (item[KOLOM_MYSQL] || "").toString().trim();
-        const suhu = (item[KOLOM_SUHU] || "").toString().trim().toUpperCase();
-        const bootTime = (item[KOLOM_BOOT_TIME] || "").toString().trim();
-        const aktivasi = (item[KOLOM_AKTIVASI] || "").toString().trim().toUpperCase();
-        const edcBca = (item[KOLOM_EDC_BCA] || "").toString().trim().toUpperCase();
-        const edcMti = (item[KOLOM_EDC_MANDIRI] || "").toString().trim().toUpperCase();
-        const bsod = (item[KOLOM_BSOD] || "").toString().trim().toUpperCase();
-        const ups = (item[KOLOM_UPS] || "").toString().trim().toUpperCase();
-        
-        const dvr1 = (item.MAPPED_STATUS_DVR || "").toString().trim().toUpperCase();
-        const dvr2 = (item.MAPPED_STATUS_DVR2 || "").toString().trim().toUpperCase();
-
-        if (lanSpeed !== "" && lanSpeed !== "-" && lanSpeed.includes("TIDAK 1 GB")) return true;
-        if (mysql !== "" && mysql !== "-" && mysql.toUpperCase().includes("NOK")) return true;
-        if (suhu !== "" && suhu !== "-" && suhu.includes("TINGGI")) return true;
-        
-        if (bootTime !== "" && bootTime !== "-") {
-            const matchMenit = bootTime.match(/([\d.]+)\s*menit/i);
-            if (matchMenit && parseFloat(matchMenit[1]) > 4) return true;
-            if (!matchMenit && parseFloat(bootTime) > 4) return true;
         }
 
-        if (aktivasi !== "" && aktivasi !== "-" && (aktivasi.includes("TIDAK AKTIF") || aktivasi === "TIDAK")) return true;
-        if (edcBca !== "" && edcBca !== "-" && edcBca !== "OK" && edcBca !== "NO EDC") return true;
-        if (edcMti !== "" && edcMti !== "-" && edcMti !== "OK" && edcMti !== "NO EDC") return true;
-        if (bsod !== "" && bsod !== "-" && (bsod === "NOK" || bsod === "BSOD" || bsod.includes("NOK"))) return true;
-        if (ups !== "" && ups !== "-" && (ups.includes("PINDAHKAN KE STATION INDUK") || (ups.includes("NOK")))) return true;
-        
-        if (dvr1 !== "" && dvr1 !== "-" && (dvr1 === "DOWN" || dvr1 === "OFFLINE" || dvr1 === "NOK" || dvr1 === "OFF")) return true;
-        if (dvr2 !== "" && dvr2 !== "-" && dvr2 !== "TIDAK ADA DVR" && (dvr2 === "DOWN" || dvr2 === "OFFLINE" || dvr2 === "NOK" || dvr2 === "OFF")) return true;
+        let semuaData = [];
+        let dataAktifTerfilter = [];
+        let mappingTokoEdp = {};
 
-        return false;
-    }
+        const KOLOM_KODE_TOKO   = "KDTK";
+        const KOLOM_NAMA_TOKO   = "NAMA";
+        const KOLOM_STATION     = "STATION";
+        const KOLOM_LAN_SPEED   = "LAN_SPEED";
+        const KOLOM_MYSQL       = "REKOMENDASI_PERBAIKAN";
+        const KOLOM_SUHU        = "SUHU";
+        const KOLOM_BOOT_TIME   = "BOOT_TIME";
+        const KOLOM_AKTIVASI    = "AKTIVASI_WINDOWS";
+        const KOLOM_LISTENER    = "KETERANGAN";
+        const KOLOM_EDC_BCA     = "EDC_BCA_LAST";
+        const KOLOM_EDC_MANDIRI = "EDC_MANDIRI_LAST";
+        const KOLOM_BSOD        = "STATUS_BSOD";
+        const KOLOM_UPS         = "UPS_STATUS";
+        const KOLOM_TANGGAL     = "REQUEST";
+        const KOLOM_IP_DVR      = "IP";
+        const KOLOM_DVR         = "DVR";
+        const KOLOM_DVR2        = "DVR2";
 
-    function cekKoneksiMati(item) {
-        const listener = (item[KOLOM_LISTENER] || "").toString().trim().toUpperCase();
-        return listener.includes("KONEKSI MATI") || listener.includes("GAGAL") || listener.includes("OFFLINE") || listener.includes("OFF");
-    }
-
-    function hitungPersentaseParameter(dataYangDigunakan) {
-        const container = document.getElementById("ringkasan-parameter-container");
-        container.innerHTML = "";
-
-        if (dataYangDigunakan.length === 0) return;
-
-        const totalData = dataYangDigunakan.length;
-        const statistik = { 
-            suhu: 0, bsod: 0, lanSpeed: 0, edcBca: 0, 
-            edcMandiri: 0, ups: 0, mysql: 0, listener: 0,
-            bootTime: 0, aktivasi: 0
-        };
-
-        dataYangDigunakan.forEach(item => {
-            if (isAman(item[KOLOM_SUHU])) statistik.suhu++;
-            if (isAman(item[KOLOM_BSOD])) statistik.bsod++;
-            if (isAman(item[KOLOM_LAN_SPEED])) statistik.lanSpeed++;
-            if (isAman(item[KOLOM_EDC_BCA])) statistik.edcBca++;
-            if (isAman(item[KOLOM_EDC_MANDIRI])) statistik.edcMandiri++;
-            if (isAman(item[KOLOM_UPS])) statistik.ups++;
-            if (isAman(item[KOLOM_MYSQL])) statistik.mysql++;
-            if (isAman(item[KOLOM_LISTENER])) statistik.listener++;
-            if (isAman(item[KOLOM_BOOT_TIME])) statistik.bootTime++;
-            if (isAman(item[KOLOM_AKTIVASI])) statistik.aktivasi++;
-        });
-
-        const daftarParameter = [
-            { label: "LAN Speed Normal", count: statistik.lanSpeed, warna: "#d69e2e" },
-            { label: "MySQL Normal", count: statistik.mysql, warna: "#319795" },
-            { label: "Suhu Normal", count: statistik.suhu, warna: "#3182ce" },
-            { label: "Listener Normal", count: statistik.listener, warna: "#805ad5" },
-            { label: "Boot Time Normal", count: statistik.bootTime, warna: "#dd6b20" },
-            { label: "Aktivasi Aman", count: statistik.aktivasi, warna: "#319795" },
-            { label: "BSOD Aman", count: statistik.bsod, warna: "#38a169" },
-            { label: "EDC BCA Normal", count: statistik.edcBca, warna: "#805ad5" },
-            { label: "EDC Mandiri Normal", count: statistik.edcMandiri, warna: "#e53e3e" },
-            { label: "UPS Normal", count: statistik.ups, warna: "#319795" }
-        ];
-
-        daftarParameter.forEach(param => {
-            const persentase = ((param.count / totalData) * 100).toFixed(1);
-            const card = document.createElement("div");
-            card.style.cssText = `background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 5px solid ${param.warna};`;
-            card.innerHTML = `
-                <div style="font-size: 13px; color: #64748b; font-weight: 600;">${param.label}</div>
-                <div style="font-size: 22px; font-weight: bold; color: #1e293b; margin: 5px 0;">${persentase}%</div>
-                <div style="font-size: 12px; color: #64748b;">(${param.count} dari ${totalData})</div>
-            `;
-            container.appendChild(card);
-        });
-    }
-
-    function tampilkanData(data) {
-        dataAktifTerfilter = data;
-        const tbody = document.getElementById("isi-tabel");
-        const infoJumlah = document.getElementById("info-jumlah-data");
-        let htmlContent = "";
-
-        infoJumlah.textContent = `Menampilkan ${data.length} data toko`;
-
-        if(data.length === 0) {
-            tbody.innerHTML = "<tr><td colspan='17' style='text-align: center;'>Tidak ada data monitoring ditemukan.</td></tr>";
-            document.getElementById("ringkasan-parameter-container").innerHTML = "";
-            return;
-        }
-
-        data.sort((a, b) => {
-            const kodeA = (a[KOLOM_KODE_TOKO] || "").toString();
-            const kodeB = (b[KOLOM_KODE_TOKO] || "").toString();
-            let hasilSort = kodeA.localeCompare(kodeB, undefined, { numeric: true });
-            if (hasilSort === 0) {
-                const stationA = (a[KOLOM_STATION] || "").toString();
-                const stationB = (b[KOLOM_STATION] || "").toString();
-                hasilSort = stationA.localeCompare(stationB, undefined, { numeric: true });
-            }
-            return hasilSort;
-        });
-
-        hitungPersentaseParameter(data);
-
-        data.forEach((item, index) => {
-            const kdtkVal  = item[KOLOM_KODE_TOKO] || '-';
-            const ipDvrVal = item.MAPPED_IP_DVR || '-';
-            const dvrVal1  = item.MAPPED_STATUS_DVR || '-';
-            const dvrVal2  = item.MAPPED_STATUS_DVR2 || 'Tidak Ada DVR';
-
-            let statusListenerVal = formatStatus(item[KOLOM_LISTENER]);
-            const hariTerlambat = item[KOLOM_HARI_TERLAMBAT];
-            if (hariTerlambat !== undefined && hariTerlambat !== "" && hariTerlambat !== "OK" && hariTerlambat !== 0 && hariTerlambat !== "0") {
-                statusListenerVal += ` <span style="font-size:11px; color:#e53e3e;">(Terlambat ${hariTerlambat} hr)</span>`;
-            }
-
-            const fuHistory = item.FOLLOW_UP_HISTORY || [];
-            const fuCount = fuHistory.length;
-            let btnFuHtml = fuCount > 0 
-                ? `<button class="btn-fu-action" onclick="bukaModalFollowUp('${kdtkVal}', ${index})">📋 Detail <span class="badge-fu-count">${fuCount}</span></button>`
-                : `<button class="btn-fu-action" onclick="bukaModalFollowUp('${kdtkVal}', ${index})">➕ Follow Up</button>`;
-
-            htmlContent += `
-                <tr>
-                    <td><strong>${kdtkVal}</strong></td>
-                    <td>${item[KOLOM_NAMA_TOKO] || '-'}</td>
-                    <td>${item[KOLOM_STATION] || '-'}</td>
-                    <td>${formatStatus(item[KOLOM_LAN_SPEED])}</td>
-                    <td>${formatStatus(item[KOLOM_MYSQL])}</td>
-                    <td>${formatStatus(item[KOLOM_SUHU])}</td>
-                    <td>${formatStatus(item[KOLOM_BOOT_TIME])}</td>
-                    <td>${formatStatus(item[KOLOM_AKTIVASI])}</td>
-                    <td>${statusListenerVal}</td>
-                    <td>${formatStatus(item[KOLOM_EDC_BCA])}</td>
-                    <td>${formatStatus(item[KOLOM_EDC_MANDIRI])}</td>
-                    <td>${formatStatus(item[KOLOM_BSOD])}</td>
-                    <td>${formatStatus(item[KOLOM_UPS])}</td>
-                    <td>${ipDvrVal}</td>
-                    <td>${formatStatus(dvrVal1)}</td>
-                    <td>${formatStatus(dvrVal2)}</td>
-                    <td>${btnFuHtml}</td>
-                </tr>
-            `;
-        });
-        tbody.innerHTML = htmlContent;
-    }
-
-    function exportData(format) {
-        if (!dataAktifTerfilter || dataAktifTerfilter.length === 0) {
-            alert("Tidak ada data untuk diexport!");
-            return;
-        }
-
-        const dataExport = dataAktifTerfilter.map(item => {
-            const ipDvrVal = item.MAPPED_IP_DVR || '-';
-            const dvrVal1  = item.MAPPED_STATUS_DVR || '-';
-            const dvrVal2  = item.MAPPED_STATUS_DVR2 || 'Tidak Ada DVR';
-
-            let tglFuTerakhir = '-';
-            let namaEdpFu = '-';
-            let analisaFu = '-';
-            let hasilFu = '-';
-            let fotoFu = '-';
-
-            if (item.FOLLOW_UP_HISTORY && item.FOLLOW_UP_HISTORY.length > 0) {
-                const fuTerakhir = item.FOLLOW_UP_HISTORY[item.FOLLOW_UP_HISTORY.length - 1];
-                tglFuTerakhir = fuTerakhir["Tanggal Report"] || fuTerakhir.tanggal_fu || '-';
-                namaEdpFu     = fuTerakhir["Nama EDP"] || fuTerakhir.nama_edp || '-';
-                analisaFu     = fuTerakhir["Analisa Kendala / NOK"] || fuTerakhir.analisa || '-';
-                hasilFu       = fuTerakhir["Hasil Perbaikan"] || fuTerakhir.hasil || '-';
-                fotoFu        = fuTerakhir["Foto Bukti"] || fuTerakhir.foto || '-';
-            }
-
-            return {
-                "Kode Toko": item[KOLOM_KODE_TOKO] || '-',
-                "Nama Toko": item[KOLOM_NAMA_TOKO] || '-',
-                "Tanggal Report": formatTanggalRapi(item[KOLOM_TANGGAL]),
-                "Station": item[KOLOM_STATION] || '-',
-                "Status LAN Speed": item[KOLOM_LAN_SPEED] || '-',
-                "Status Durasi Start MySQL": item[KOLOM_MYSQL] || '-',
-                "Status Suhu": item[KOLOM_SUHU] || '-',
-                "Status Boot Time": item[KOLOM_BOOT_TIME] || '-',
-                "Status Aktivasi": item[KOLOM_AKTIVASI] || '-',
-                "Status Listener": item[KOLOM_LISTENER] || '-',
-                "Status EDC BCA": item[KOLOM_EDC_BCA] || '-',
-                "Status EDC MTI": item[KOLOM_EDC_MANDIRI] || '-',
-                "Status BSOD": item[KOLOM_BSOD] || '-',
-                "Status UPS": item[KOLOM_UPS] || '-',
-                "Nama EDP" : item[KOLOM_NAMA_EDP],
-                "IP DVR": ipDvrVal,
-                "Status DVR": dvrVal1,
-                "Status DVR2": dvrVal2,
-                "Tgl Follow Up": tglFuTerakhir,
-                "EDP Follow Up": namaEdpFu,
-                "Analisa Kendala": analisaFu,
-                "Hasil Perbaikan": hasilFu,
-                "Link Foto Bukti": fotoFu
-            };
-        });
-
-        const namaFile = "Monitoring_Status_Toko_" + new Date().toISOString().slice(0, 10);
-
-        if (format === 'csv') {
-            const worksheet = XLSX.utils.json_to_sheet(dataExport);
-            const csvOutput = XLSX.utils.sheet_to_csv(worksheet);
-            const blob = new Blob([csvOutput], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.setAttribute("download", `${namaFile}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        } else if (format === 'xlsx') {
-            const worksheet = XLSX.utils.json_to_sheet(dataExport);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Data Monitoring");
-            XLSX.writeFile(workbook, `${namaFile}.xlsx`);
-        }
-    }
-
-    function bukaModalFollowUp(kdtk, dataIndex) {
-        const item = dataAktifTerfilter[dataIndex] || semuaData.find(x => x[KOLOM_KODE_TOKO] === kdtk);
-        if (!item) return;
-
-        const namaToko = item[KOLOM_NAMA_TOKO] || '';
-        const tglReport = formatTanggalRapi(item[KOLOM_TANGGAL]);
-        const namaEdpToko = item[KOLOM_NAMA_EDP] || '';
-
-        document.getElementById("modal-fu-title").innerText = `Follow Up Toko: ${kdtk} - ${namaToko}`;
-        document.getElementById("modal-kdtk").value = kdtk;
-        document.getElementById("modal-tgl-report").value = tglReport;
-        document.getElementById("modal-tgl-fu").value = new Date().toISOString().slice(0, 10);
-        
-        if (namaEdpToko) document.getElementById("modal-nama-edp-input").value = namaEdpToko;
-
-        const historyListContainer = document.getElementById("modal-fu-history-list");
-        const fuHistory = item.FOLLOW_UP_HISTORY || [];
-
-        if (fuHistory.length === 0) {
-            historyListContainer.innerHTML = `<div style="color: #a0aec0; font-style: italic;">Belum ada riwayat follow up.</div>`;
-        } else {
-            let historyHtml = '';
-            const reversedHistory = [...fuHistory].reverse();
-            reversedHistory.forEach((fu) => {
-                const tglReportVal = fu["Tanggal Report"] || fu.tanggal_fu || '-';
-                const edpVal = fu["Nama EDP"] || fu.nama_edp || '-';
-                const analisaVal = fu["Analisa Kendala / NOK"] || fu.analisa || '-';
-                const hasilVal = fu["Hasil Perbaikan"] || fu.hasil || '-';
-                const fotoVal = fu["Foto Bukti"] || fu.foto || '-';
-
-                let linkFotoHtml = '';
-                if (fotoVal && fotoVal !== '-' && fotoVal.trim() !== '') {
-                    linkFotoHtml = `<div><a href="${fotoVal}" target="_blank" style="color:#3182ce; font-weight:bold;">📷 Lihat Foto Bukti Perbaikan</a></div>`;
-                }
-                historyHtml += `
-                    <div class="fu-item">
-                        <div class="fu-item-header">
-                            <span>📅 Tgl FU: ${tglReportVal}</span>
-                            <span>👤 EDP: ${edpVal}</span>
-                        </div>
-                        <div><b>Analisa:</b> ${analisaVal}</div>
-                        <div><b>Hasil:</b> ${hasilVal}</div>
-                        ${linkFotoHtml}
-                    </div>
-                `;
+        function simpanKeIndexedDB(data) {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open("MonitoringTokoDB", 1);
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains("cacheStore")) {
+                        db.createObjectStore("cacheStore");
+                    }
+                };
+                request.onsuccess = (e) => {
+                    const db = e.target.result;
+                    const tx = db.transaction("cacheStore", "readwrite");
+                    const store = tx.objectStore("cacheStore");
+                    store.put(data, "cache_semua_data");
+                    tx.oncomplete = () => resolve();
+                    tx.onerror = (err) => reject(err);
+                };
+                request.onerror = (err) => reject(err);
             });
-            historyListContainer.innerHTML = historyHtml;
         }
 
-        document.getElementById("modal-analisa").value = '';
-        document.getElementById("modal-hasil").value = '';
-        document.getElementById("modal-foto-file").value = '';
+        function ambilDariIndexedDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open("MonitoringTokoDB", 1);
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains("cacheStore")) {
+                        db.createObjectStore("cacheStore");
+                    }
+                };
+                request.onsuccess = (e) => {
+                    const db = e.target.result;
+                    const tx = db.transaction("cacheStore", "readonly");
+                    const store = tx.objectStore("cacheStore");
+                    const getReq = store.get("cache_semua_data");
+                    getReq.onsuccess = () => resolve(getReq.result);
+                    getReq.onerror = (err) => reject(err);
+                };
+                request.onerror = (err) => reject(err);
+            });
+        }
 
-        document.getElementById("modal-fu-overlay").classList.add("active");
-    }
+        function renderSkeletonLoading(jumlahBaris = 5) {
+            let skeletonHtml = '';
+            for (let i = 0; i < jumlahBaris; i++) {
+                skeletonHtml += `
+                    <tr class="skeleton-row">
+                        <td><div class="skeleton-bar" style="width: 70px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 140px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 50px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 80px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 90px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 60px;"></div></td>
+                        <td><div class="skeleton-bar" style="width: 80px;"></div></td>
+                    </tr>
+                `;
+            }
+            return skeletonHtml;
+        }
 
-    function tutupModal() {
-        document.getElementById("modal-fu-overlay").classList.remove("active");
-    }
+        function formatTanggalRapi(val) {
+            if (!val || val === '-') return '-';
+            let str = val.toString().trim();
+            if (str.length >= 10) {
+                const sub = str.substring(0, 10);
+                if (/^\d{4}-\d{2}-\d{2}$/.test(sub)) {
+                    return sub;
+                }
+            }
 
-    function kompresGambar(file, maxDimension = 800, quality = 0.6) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = (event) => {
-                const img = new Image();
-                img.src = event.target.result;
-                img.onload = () => {
-                    let width = img.width;
-                    let height = img.height;
+            const d = new Date(val);
+            if (!isNaN(d.getTime())) {
+                const yyyy = d.getFullYear();
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const dd = String(d.getDate()).padStart(2, '0');
+                return `${yyyy}-${mm}-${dd}`;
+            }
+            
+            return str.substring(0, 10);
+        }
+        
+        function convert2DToObjects(data2D) {
+            if (!Array.isArray(data2D) || data2D.length < 2) return [];
+            const headers = data2D[0];
+            const rows = data2D.slice(1);
 
-                    if (width > height) {
-                        if (width > maxDimension) {
-                            height = Math.round((height * maxDimension) / width);
-                            width = maxDimension;
+            return rows.map(row => {
+                const obj = {};
+                headers.forEach((h, idx) => {
+                    if (h) {
+                        obj[h.trim().toUpperCase()] = row[idx] !== undefined && row[idx] !== null ? row[idx] : "";
+                    }
+                });
+                
+                const kdtk = (obj[KOLOM_KODE_TOKO] || "").toString().trim().toUpperCase();
+                
+                let storeFus = [];
+                if (window.serverFuMap && window.serverFuMap[kdtk]) {
+                    storeFus = [...window.serverFuMap[kdtk]];
+                }
+
+                try {
+                    const localStoredFus = JSON.parse(localStorage.getItem(`fu_history_${kdtk}`) || "[]");
+                    if (localStoredFus.length > 0) {
+                        storeFus = [...storeFus, ...localStoredFus];
+                    }
+                } catch(e) {}
+
+                const uniqueFu = [];
+                const seenFu = new Set();
+                storeFus.forEach(fu => {
+                    const tgl = fu.tanggal || fu.TANGGAL || fu["Tanggal Report"] || fu.tanggal_fu || '';
+                    const an = fu.analisa || fu.ANALISA || fu["Analisa Kendala / NOK"] || '';
+                    const hs = fu.hasil || fu.HASIL || fu["Hasil Perbaikan"] || '';
+                    const key = `${tgl}|${an}|${hs}`;
+                    if (!seenFu.has(key)) {
+                        seenFu.add(key);
+                        uniqueFu.push(fu);
+                    }
+                });
+
+                obj.FOLLOW_UP_HISTORY = uniqueFu;
+                return obj;
+            });
+        }
+
+        async function ambilData(tanggalSelected = "") {
+            const tbody = document.getElementById("isi-tabel");
+            const infoJumlah = document.getElementById("info-jumlah-data");
+            const tgl = tanggalSelected || document.getElementById("filter-tanggal").value;
+
+            try {
+                const resMapping = await fetch(`${API_URL}?tab=mapping_toko_edp`, {
+                    headers: { "ngrok-skip-browser-warning": "true" }
+                });
+                const dataMapping = await resMapping.json();
+                if (Array.isArray(dataMapping)) {
+                    mappingTokoEdp = {};
+                    dataMapping.forEach(m => {
+                        const kodeToko = (m.toko || m.KODE_TOKO || "").trim().toUpperCase();
+                        const namaPic = (m.pic || m.NAMA_EDP || "").trim();
+                        if (kodeToko && namaPic) {
+                            mappingTokoEdp[kodeToko] = namaPic;
                         }
-                    } else {
-                        if (height > maxDimension) {
-                            width = Math.round((width * maxDimension) / height);
-                            height = maxDimension;
+                    });
+                }
+            } catch (e) {
+                console.warn("Gagal memuat tabel mapping toko EDP:", e);
+            }
+
+            let serverFuMap = {};
+            try {
+                const resFu = await fetch(`${API_URL}?tab=follow_up_lapangan`, {
+                    headers: { "ngrok-skip-browser-warning": "true" }
+                });
+                const dataFu = await resFu.json();
+                if (Array.isArray(dataFu)) {
+                    dataFu.forEach(f => {
+                        const kdtk = (f.kode_toko || f.KDTK || f.kdtk || f.store || f.KODE_TOKO || "").trim().toUpperCase();
+                        if (kdtk) {
+                            if (!serverFuMap[kdtk]) serverFuMap[kdtk] = [];
+                            serverFuMap[kdtk].push({
+                                tanggal: f.tanggal,
+                                nama_edp: f.nama_edp,
+                                analisa: f.analisa,
+                                hasil: f.hasil,
+                                foto_bukti: f.foto_bukti
+                            });
                         }
+                    });
+                }
+            } catch (e) {
+                console.warn("Gagal memuat data follow_up_lapangan dari server:", e);
+            }
+            window.serverFuMap = serverFuMap;
+
+            try {
+                const cachedData = await ambilDariIndexedDB();
+                if (cachedData && Array.isArray(cachedData) && cachedData.length > 0) {
+                    semuaData = cachedData;
+                    prosesDanTampilkanData(semuaData);
+                }
+            } catch (e) {}
+
+            if (!semuaData || semuaData.length === 0) {
+                tbody.innerHTML = `
+                    <tr><td colspan="17" style="padding: 30px 0;">
+                        <div class="loading-box">
+                            <span class="spinner"></span>
+                            <span class="loading-text">Sedang memuat data laporan (${tgl})...</span>
+                        </div>
+                    </td></tr>
+                    ${renderSkeletonLoading(5)}
+                `;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}?action=getFullCache`, {
+                    headers: { "ngrok-skip-browser-warning": "true" }
+                });
+                const dataBaru = await response.json();
+
+                if (Array.isArray(dataBaru) && dataBaru.length > 1) {
+                    semuaData = convert2DToObjects(dataBaru);
+                    await simpanKeIndexedDB(semuaData);
+                    prosesDanTampilkanData(semuaData);
+                }
+            } catch (error) {
+                if (!semuaData || semuaData.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan='17' style='text-align: center; padding: 40px; color: #dc2626;'>⚠️ Gagal memuat data dari server.</td></tr>`;
+                    infoJumlah.textContent = "Gagal memuat data";
+                }
+            }
+        }
+
+        function prosesDanTampilkanData(dataSumber) {
+            try {
+                dataSumber = dataSumber.filter(item => {
+                    const st = (item[KOLOM_STATION] || "").toString().trim().toUpperCase();
+                    return st !== "DVR" && st !== "DVR2";
+                });
+
+                dataSumber = dataSumber.map(item => {
+                    const kdtk = (item[KOLOM_KODE_TOKO] || "").trim().toUpperCase();
+                    const assignedPic = mappingTokoEdp[kdtk] || "-";
+
+                    const dvr1Status = item["DVR"] || item[KOLOM_DVR] || "-";
+                    let dvr2Status = item["DVR2"] || item[KOLOM_DVR2] || "-";
+                    
+                    if (!dvr2Status || dvr2Status === "-" || dvr2Status === "") {
+                        dvr2Status = "Tidak Ada DVR";
                     }
 
-                    const canvas = document.createElement("canvas");
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext("2d");
-                    ctx.drawImage(img, 0, 0, width, height);
+                    return {
+                        ...item,
+                        MAPPED_NAMA_EDP: assignedPic,
+                        MAPPED_IP_DVR: item["IP_DVR"] || item[KOLOM_IP_DVR] || "-",
+                        MAPPED_STATUS_DVR: dvr1Status,
+                        MAPPED_STATUS_DVR2: dvr2Status,
+                        FOLLOW_UP_HISTORY: item.FOLLOW_UP_HISTORY || []
+                    };
+                });
 
-                    const dataUrl = canvas.toDataURL("image/jpeg", quality);
-                    resolve(dataUrl);
-                };
-                img.onerror = (err) => reject(err);
+                semuaData = dataSumber;
+                buatDropdownNamaEdp();
+                buatDropdownEDP(semuaData);
+                jalankanFilter();
+            } catch (err) {
+                console.error("Error pada prosesDanTampilkanData:", err);
+            }
+        }
+
+        function muatDataPerTanggal() {
+            jalankanFilter();
+        }
+
+        function buatDropdownNamaEdp() {
+            const dropdown = document.getElementById("filter-nama-edp");
+            const currentRole = (sessionStorage.getItem("userRole") || "").toUpperCase();
+            const currentNama = (sessionStorage.getItem("userNama") || "").trim();
+
+            dropdown.innerHTML = '<option value="semua">-- Semua Nama EDP --</option>';
+            const daftarNamaEdp = [...new Set(semuaData.map(item => item.MAPPED_NAMA_EDP))].filter(x => x && x !== "-").sort();
+                
+            daftarNamaEdp.forEach(nama => {
+                const opsi = document.createElement("option");
+                opsi.value = nama;
+                opsi.textContent = nama;
+                dropdown.appendChild(opsi);
+            });
+
+            if (currentRole !== "ADMIN" && currentNama) {
+                const matchedNama = daftarNamaEdp.find(nama => 
+                    nama.toLowerCase().trim().includes(currentNama.toLowerCase().trim()) || 
+                    currentNama.toLowerCase().trim().includes(nama.toLowerCase().trim())
+                );
+
+                if (matchedNama) {
+                    dropdown.value = matchedNama;
+                } else {
+                    dropdown.value = currentNama;
+                }
+                dropdown.disabled = true;
+            } else {
+                dropdown.disabled = false;
+            }
+        }
+
+        function buatDropdownEDP(dataSumber) {
+            const dropdown = document.getElementById("filter-edp");
+            const nilaiTerpilihSebelumnya = dropdown.value;
+            
+            dropdown.innerHTML = '<option value="semua">-- Semua Kode Toko --</option>';
+            const daftarEDP = [...new Set(dataSumber.map(item => item[KOLOM_KODE_TOKO]))].filter(Boolean).sort();
+                    
+            daftarEDP.forEach(edp => {
+                const opsi = document.createElement("option");
+                opsi.value = edp;
+                opsi.textContent = edp;
+                dropdown.appendChild(opsi);
+            });
+
+            if (daftarEDP.includes(nilaiTerpilihSebelumnya)) {
+                dropdown.value = nilaiTerpilihSebelumnya;
+            } else {
+                dropdown.value = "semua";
+            }
+        }
+
+        function formatStatus(nilai) {
+            if (!nilai || nilai === '-') return '-';
+            const teks = nilai.toString().trim().toUpperCase();
+            if (teks === 'OK' || teks === 'NORMAL' || teks === 'ONLINE' || teks === 'UP' || teks === 'KONEKSI MATI') {
+                return `<span class="status-badge status-ok">${teks}</span>`;
+            } else if (teks === 'PROBLEM' || teks === 'TIDAK 1 GB' || teks === 'SUHU TINGGI' || teks === 'PINDAHKAN KE STATION INDUK' || teks === 'NOK' || teks === 'TIDAK' || teks === 'ERROR' || teks === 'OFFLINE' || teks === 'BSOD' || teks === 'DOWN' || teks === 'OFF') {
+                return `<span class="status-badge status-problem">${teks}</span>`;
+            }
+            return teks;
+        }
+
+        function formatLanSpeed(nilai) {
+            if (!nilai || nilai === '-') return '-';
+            let str = nilai.toString().trim();
+            let match = str.match(/(\d+)/);
+            if (match) {
+                let val = parseInt(match[1]);
+                if (val >= 1000) return `<span class="status-badge status-ok">OK</span>`;
+                else return `<span class="status-badge status-problem">NOK</span>`;
+            }
+            if (str.toUpperCase().includes('1000')) return `<span class="status-badge status-ok">OK</span>`;
+            return formatStatus(nilai);
+        }
+
+        function formatMysql(nilai) {
+            if (!nilai || nilai === '-') return '-';
+            let str = nilai.toString().trim().toUpperCase();
+            if (str.includes('BELUM MEMERLUKAN PERBAIKAN')) {
+                return `<span class="status-badge status-ok">OK</span>`;
+            }
+            return formatStatus(nilai);
+        }
+
+        function formatSuhu(nilai) {
+            if (!nilai || nilai === '-') return '-';
+            let str = nilai.toString().trim();
+            let match = str.match(/([-\d.]+)/);
+            if (match) {
+                let val = parseFloat(match[1]);
+                if (val >= 1 && val <= 79) {
+                    return `<span class="status-badge status-ok">OK</span>`;
+                } else if (val > 79) {
+                    return `<span class="status-badge status-problem">SUHU TINGGI</span>`;
+                } else if (val < 1 && val !== 0) {
+                    return `<span class="status-badge status-problem">KONEKSI MATI</span>`;
+                }
+            }
+            return formatStatus(nilai);
+        }
+
+        function formatBootTime(nilai) {
+            if (!nilai || nilai === '-') return '-';
+            let str = nilai.toString().trim();
+            let match = str.match(/([\d.]+)/);
+            if (match) {
+                let val = parseFloat(match[1]);
+                let lowerStr = str.toLowerCase();
+                
+                if (lowerStr.includes('menit') || (!lowerStr.includes('detik') && val <= 4)) {
+                    if (val <= 4) return `<span class="status-badge status-ok">OK</span>`;
+                    else return `<span class="status-badge status-problem">NOK</span>`;
+                } else if (lowerStr.includes('detik')) {
+                    if (val <= 240) return `<span class="status-badge status-ok">OK</span>`;
+                    else return `<span class="status-badge status-problem">NOK</span>`;
+                } else {
+                    if (val <= 4) return `<span class="status-badge status-ok">OK</span>`;
+                    else return `<span class="status-badge status-problem">NOK</span>`;
+                }
+            }
+            return formatStatus(nilai);
+        }
+
+        function formatAktivasi(nilai) {
+            if (!nilai || nilai === '-') return '-';
+            let upper = nilai.toString().trim().toUpperCase();
+            
+            if (!upper.includes('NOTIFICATION')) {
+                return `<span class="status-badge status-ok">OK</span>`;
+            } else {
+                return `<span class="status-badge status-problem">Windows Tidak Aktif</span>`;
+            }
+        }
+
+        function formatListener(nilai) {
+            if (!nilai || nilai === '-') return '-';
+            let upper = nilai.toString().trim().toUpperCase();
+            
+            if (upper.includes('SUCCES')) {
+                return `<span class="status-badge status-ok">OK</span>`;
+            } else {
+                return `<span class="status-badge status-problem">Koneksi Mati</span>`;
+            }
+        }
+        
+        function formatEdc(nilai) {
+            if (!nilai || nilai === '-' || nilai === '') {
+                return `<span class="status-badge status-problem">Cek Settingan POS KASIR</span>`;
+            }
+            let str = nilai.toString().trim();
+            let upper = str.toUpperCase();
+            if (upper.includes('NOEDC')) {
+                return `<span class="status-badge status-ok">NOEDC</span>`;
+            } else if (upper.includes('OFFLINE')) {
+                return `<span class="status-badge status-problem">${str}</span>`;
+            } else if (upper.includes('ONLINE')) {
+                return `<span class="status-badge status-ok">ONLINE</span>`;
+            }
+            return formatStatus(nilai);
+        }
+
+        function formatUps(item) {
+            const upsVal = (item[KOLOM_UPS] || "").toString().trim();
+            const upsLower = upsVal.toLowerCase();
+            
+            const isIndukVal = (item["IS_INDUK"] || "").toString().trim().toUpperCase();
+            const isInduk = (isIndukVal === 'OK' || isIndukVal === 'Y' || isIndukVal === 'YA' || isIndukVal === 'TRUE' || isIndukVal === 'YES');
+
+            if (isInduk) {
+                if (upsLower.includes('terpasang')) {
+                    return `<span class="status-badge status-ok">OK</span>`;
+                }
+            } else {
+                if (upsLower.includes('terpasang')) {
+                    const kdtk = (item[KOLOM_KODE_TOKO] || "").toString().trim().toUpperCase();
+                    const storeStations = semuaData.filter(d => (d[KOLOM_KODE_TOKO] || "").toString().trim().toUpperCase() === kdtk);
+                    
+                    let indukHasUps = false;
+                    storeStations.forEach(s => {
+                        const sIndukVal = (s["IS_INDUK"] || "").toString().trim().toUpperCase();
+                        const sIsInduk = (sIndukVal === 'OK' || sIndukVal === 'Y' || sIndukVal === 'YA' || sIndukVal === 'TRUE' || sIndukVal === 'YES');
+                        const sUps = (s[KOLOM_UPS] || "").toString().trim().toLowerCase();
+                        
+                        if (sIsInduk && sUps.includes('terpasang')) {
+                            indukHasUps = true;
+                        }
+                    });
+
+                    if (!indukHasUps) {
+                        return `<span class="status-badge status-problem">Pindahkan ke Station Induk</span>`;
+                    } else {
+                        return `<span class="status-badge status-ok">UPS terpasang di Station Anak</span>`;
+                    }
+                }
+            }
+
+            return formatStatus(upsVal);
+        }
+
+        function isAman(nilai) {
+            if (!nilai) return false;
+            const teks = nilai.toString().trim().toUpperCase();
+            return (teks === 'TIDAK ADA DVR' || teks === 'OK' || teks === 'NORMAL' || teks === 'ONLINE' || teks === 'NO EDC');
+        }
+
+        function cekKriteriaNOK(item) {
+            if (cekKoneksiMati(item)) return true;
+
+            const lanSpeed = (item[KOLOM_LAN_SPEED] || "").toString().trim().toUpperCase();
+            const mysql = (item[KOLOM_MYSQL] || "").toString().trim();
+            const suhu = (item[KOLOM_SUHU] || "").toString().trim().toUpperCase();
+            const bootTime = (item[KOLOM_BOOT_TIME] || "").toString().trim();
+            const aktivasi = (item[KOLOM_AKTIVASI] || "").toString().trim().toUpperCase();
+            const edcBca = (item[KOLOM_EDC_BCA] || "").toString().trim().toUpperCase();
+            const edcMti = (item[KOLOM_EDC_MANDIRI] || "").toString().trim().toUpperCase();
+            const bsod = (item[KOLOM_BSOD] || "").toString().trim().toUpperCase();
+            
+            const upsRaw = (item[KOLOM_UPS] || "").toString().trim().toLowerCase();
+            const isIndukVal = (item["IS_INDUK"] || "").toString().trim().toUpperCase();
+            const isInduk = (isIndukVal === 'OK' || isIndukVal === 'Y' || isIndukVal === 'YA' || isIndukVal === 'TRUE' || isIndukVal === 'YES');
+            
+            const dvr1 = (item.MAPPED_STATUS_DVR || "").toString().trim().toUpperCase();
+            const dvr2 = (item.MAPPED_STATUS_DVR2 || "").toString().trim().toUpperCase();
+
+            let lanMatch = lanSpeed.match(/(\d+)/);
+            if (lanMatch && parseInt(lanMatch[1]) < 1000) return true;
+            if (lanSpeed.includes("TIDAK 1 GB")) return true;
+
+            if (mysql !== "" && mysql !== "-" && mysql.toUpperCase().includes("NOK")) return true;
+            
+            let suhuMatch = suhu.match(/([-\d.]+)/);
+            if (suhuMatch) {
+                let sVal = parseFloat(suhuMatch[1]);
+                if (sVal > 79 || (sVal < 1 && sVal !== 0)) return true;
+            }
+            if (suhu.includes("TINGGI")) return true;
+            
+            if (bootTime !== "" && bootTime !== "-") {
+                const matchMenit = bootTime.match(/([\d.]+)\s*menit/i);
+                if (matchMenit && parseFloat(matchMenit[1]) > 4) return true;
+                if (!matchMenit && parseFloat(bootTime) > 4) return true;
+            }
+
+            if (aktivasi !== "" && aktivasi !== "-" && aktivasi.includes("NOTIFICATION")) return true;
+            if (edcBca !== "" && edcBca !== "-" && !edcBca.includes("ONLINE") && !edcBca.includes("NOEDC")) return true;
+            if (edcMti !== "" && edcMti !== "-" && !edcMti.includes("ONLINE") && !edcMti.includes("NOEDC")) return true;
+            if (bsod !== "" && bsod !== "-" && (bsod === "NOK" || bsod === "BSOD" || bsod.includes("NOK"))) return true;
+            
+            if (upsRaw.includes('terpasang')) {
+                if (!isInduk) {
+                    const kdtk = (item[KOLOM_KODE_TOKO] || "").toString().trim().toUpperCase();
+                    const storeStations = semuaData.filter(d => (d[KOLOM_KODE_TOKO] || "").toString().trim().toUpperCase() === kdtk);
+                    let indukHasUps = false;
+                    storeStations.forEach(s => {
+                        const sIndukVal = (s["IS_INDUK"] || "").toString().trim().toUpperCase();
+                        const sIsInduk = (sIndukVal === 'OK' || sIndukVal === 'Y' || sIndukVal === 'YA' || sIndukVal === 'TRUE' || sIndukVal === 'YES');
+                        const sUps = (s[KOLOM_UPS] || "").toString().trim().toLowerCase();
+                        if (sIsInduk && sUps.includes('terpasang')) indukHasUps = true;
+                    });
+                    if (!indukHasUps) return true;
+                }
+            } else if (upsRaw !== "" && upsRaw !== "-" && (upsRaw.includes("pindahkan ke station induk") || upsRaw.includes("nok"))) {
+                return true;
+            }
+            
+            if (dvr1 !== "" && dvr1 !== "-" && (dvr1 === "DOWN" || dvr1 === "OFFLINE" || dvr1 === "NOK" || dvr1 === "OFF")) return true;
+            if (dvr2 !== "" && dvr2 !== "-" && dvr2 !== "TIDAK ADA DVR" && (dvr2 === "DOWN" || dvr2 === "OFFLINE" || dvr2 === "NOK" || dvr2 === "OFF")) return true;
+
+            return false;
+        }
+
+        function cekKoneksiMati(item) {
+            const listener = (item[KOLOM_LISTENER] || "").toString().trim().toUpperCase();
+            if (!listener || listener === '-') return false;
+            
+            return !listener.includes('SUCCES');
+        }
+
+        function hitungPersentaseParameter(dataYangDigunakan) {
+            const container = document.getElementById("ringkasan-parameter-container");
+            container.innerHTML = "";
+
+            if (dataYangDigunakan.length === 0) return;
+
+            const totalData = dataYangDigunakan.length;
+            const statistik = { 
+                suhu: 0, bsod: 0, lanSpeed: 0, edcBca: 0, 
+                edcMandiri: 0, ups: 0, mysql: 0, listener: 0,
+                bootTime: 0, aktivasi: 0
             };
-            reader.onerror = (err) => reject(err);
-        });
-    }
 
-    async function kirimFollowUp(event) {
-        event.preventDefault();
+            dataYangDigunakan.forEach(item => {
+                const suhuVal = (item[KOLOM_SUHU] || "").toString().trim();
+                let sMatch = suhuVal.match(/([-\d.]+)/);
+                if (sMatch) {
+                    let val = parseFloat(sMatch[1]);
+                    if (val >= 1 && val <= 79) statistik.suhu++;
+                } else if (isAman(suhuVal)) {
+                    statistik.suhu++;
+                }
 
-        const btnSubmit = document.getElementById("btn-submit-fu");
-        btnSubmit.disabled = true;
-        btnSubmit.innerText = "⏳ Mengunggah foto & menyimpan data...";
+                if (isAman(item[KOLOM_BSOD])) statistik.bsod++;
 
-        const fileInput = document.getElementById("modal-foto-file");
-        const kdtkVal = document.getElementById("modal-kdtk").value;
+                const lanVal = (item[KOLOM_LAN_SPEED] || "").toString().trim();
+                let lMatch = lanVal.match(/(\d+)/);
+                if ((lMatch && parseInt(lMatch[1]) >= 1000) || lanVal.toUpperCase().includes('1000')) {
+                    statistik.lanSpeed++;
+                } else if (isAman(lanVal)) {
+                    statistik.lanSpeed++;
+                }
 
-        let base64String = "";
-        if (fileInput.files.length > 0) {
-            const file = fileInput.files[0];
-            try {
-                const fullBase64 = await kompresGambar(file, 800, 0.6);
-                base64String = fullBase64.includes(",") ? fullBase64.split(",")[1] : fullBase64;
-            } catch (e) {
-                alert(`⚠️ Gagal memproses gambar:\n${e.message}`);
-                btnSubmit.disabled = false;
-                btnSubmit.innerText = "💾 Simpan Follow Up Lapangan";
+                const edcBcaVal = (item[KOLOM_EDC_BCA] || "").toString().trim().toUpperCase();
+                if (edcBcaVal.includes('ONLINE') || edcBcaVal.includes('NOEDC') || isAman(edcBcaVal)) {
+                    statistik.edcBca++;
+                }
+
+                const edcMtiVal = (item[KOLOM_EDC_MANDIRI] || "").toString().trim().toUpperCase();
+                if (edcMtiVal.includes('ONLINE') || edcMtiVal.includes('NOEDC') || isAman(edcMtiVal)) {
+                    statistik.edcMandiri++;
+                }
+
+                const upsVal = (item[KOLOM_UPS] || "").toString().trim().toLowerCase();
+                const isIndukVal = (item["IS_INDUK"] || "").toString().trim().toUpperCase();
+                const isInduk = (isIndukVal === 'OK' || isIndukVal === 'Y' || isIndukVal === 'YA' || isIndukVal === 'TRUE' || isIndukVal === 'YES');
+                if (upsVal.includes('terpasang') || isAman(item[KOLOM_UPS])) {
+                    if (isInduk) {
+                        statistik.ups++;
+                    } else {
+                        const kdtk = (item[KOLOM_KODE_TOKO] || "").toString().trim().toUpperCase();
+                        const storeStations = semuaData.filter(d => (d[KOLOM_KODE_TOKO] || "").toString().trim().toUpperCase() === kdtk);
+                        let indukHasUps = false;
+                        storeStations.forEach(s => {
+                            const sIndukVal = (s["IS_INDUK"] || "").toString().trim().toUpperCase();
+                            const sIsInduk = (sIndukVal === 'OK' || sIndukVal === 'Y' || sIndukVal === 'YA' || sIndukVal === 'TRUE' || sIndukVal === 'YES');
+                            const sUps = (s[KOLOM_UPS] || "").toString().trim().toLowerCase();
+                            if (sIsInduk && sUps.includes('terpasang')) indukHasUps = true;
+                        });
+                        if (indukHasUps) statistik.ups++;
+                    }
+                }
+
+                const mysqlVal = (item[KOLOM_MYSQL] || "").toString().trim().toUpperCase();
+                if (mysqlVal.includes('BELUM MEMERLUKAN PERBAIKAN') || isAman(mysqlVal)) {
+                    statistik.mysql++;
+                }
+
+                const listenerVal = (item[KOLOM_LISTENER] || "").toString().trim().toUpperCase();
+                if (listenerVal.includes('SUCCES')) {
+                    statistik.listener++;
+                }
+
+                const bootVal = (item[KOLOM_BOOT_TIME] || "").toString().trim();
+                let bMatch = bootVal.match(/([\d.]+)/);
+                if (bMatch) {
+                    let bValNum = parseFloat(bMatch[1]);
+                    let bLower = bootVal.toLowerCase();
+                    if (bLower.includes('detik') ? bValNum <= 240 : bValNum <= 4) {
+                        statistik.bootTime++;
+                    }
+                } else if (isAman(bootVal)) {
+                    statistik.bootTime++;
+                }
+
+                const aktivasiVal = (item[KOLOM_AKTIVASI] || "").toString().trim().toUpperCase();
+                if (aktivasiVal !== '' && aktivasiVal !== '-' && !aktivasiVal.includes('NOTIFICATION')) {
+                    statistik.aktivasi++;
+                }
+            });
+
+            const daftarParameter = [
+                { label: "LAN Speed Normal", count: statistik.lanSpeed, warna: "#d69e2e" },
+                { label: "MySQL Normal", count: statistik.mysql, warna: "#0d9488" },
+                { label: "Suhu Normal", count: statistik.suhu, warna: "#2563eb" },
+                { label: "Listener Normal", count: statistik.listener, warna: "#7c3aed" },
+                { label: "Boot Time Normal", count: statistik.bootTime, warna: "#ea580c" },
+                { label: "Aktivasi Aman", count: statistik.aktivasi, warna: "#0d9488" },
+                { label: "BSOD Aman", count: statistik.bsod, warna: "#16a34a" },
+                { label: "EDC BCA Normal", count: statistik.edcBca, warna: "#7c3aed" },
+                { label: "EDC Mandiri Normal", count: statistik.edcMandiri, warna: "#dc2626" },
+                { label: "UPS Normal", count: statistik.ups, warna: "#0d9488" }
+            ];
+
+            daftarParameter.forEach(param => {
+                const persentase = ((param.count / totalData) * 100).toFixed(1);
+                const card = document.createElement("div");
+                card.style.cssText = `background: #fff; padding: 16px; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-left: 4px solid ${param.warna}; border: 1px solid #e2e8f0; border-left-width: 4px; border-left-color: ${param.warna};`;
+                card.innerHTML = `
+                    <div style="font-size: 12.5px; color: #64748b; font-weight: 600;">${param.label}</div>
+                    <div style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 6px 0;">${persentase}%</div>
+                    <div style="font-size: 11.5px; color: #94a3b8;">(${param.count} dari ${totalData})</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function tampilkanData(data) {
+            dataAktifTerfilter = data;
+            const tbody = document.getElementById("isi-tabel");
+            const infoJumlah = document.getElementById("info-jumlah-data");
+            let htmlContent = "";
+
+            infoJumlah.textContent = `Menampilkan ${data.length} data toko`;
+
+            if(!data || data.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='17' style='text-align: center; padding: 30px;'>Tidak ada data monitoring ditemukan.</td></tr>";
+                document.getElementById("ringkasan-parameter-container").innerHTML = "";
                 return;
             }
-        }
 
-        const payloadGAS = {
-            "tanggal": document.getElementById("modal-tgl-report").value || new Date().toISOString().slice(0, 10),
-            "kdtk": kdtkVal,
-            "nama_edp": document.getElementById("modal-nama-edp-input").value,
-            "analisa": document.getElementById("modal-analisa").value,
-            "hasil": document.getElementById("modal-hasil").value,
-            "base64File": base64String,
-            "mimeType": "image/jpeg"
-        };
+            try {
+                data.sort((a, b) => {
+                    const kodeA = (a[KOLOM_KODE_TOKO] || "").toString();
+                    const kodeB = (b[KOLOM_KODE_TOKO] || "").toString();
+                    let hasilSort = kodeA.localeCompare(kodeB, undefined, { numeric: true });
+                    if (hasilSort === 0) {
+                        const stationA = (a[KOLOM_STATION] || "").toString();
+                        const stationB = (b[KOLOM_STATION] || "").toString();
+                        hasilSort = stationA.localeCompare(stationB, undefined, { numeric: true });
+                    }
+                    return hasilSort;
+                });
 
-        try {
-            const resGas = await fetch(gasUploadUrl, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain" },
-                body: JSON.stringify(payloadGAS)
-            });
+                hitungPersentaseParameter(data);
 
-            const resGasData = await resGas.json();
+                data.forEach((item, index) => {
+                    const kdtkVal  = item[KOLOM_KODE_TOKO] || '-';
+                    const ipDvrVal = item.MAPPED_IP_DVR || '-';
+                    const dvrVal1  = item.MAPPED_STATUS_DVR || '-';
+                    const dvrVal2  = item.MAPPED_STATUS_DVR2 || 'Tidak Ada DVR';
 
-            if (resGasData.status === "sukses") {
-                alert("✅ Data Follow Up & Foto Bukti berhasil disimpan!");
-                tutupModal();
-                await ambilData();
-            } else {
-                throw new Error(resGasData.message || "Gagal menyimpan data via GAS.");
+                    const fuHistory = item.FOLLOW_UP_HISTORY || [];
+                    const fuCount = fuHistory.length;
+                    let btnFuHtml = fuCount > 0 
+                        ? `<button class="btn-fu-action" onclick="bukaModalFollowUp('${kdtkVal}', ${index})">📋 Detail <span class="badge-fu-count">${fuCount}</span></button>`
+                        : `<button class="btn-fu-action" onclick="bukaModalFollowUp('${kdtkVal}', ${index})">➕ Follow Up</button>`;
+
+                    htmlContent += `
+                        <tr>
+                            <td><strong>${kdtkVal}</strong></td>
+                            <td>${item[KOLOM_NAMA_TOKO] || '-'}</td>
+                            <td>${item[KOLOM_STATION] || '-'}</td>
+                            <td>${formatLanSpeed(item[KOLOM_LAN_SPEED])}</td>
+                            <td>${formatMysql(item[KOLOM_MYSQL])}</td>
+                            <td>${formatSuhu(item[KOLOM_SUHU])}</td>
+                            <td>${formatBootTime(item[KOLOM_BOOT_TIME])}</td>
+                            <td>${formatAktivasi(item[KOLOM_AKTIVASI])}</td>
+                            <td>${formatListener(item[KOLOM_LISTENER])}</td>
+                            <td>${formatEdc(item[KOLOM_EDC_BCA])}</td>
+                            <td>${formatEdc(item[KOLOM_EDC_MANDIRI])}</td>
+                            <td>${formatStatus(item[KOLOM_BSOD])}</td>
+                            <td>${formatUps(item)}</td>
+                            <td>${ipDvrVal}</td>
+                            <td>${formatStatus(dvrVal1)}</td>
+                            <td>${formatStatus(dvrVal2)}</td>
+                            <td>${btnFuHtml}</td>
+                        </tr>
+                    `;
+                });
+                tbody.innerHTML = htmlContent;
+            } catch (err) {
+                console.error("Error pada tampilkanData:", err);
+                tbody.innerHTML = `<tr><td colspan='17' style='text-align: center; color: red; padding: 20px;'>⚠️ Terjadi kesalahan render tabel: ${err.message}</td></tr>`;
             }
-        } catch (err) {
-            console.error("Error submit follow up:", err);
-            alert(`⚠️ Terjadi kesalahan saat menyimpan data:\n${err.message}`);
-        } finally {
-            btnSubmit.disabled = false;
-            btnSubmit.innerText = "💾 Simpan Follow Up Lapangan";
         }
-    }
 
-    function jalankanFilter() {
-        const statusFilterNok = document.getElementById("filter-status-nok").value;
-        const statusFilterFu  = document.getElementById("filter-status-fu").value;
-        const namaEdpTerpilih = document.getElementById("filter-nama-edp").value;
-        const tanggalTerpilih = document.getElementById("filter-tanggal").value;
-        const keywordSearch   = document.getElementById("search-text").value.toLowerCase();
+        function exportData(format) {
+            if (!dataAktifTerfilter || dataAktifTerfilter.length === 0) {
+                alert("Tidak ada data untuk diexport!");
+                return;
+            }
+
+            const dataExport = dataAktifTerfilter.map(item => {
+                const ipDvrVal = item.MAPPED_IP_DVR || '-';
+                const dvrVal1  = item.MAPPED_STATUS_DVR || '-';
+                const dvrVal2  = item.MAPPED_STATUS_DVR2 || 'Tidak Ada DVR';
+
+                let tglFuTerakhir = '-';
+                let namaEdpFu = '-';
+                let analisaFu = '-';
+                let hasilFu = '-';
+                let fotoFu = '-';
+
+                if (item.FOLLOW_UP_HISTORY && item.FOLLOW_UP_HISTORY.length > 0) {
+                    const fuTerakhir = item.FOLLOW_UP_HISTORY[item.FOLLOW_UP_HISTORY.length - 1];
+                    tglFuTerakhir = fuTerakhir["Tanggal Report"] || fuTerakhir.tanggal_fu || fuTerakhir.tanggal || '-';
+                    namaEdpFu      = fuTerakhir["Nama EDP"] || fuTerakhir.nama_edp || '-';
+                    analisaFu      = fuTerakhir["Analisa Kendala / NOK"] || fuTerakhir.analisa || '-';
+                    hasilFu        = fuTerakhir["Hasil Perbaikan"] || fuTerakhir.hasil || '-';
+                    fotoFu         = fuTerakhir["Foto Bukti"] || fuTerakhir.foto_bukti || fuTerakhir.foto || '-';
+                }
+
+                return {
+                    "Kode Toko": item[KOLOM_KODE_TOKO] || '-',
+                    "Nama Toko": item[KOLOM_NAMA_TOKO] || '-',
+                    "Tanggal Report": formatTanggalRapi(item[KOLOM_TANGGAL]),
+                    "Station": item[KOLOM_STATION] || '-',
+                    "Status LAN Speed": item[KOLOM_LAN_SPEED] || '-',
+                    "Status Durasi Start MySQL": item[KOLOM_MYSQL] || '-',
+                    "Status Suhu": item[KOLOM_SUHU] || '-',
+                    "Status Boot Time": item[KOLOM_BOOT_TIME] || '-',
+                    "Status Aktivasi": item[KOLOM_AKTIVASI] || '-',
+                    "Status Listener": item[KOLOM_LISTENER] || '-',
+                    "Status EDC BCA": item[KOLOM_EDC_BCA] || '-',
+                    "Status EDC MTI": item[KOLOM_EDC_MANDIRI] || '-',
+                    "Status BSOD": item[KOLOM_BSOD] || '-',
+                    "Status UPS": item[KOLOM_UPS] || '-',
+                    "Nama EDP" : item.MAPPED_NAMA_EDP,
+                    "IP DVR": ipDvrVal,
+                    "Status DVR": dvrVal1,
+                    "Status DVR2": dvrVal2,
+                    "Tgl Follow Up": tglFuTerakhir,
+                    "EDP Follow Up": namaEdpFu,
+                    "Analisa Kendala": analisaFu,
+                    "Hasil Perbaikan": hasilFu,
+                    "Link Foto Bukti": fotoFu
+                };
+            });
+
+            const namaFile = "Monitoring_Status_Toko_" + new Date().toISOString().slice(0, 10);
+
+            if (format === 'csv') {
+                const worksheet = XLSX.utils.json_to_sheet(dataExport);
+                const csvOutput = XLSX.utils.sheet_to_csv(worksheet);
+                const blob = new Blob([csvOutput], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.setAttribute("download", `${namaFile}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else if (format === 'xlsx') {
+                const worksheet = XLSX.utils.json_to_sheet(dataExport);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Data Monitoring");
+                XLSX.writeFile(workbook, `${namaFile}.xlsx`);
+            }
+        }
+
+        function renderHistoryList(fuHistory, container) {
+            if (!fuHistory || fuHistory.length === 0) {
+                container.innerHTML = `<div style="color: #94a3b8; font-style: italic;">Belum ada riwayat follow up.</div>`;
+            } else {
+                let historyHtml = '';
+                const reversedHistory = [...fuHistory].reverse();
+                reversedHistory.forEach((fu) => {
+                    const tglReportVal = formatTanggalRapi(fu.tanggal || fu.TANGGAL || fu["Tanggal Report"] || fu.tanggal_fu || '-');
+                    const edpVal = fu.nama_edp || fu.NAMA_EDP || fu["Nama EDP"] || '-';
+                    const analisaVal = fu.analisa || fu.ANALISA || fu["Analisa Kendala / NOK"] || '-';
+                    const hasilVal = fu.hasil || fu.HASIL || fu["Hasil Perbaikan"] || '-';
+                    const fotoVal = fu.foto_bukti || fu.FOTO_BUKTI || fu["Foto Bukti"] || fu.foto || '-';
+
+                    let linkFotoHtml = '';
+                    if (fotoVal && fotoVal !== '-' && fotoVal.trim() !== '') {
+                        let fotoSrc = fotoVal.startsWith('http') || fotoVal.startsWith('data:') ? fotoVal : `data:image/jpeg;base64,${fotoVal}`;
+                        linkFotoHtml = `<div><a href="${fotoSrc}" target="_blank" style="color:#2563eb; font-weight:600;">📷 Lihat Foto Bukti Perbaikan</a></div>`;
+                    }
+                    historyHtml += `
+                        <div class="fu-item">
+                            <div class="fu-item-header">
+                                <span>📅 Tgl FU: ${tglReportVal}</span>
+                                <span>👤 EDP: ${edpVal}</span>
+                            </div>
+                            <div><b>Analisa:</b> ${analisaVal}</div>
+                            <div><b>Hasil:</b> ${hasilVal}</div>
+                            ${linkFotoHtml}
+                        </div>
+                    `;
+                });
+                container.innerHTML = historyHtml;
+            }
+        }
+
+        async function bukaModalFollowUp(kdtk, dataIndex) {
+            const item = dataAktifTerfilter[dataIndex] || semuaData.find(x => (x[KOLOM_KODE_TOKO] || "").toString().trim().toUpperCase() === kdtk.toUpperCase());
+            if (!item) return;
+
+            const namaToko = item[KOLOM_NAMA_TOKO] || '';
+            const tglReport = formatTanggalRapi(item[KOLOM_TANGGAL]);
+            const namaEdpToko = item.MAPPED_NAMA_EDP || '';
+
+            document.getElementById("modal-fu-title").innerText = `Follow Up Toko: ${kdtk} - ${namaToko}`;
+            document.getElementById("modal-kdtk").value = kdtk;
+            document.getElementById("modal-tgl-report").value = tglReport;
+            document.getElementById("modal-tgl-fu").value = new Date().toISOString().slice(0, 10);
+            
+            if (namaEdpToko && namaEdpToko !== "-") {
+                document.getElementById("modal-nama-edp-input").value = namaEdpToko;
+            }
+
+            const historyListContainer = document.getElementById("modal-fu-history-list");
+            historyListContainer.innerHTML = `<div style="color: #64748b; font-style: italic;">⏳ Memuat riwayat follow up...</div>`;
+
+            document.getElementById("modal-analisa").value = '';
+            document.getElementById("modal-hasil").value = '';
+            document.getElementById("modal-foto-file").value = '';
+
+            document.getElementById("modal-fu-overlay").classList.add("active");
+
+            let fuHistory = [];
+
+            if (window.serverFuMap && window.serverFuMap[kdtk.toUpperCase()]) {
+                fuHistory = fuHistory.concat(window.serverFuMap[kdtk.toUpperCase()]);
+            }
+
+            if (item.FOLLOW_UP_HISTORY && Array.isArray(item.FOLLOW_UP_HISTORY)) {
+                fuHistory = fuHistory.concat(item.FOLLOW_UP_HISTORY);
+            }
+
+            try {
+                const localStoredFus = JSON.parse(localStorage.getItem(`fu_history_${kdtk.toUpperCase()}`) || "[]");
+                if (localStoredFus.length > 0) {
+                    fuHistory = fuHistory.concat(localStoredFus);
+                }
+            } catch(e) {}
+
+            const uniqueHistory = [];
+            const seen = new Set();
+            fuHistory.forEach(fu => {
+                const tgl = fu.tanggal || fu.TANGGAL || fu["Tanggal Report"] || fu.tanggal_fu || '';
+                const an = fu.analisa || fu.ANALISA || fu["Analisa Kendala / NOK"] || '';
+                const hs = fu.hasil || fu.HASIL || fu["Hasil Perbaikan"] || '';
+                const key = `${tgl}|${an}|${hs}`;
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    uniqueHistory.push(fu);
+                }
+            });
+
+            renderHistoryList(uniqueHistory, historyListContainer);
+        }
         
-        let dataHasilFilter = semuaData;
-
-        if (statusFilterNok === "nok") {
-            dataHasilFilter = dataHasilFilter.filter(item => cekKriteriaNOK(item));
-        } else if (statusFilterNok === "koneksi-mati") {
-            dataHasilFilter = dataHasilFilter.filter(item => cekKoneksiMati(item));
+        function tutupModal() {
+            document.getElementById("modal-fu-overlay").classList.remove("active");
         }
 
-        if (statusFilterFu === "ada-fu") {
-            dataHasilFilter = dataHasilFilter.filter(item => item.FOLLOW_UP_HISTORY && item.FOLLOW_UP_HISTORY.length > 0);
-        } else if (statusFilterFu === "belum-fu") {
-            dataHasilFilter = dataHasilFilter.filter(item => !item.FOLLOW_UP_HISTORY || item.FOLLOW_UP_HISTORY.length === 0);
-        }
+        function kompresGambar(file, maxDimension = 800, quality = 0.6) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        let width = img.width;
+                        let height = img.height;
 
-        if (namaEdpTerpilih !== "semua") {
-            dataHasilFilter = dataHasilFilter.filter(item => {
-                const namaVal = (item[KOLOM_NAMA_EDP] || "").toString().toLowerCase().trim();
-                const targetVal = namaEdpTerpilih.toLowerCase().trim();
-                return namaVal === targetVal || namaVal.includes(targetVal) || targetVal.includes(namaVal);
+                        if (width > height) {
+                            if (width > maxDimension) {
+                                height = Math.round((height * maxDimension) / width);
+                                width = maxDimension;
+                            }
+                        } else {
+                            if (height > maxDimension) {
+                                width = Math.round((width * maxDimension) / height);
+                                height = maxDimension;
+                            }
+                        }
+
+                        const canvas = document.createElement("canvas");
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext("2d");
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        const dataUrl = canvas.toDataURL("image/jpeg", quality);
+                        resolve(dataUrl);
+                    };
+                    img.onerror = (err) => reject(err);
+                };
+                reader.onerror = (err) => reject(err);
             });
         }
 
-        if (tanggalTerpilih !== "semua") {
-            dataHasilFilter = dataHasilFilter.filter(item => formatTanggalRapi(item[KOLOM_TANGGAL]) === tanggalTerpilih);
+        async function kirimFollowUp(event) {
+            event.preventDefault();
+
+            const btnSubmit = document.getElementById("btn-submit-fu");
+            btnSubmit.disabled = true;
+            btnSubmit.innerText = "⏳ Mengunggah foto & menyimpan data...";
+
+            const fileInput = document.getElementById("modal-foto-file");
+            const kdtkVal = document.getElementById("modal-kdtk").value.trim().toUpperCase();
+
+            let base64String = "";
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                try {
+                    const fullBase64 = await kompresGambar(file, 800, 0.6);
+                    base64String = fullBase64.includes(",") ? fullBase64.split(",")[1] : fullBase64;
+                } catch (e) {
+                    alert(`⚠️ Gagal memproses gambar:\n${e.message}`);
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerText = "💾 Simpan Follow Up Lapangan";
+                    return;
+                }
+            }
+
+            const payloadData = {
+                "action": "inputFollowUp",
+                "tanggal": document.getElementById("modal-tgl-report").value || new Date().toISOString().slice(0, 10),
+                "kdtk": kdtkVal,
+                "nama_edp": document.getElementById("modal-nama-edp-input").value,
+                "analisa": document.getElementById("modal-analisa").value,
+                "hasil": document.getElementById("modal-hasil").value,
+                "foto": base64String
+            };
+
+            try {
+                const resServer = await fetch(API_URL, {
+                    method: "POST",
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "ngrok-skip-browser-warning": "true"
+                    },
+                    body: JSON.stringify(payloadData)
+                });
+
+                const resServerData = await resServer.json();
+
+                if (resServerData.status === "sukses") {
+                    const newFuRecord = {
+                        "tanggal": payloadData.tanggal,
+                        "kode_toko": kdtkVal,
+                        "nama_edp": payloadData.nama_edp,
+                        "analisa": payloadData.analisa,
+                        "hasil": payloadData.hasil,
+                        "foto_bukti": base64String
+                    };
+
+                    let existingLocal = [];
+                    try {
+                        existingLocal = JSON.parse(localStorage.getItem(`fu_history_${kdtkVal}`) || "[]");
+                    } catch(e) {}
+                    existingLocal.push(newFuRecord);
+                    localStorage.setItem(`fu_history_${kdtkVal}`, JSON.stringify(existingLocal));
+
+                    semuaData.forEach(s => {
+                        if ((s[KOLOM_KODE_TOKO] || "").toString().trim().toUpperCase() === kdtkVal) {
+                            if (!s.FOLLOW_UP_HISTORY) s.FOLLOW_UP_HISTORY = [];
+                            s.FOLLOW_UP_HISTORY.push(newFuRecord);
+                        }
+                    });
+                    await simpanKeIndexedDB(semuaData);
+
+                    alert("✅ Data Follow Up & Foto Bukti berhasil disimpan!");
+                    tutupModal();
+                    jalankanFilter();
+                } else {
+                    throw new Error(resServerData.message || "Gagal menyimpan data ke server.");
+                }
+            } catch (err) {
+                console.error("Error submit follow up:", err);
+                alert(`⚠️ Terjadi kesalahan saat menyimpan data:\n${err.message}`);
+            } finally {
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = "💾 Simpan Follow Up Lapangan";
+            }
         }
 
-        buatDropdownEDP(dataHasilFilter);
+        function jalankanFilter() {
+            const statusFilterNok = document.getElementById("filter-status-nok").value;
+            const statusFilterFu  = document.getElementById("filter-status-fu").value;
+            const namaEdpTerpilih = document.getElementById("filter-nama-edp").value;
+            const tanggalTerpilih = document.getElementById("filter-tanggal").value;
+            const keywordSearch   = document.getElementById("search-text").value.toLowerCase();
+            
+            let dataHasilFilter = semuaData;
 
-        const edpTerpilih = document.getElementById("filter-edp").value;
-        if (edpTerpilih !== "semua") {
-            dataHasilFilter = dataHasilFilter.filter(item => item[KOLOM_KODE_TOKO] === edpTerpilih);
+            if (statusFilterNok === "nok") {
+                dataHasilFilter = dataHasilFilter.filter(item => cekKriteriaNOK(item));
+            } else if (statusFilterNok === "koneksi-mati") {
+                dataHasilFilter = dataHasilFilter.filter(item => cekKoneksiMati(item));
+            }
+
+            if (statusFilterFu === "ada-fu") {
+                dataHasilFilter = dataHasilFilter.filter(item => item.FOLLOW_UP_HISTORY && item.FOLLOW_UP_HISTORY.length > 0);
+            } else if (statusFilterFu === "belum-fu") {
+                dataHasilFilter = dataHasilFilter.filter(item => !item.FOLLOW_UP_HISTORY || item.FOLLOW_UP_HISTORY.length === 0);
+            }
+
+            if (namaEdpTerpilih !== "semua") {
+                dataHasilFilter = dataHasilFilter.filter(item => {
+                    const namaVal = (item.MAPPED_NAMA_EDP || "").toString().toLowerCase().trim();
+                    const targetVal = namaEdpTerpilih.toLowerCase().trim();
+                    return namaVal === targetVal || namaVal.includes(targetVal) || targetVal.includes(namaVal);
+                });
+            }
+
+            if (tanggalTerpilih !== "semua") {
+                dataHasilFilter = dataHasilFilter.filter(item => formatTanggalRapi(item[KOLOM_TANGGAL]) === tanggalTerpilih);
+            }
+
+            buatDropdownEDP(dataHasilFilter);
+
+            const edpTerpilih = document.getElementById("filter-edp").value;
+            if (edpTerpilih !== "semua") {
+                dataHasilFilter = dataHasilFilter.filter(item => item[KOLOM_KODE_TOKO] === edpTerpilih);
+            }
+
+            if (keywordSearch.trim() !== "") {
+                dataHasilFilter = dataHasilFilter.filter(item => {
+                    const kode = (item[KOLOM_KODE_TOKO] || "").toLowerCase();
+                    const nama = (item[KOLOM_NAMA_TOKO] || "").toLowerCase();
+                    return kode.includes(keywordSearch) || nama.includes(keywordSearch);
+                });
+            }
+
+            tampilkanData(dataHasilFilter);
         }
 
-        if (keywordSearch.trim() !== "") {
-            dataHasilFilter = dataHasilFilter.filter(item => {
-                const kode = (item[KOLOM_KODE_TOKO] || "").toLowerCase();
-                const nama = (item[KOLOM_NAMA_TOKO] || "").toLowerCase();
-                return kode.includes(keywordSearch) || nama.includes(keywordSearch);
-            });
+        function resetFilter() {
+            const today = new Date().toISOString().slice(0, 10);
+            const currentRole = (sessionStorage.getItem("userRole") || "").toUpperCase();
+
+            document.getElementById("filter-tanggal").value = today;
+            document.getElementById("filter-status-nok").value = "semua";
+            document.getElementById("filter-status-fu").value  = "semua";
+            
+            if (currentRole === "ADMIN") {
+                document.getElementById("filter-nama-edp").value = "semua";
+            }
+            
+            document.getElementById("filter-edp").value  = "semua";
+            document.getElementById("search-text").value = "";
+            
+            jalankanFilter();
         }
-
-        tampilkanData(dataHasilFilter);
-    }
-
-    function resetFilter() {
-        const today = new Date().toISOString().slice(0, 10);
-        const currentRole = (sessionStorage.getItem("userRole") || "").toUpperCase();
-
-        document.getElementById("filter-tanggal").value = today;
-        document.getElementById("filter-status-nok").value = "semua";
-        document.getElementById("filter-status-fu").value  = "semua";
-        
-        if (currentRole === "ADMIN") {
-            document.getElementById("filter-nama-edp").value = "semua";
-        }
-        
-        document.getElementById("filter-edp").value  = "semua";
-        document.getElementById("search-text").value = "";
-        
-        jalankanFilter();
-    }
     </script>
 </body>
 </html>
