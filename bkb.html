@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EDP Stock Monitoring & BKB Dashboard v3.0</title>
+    <title>EDP Stock Monitoring & BKB Dashboard v3.0 (MySQL)</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- SheetJS untuk Excel/CSV -->
@@ -13,38 +13,234 @@
     <!-- Google Fonts Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
         body { 
             font-family: 'Inter', sans-serif; 
             -webkit-tap-highlight-color: transparent;
-            background-color: #f8fafc; /* bg-slate-50 */
+            background-color: #f8fafc;
+            color: #1e293b;
+            display: flex;
+            min-height: 100vh;
         }
+
         [x-cloak] { display: none !important; }
 
-        /* Gunakan dvh agar tidak glitch saat keyboard HP muncul */
-        .app-container {
-            height: 100vh;
-            height: 100dvh;
+        .sidebar, .main-content, .footer-copyright {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
+
+        /* --- SIDEBAR STYLING --- */
+        .sidebar {
+            width: 260px;
+            background-color: #0f172a;
+            color: #cbd5e1;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0; bottom: 0; left: 0;
+            z-index: 1000;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.08);
+            border-right: 1px solid #1e293b;
+        }
+
+        .sidebar-header {
+            padding: 20px 18px;
+            background-color: #090d16;
+            border-bottom: 1px solid #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar-header h3 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #60a5fa;
+            line-height: 1.3;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 16px 12px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            overflow-y: auto;
+        }
+
+        .sidebar-menu::-webkit-scrollbar {
+            width: 4px;
+        }
+        .sidebar-menu::-webkit-scrollbar-thumb {
+            background-color: #334155;
+            border-radius: 4px;
+        }
+
+        .sidebar-menu button, .sidebar-menu a {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 14px;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 13.5px;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        .sidebar-menu button span:first-child {
+            font-size: 16px;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-menu button:hover {
+            background-color: #1e293b;
+            color: #f1f5f9;
+        }
+
+        .sidebar-menu button.active {
+            background-color: #2563eb;
+            color: #ffffff;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+        }
+
+        .sidebar-footer {
+            padding: 14px 12px;
+            border-top: 1px solid #1e293b;
+            background-color: #090d16;
+        }
+
+        .btn-sidebar-logout {
+            width: 100%;
+            padding: 10px 14px;
+            background-color: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 13.5px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: background-color 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 6px rgba(220, 38, 38, 0.2);
+        }
+
+        .btn-sidebar-logout:hover { 
+            background-color: #b91c1c; 
+            box-shadow: 0 4px 10px rgba(220, 38, 38, 0.3);
+        }
+
+        .btn-toggle-sidebar {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            font-size: 18px;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s;
+            margin-left: auto;
+        }
+        .btn-toggle-sidebar:hover {
+            background-color: #1e293b;
+            color: #ffffff;
+        }
+
+        /* --- COLLAPSED STATE --- */
+        .sidebar.collapsed { width: 70px; }
+        .sidebar.collapsed .sidebar-header { padding: 16px 0; justify-content: center; }
+        .sidebar.collapsed .sidebar-header > div > span:first-child,
+        .sidebar.collapsed .sidebar-header h3 { display: none; }
+        .sidebar.collapsed .btn-toggle-sidebar { margin-left: 0; }
+        .sidebar.collapsed .sidebar-menu { padding: 16px 8px; align-items: center; }
+        .sidebar.collapsed .sidebar-menu button { width: 44px; height: 44px; padding: 0; justify-content: center; border-radius: 10px; }
+        .sidebar.collapsed .sidebar-menu button span:nth-child(2) { display: none; }
+        .sidebar.collapsed .sidebar-footer { padding: 14px 8px; display: flex; justify-content: center; }
+        .sidebar.collapsed .btn-sidebar-logout { width: 44px; height: 44px; padding: 0; justify-content: center; border-radius: 10px; }
+        .sidebar.collapsed .btn-sidebar-logout span:nth-child(2) { display: none; }
+
+        /* --- MOBILE TOPBAR & OVERLAY --- */
+        .mobile-topbar {
+            display: none;
+            background-color: #0f172a;
+            color: #fff;
+            padding: 14px 18px;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 900;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .mobile-topbar h3 { font-size: 15px; color: #60a5fa; font-weight: 700; }
+
+        .btn-mobile-menu {
+            background: #1e293b;
+            border: none;
+            color: #fff;
+            font-size: 18px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(2px);
+            z-index: 999;
+        }
+        .sidebar-overlay.active { display: block; }
+
+        /* --- MAIN CONTENT & LAYOUT --- */
+        .main-content {
+            margin-left: 260px;
+            flex: 1;
+            padding: 24px;
+            padding-bottom: 70px;
+            width: calc(100% - 260px);
+            min-height: 100vh;
+            overflow-y: auto;
+        }
+
+        .main-content.expanded { margin-left: 70px; width: calc(100% - 70px); }
 
         select, option {
             background-color: #ffffff;
-            color: #0f172a;
+            color: #1e293b;
         }
-
-        /* Mencegah background input menjadi putih mengkilap saat autofill di HP */
         input:-webkit-autofill,
         input:-webkit-autofill:hover, 
         input:-webkit-autofill:focus {
             -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
-            -webkit-text-fill-color: #0f172a !important;
+            -webkit-text-fill-color: #1e293b !important;
         }
-        /* Isolasi Stacking Context Modal agar Dropdown & Keyboard tidak glitch */
         .modal-backdrop {
             z-index: 9999 !important;
             background-color: rgba(15, 23, 42, 0.65) !important;
             backdrop-filter: blur(4px);
         }
-
         .modal-card {
             z-index: 10000 !important;
             background-color: #ffffff !important;
@@ -53,216 +249,373 @@
             -webkit-overflow-scrolling: touch;
         }
 
-        /* Prevent Layout Glitch / Breaking saat Keyboard Mobile Aktif */
+        .footer-copyright {
+            position: fixed;
+            bottom: 0; left: 260px;
+            width: calc(100% - 260px);
+            background-color: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+            font-size: 12px;
+            color: #64748b;
+            padding: 10px 0;
+            z-index: 999;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.02);
+        }
+        .footer-copyright.expanded { left: 70px; width: calc(100% - 70px); }
+
         @media (max-width: 768px) {
-            .app-main-content {
-                height: calc(100vh - 60px);
-                overflow-y: auto;
-            }
+            body { flex-direction: column; }
+            .mobile-topbar { display: flex; }
+            .sidebar { transform: translateX(-100%); width: 260px !important; }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0 !important; width: 100% !important; padding: 12px; padding-bottom: 70px; }
+            .footer-copyright { left: 0 !important; width: 100% !important; }
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800" x-data="edpApp()" x-cloak>
+<body x-data="edpApp()" x-cloak>
 
-    <div class="flex app-container overflow-hidden relative">
-        
-        <!-- OVERLAY BACKGROUND UNTUK MOBILE -->
-        <div x-show="mobileSidebarOpen" 
-             @click="mobileSidebarOpen = false"
-             x-transition:enter="transition-opacity ease-linear duration-300"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="transition-opacity ease-linear duration-300"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0"
-             class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 md:hidden" 
-             x-cloak></div>
+    <div class="mobile-topbar">
+        <h3>📊 EDP Stock Monitoring</h3>
+        <button class="btn-mobile-menu" onclick="toggleSidebarMenu()" title="Buka Menu">☰</button>
+    </div>
 
-        <!-- SIDEBAR -->
-        <aside class="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-300 flex flex-col justify-between border-r border-slate-800 transform transition-transform duration-300 ease-in-out md:static md:translate-x-0"
-               :class="mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'">
-            <div>
-                <div class="p-5 flex items-center justify-between border-b border-slate-800">
-                    <div class="flex items-center space-x-3">
-                        <div class="bg-indigo-600 p-2 rounded-lg text-white font-bold shadow-md">EDP</div>
-                        <div>
-                            <span class="text-base font-bold text-white tracking-wide block">Stock Control</span>
-                            <span class="text-[11px] text-indigo-400 font-medium">Branch Management v3.0</span>
-                        </div>
-                    </div>
-                    <button @click="mobileSidebarOpen = false" class="md:hidden text-slate-400 hover:text-white p-1">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
-                </div>
-                <nav class="p-3 space-y-1.5">
-                    <button @click="activeTab = 'monitoring'; mobileSidebarOpen = false" :class="activeTab === 'monitoring' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'hover:bg-slate-800 hover:text-white'" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                        <span>Monitoring Stock</span>
-                    </button>
-                    
-                    <button x-show="userRole.toUpperCase() === 'ADMIN'" @click="activeTab = 'transfer'; mobileSidebarOpen = false" :class="activeTab === 'transfer' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'hover:bg-slate-800 hover:text-white'" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
-                        <span>Top-up / Transfer Qty</span>
-                    </button>
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebarMenu()"></div>
 
-                    <button @click="activeTab = 'request'; mobileSidebarOpen = false" :class="activeTab === 'request' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'hover:bg-slate-800 hover:text-white'" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all">
-                        <div class="flex items-center space-x-3">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
-                            <span>Permintaan Barang</span>
-                        </div>
-                        <span x-show="userRole.toUpperCase() === 'ADMIN' && pendingRequests.length > 0" class="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full animate-pulse" x-text="pendingRequests.length"></span>
-                    </button>
-
-                    <button @click="activeTab = 'bkb'; mobileSidebarOpen = false" :class="activeTab === 'bkb' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'hover:bg-slate-800 hover:text-white'" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                        <span>Input BKB & Surat Jalan</span>
-                    </button>
-
-                    <button x-show="userRole.toUpperCase() === 'ADMIN'" @click="activeTab = 'master'; mobileSidebarOpen = false" :class="activeTab === 'master' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'hover:bg-slate-800 hover:text-white'" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
-                        <span>Master Produk EDP</span>
-                    </button>
-                </nav>
-            </div>
-
-            <div class="p-3 border-t border-slate-800 space-y-2">
-                <button @click="loadDataFromGAS()" class="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white transition-all shadow-sm">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                    <span>Sinkronisasi Data</span>
-                </button>
-                <a href="index.html" class="w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs font-medium bg-slate-800/60 hover:bg-rose-600 text-slate-300 hover:text-white transition-all shadow-sm">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                    <span>Kembali ke Web Monitoring</span>
-                </a>
-            </div>
-        </aside>
-
-        <!-- MAIN CONTENT AREA -->
-        <main class="flex-1 flex flex-col overflow-y-auto bg-slate-50 w-full app-main-content" x-ref="mainContent">
-            
-            <!-- Top Header -->
-            <header class="bg-white border-b border-slate-200 px-4 sm:px-8 py-3.5 flex justify-between items-center shadow-sm sticky top-0 z-20">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div>
+            <div class="sidebar-header">
                 <div class="flex items-center space-x-3">
-                    <button @click="mobileSidebarOpen = true" class="md:hidden p-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 focus:outline-none">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                    </button>
+                    <span style="font-size: 24px;">📦</span>
                     <div>
-                        <h1 class="text-sm sm:text-lg font-bold text-slate-800" x-text="getPageTitle()"></h1>
-                        <p class="text-[11px] text-slate-500 hidden sm:block">Kelola dan pantau persediaan perangkat EDP secara real-time</p>
+                        <h3 class="text-sm font-bold text-blue-400">Stock Control</h3>
+                        <span class="text-[11px] text-slate-400">MySQL Branch v3.0</span>
                     </div>
                 </div>
-                <div class="flex items-center space-x-2 sm:space-x-4">
-                    <div class="hidden sm:flex items-center space-x-2 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-semibold border border-emerald-200">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span x-text="syncStatus">Terhubung ke Spreadsheet (GAS)</span>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-xs sm:text-sm font-bold text-slate-700" x-text="loggedInUser">User</p>
-                        <p class="text-[10px] sm:text-xs text-indigo-600 font-semibold uppercase tracking-wider" x-text="userRole">Role</p>
-                    </div>
-                    <div class="w-8 h-8 sm:w-9 sm:h-9 bg-indigo-600 text-white font-bold rounded-xl flex items-center justify-center text-xs sm:text-sm shadow-md shadow-indigo-600/20" x-text="getUserInitials()">US</div>
+                <button class="btn-toggle-sidebar" onclick="toggleSidebarMenu()" title="Buka/Tutup Sidebar">☰</button>
+            </div>
+                        
+            <nav class="sidebar-menu">
+                <!-- Tombol Kembali ke Index -->
+                <button onclick="window.location.href='index.html'" title="Kembali ke Beranda">
+                    <span>🏠</span> <span>Kembali ke Beranda</span>
+                </button>
+
+                <button @click="activeTab = 'monitoring'; closeMobileSidebar()" :class="activeTab === 'monitoring' ? 'active' : ''" title="Monitoring Stock">
+                    <span>📈</span> <span>Monitoring Stock</span>
+                </button>
+                
+                <button x-show="userRole.toUpperCase() === 'ADMIN'" @click="activeTab = 'transfer'; closeMobileSidebar()" :class="activeTab === 'transfer' ? 'active' : ''" title="Top-up / Transfer Qty">
+                    <span>🔄</span> <span>Top-up / Transfer Qty</span>
+                </button>
+
+                <button @click="activeTab = 'request'; closeMobileSidebar()" :class="activeTab === 'request' ? 'active' : ''" title="Permintaan Barang">
+                    <span>📥</span> <span>Permintaan Barang</span>
+                    <span x-show="userRole.toUpperCase() === 'ADMIN' && pendingRequests.length > 0" class="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full animate-pulse ml-auto" x-text="pendingRequests.length"></span>
+                </button>
+
+                <button @click="activeTab = 'bkb'; closeMobileSidebar()" :class="activeTab === 'bkb' ? 'active' : ''" title="Input BKB & Surat Jalan">
+                    <span>📄</span> <span>Input BKB & Surat Jalan</span>
+                </button>
+
+                <button x-show="userRole.toUpperCase() === 'ADMIN'" @click="activeTab = 'master'; closeMobileSidebar()" :class="activeTab === 'master' ? 'active' : ''" title="Master Produk EDP">
+                    <span>📋</span> <span>Master Produk EDP</span>
+                </button>
+            </nav>
+        </div>
+
+        <div class="sidebar-footer">
+            <button class="btn-sidebar-logout" onclick="logoutSystem()" title="Logout">
+                <span>🚪</span> <span>Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="main-content">
+        
+        <!-- Top Header -->
+        <header class="bg-white border border-slate-200 rounded-xl px-6 py-4 flex justify-between items-center shadow-sm mb-6">
+            <div>
+                <h1 class="text-base sm:text-lg font-bold text-slate-800" x-text="getPageTitle()"></h1>
+                <p class="text-xs text-slate-500">Kelola persediaan perangkat EDP terhubung MySQL</p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <a href="index.html" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-all">
+                    <span>🏠</span>
+                    <span class="hidden sm:inline">Beranda</span>
+                </a>
+                <div class="hidden sm:flex items-center space-x-2 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-semibold border border-emerald-200">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span x-text="syncStatus">Terhubung ke MySQL (Laragon)</span>
                 </div>
-            </header>
 
-            <!-- Content Body -->
-            <div class="p-3.5 sm:p-8 space-y-5 max-w-7xl mx-auto w-full">
+                <div class="text-right">
+                    <p class="text-xs sm:text-sm font-bold text-slate-700" x-text="loggedInUser">User</p>
+                    <p class="text-[10px] sm:text-xs text-indigo-600 font-semibold uppercase tracking-wider" x-text="userRole">Role</p>
+                </div>
+                <div class="w-9 h-9 bg-indigo-600 text-white font-bold rounded-xl flex items-center justify-center text-sm shadow-md" x-text="getUserInitials()">US</div>
+            </div>
+        </header>
 
-                <!-- NOTIFIKASI -->
-                <div x-show="notification.show" :class="notification.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800'" class="p-3.5 rounded-xl border flex items-center justify-between shadow-sm transition-all" x-cloak>
-                    <div class="flex items-center space-x-2.5">
-                        <svg x-show="notification.type === 'success'" class="w-5 h-5 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        <svg x-show="notification.type === 'error'" class="w-5 h-5 text-rose-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                        <span class="text-xs sm:text-sm font-medium" x-text="notification.message"></span>
+        <!-- Content Body -->
+        <div class="space-y-5 max-w-7xl mx-auto w-full">
+
+            <!-- NOTIFIKASI -->
+            <div x-show="notification.show" :class="notification.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800'" class="p-3.5 rounded-xl border flex items-center justify-between shadow-sm transition-all" x-cloak>
+                <div class="flex items-center space-x-2.5">
+                    <svg x-show="notification.type === 'success'" class="w-5 h-5 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <svg x-show="notification.type === 'error'" class="w-5 h-5 text-rose-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    <span class="text-xs sm:text-sm font-medium" x-text="notification.message"></span>
+                </div>
+                <button @click="notification.show = false" class="text-slate-400 hover:text-slate-600 text-lg leading-none">&times;</button>
+            </div>
+
+            <!-- TAB 1: MONITORING STOCK -->
+            <div x-show="activeTab === 'monitoring'" class="space-y-5">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                        <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                        </div>
+                        <div>
+                            <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total PIC / Cabang</p>
+                            <p class="text-xl sm:text-2xl font-bold text-slate-800" x-text="inventorySummary.length">0</p>
+                        </div>
                     </div>
-                    <button @click="notification.show = false" class="text-slate-400 hover:text-slate-600 text-lg leading-none">&times;</button>
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                        </div>
+                        <div>
+                            <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Seluruh Stock</p>
+                            <p class="text-xl sm:text-2xl font-bold text-slate-800" x-text="inventorySummary.reduce((acc, curr) => acc + curr.qty, 0)">0</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                        <div class="p-3 bg-rose-50 text-rose-600 rounded-xl">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        </div>
+                        <div>
+                            <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Stok Menipis (&lt; 5)</p>
+                            <p class="text-xl sm:text-2xl font-bold text-rose-600" x-text="inventorySummary.filter(i => i.qty < 5).length">0</p>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- TAB 1: MONITORING STOCK -->
-                <div x-show="activeTab === 'monitoring'" class="space-y-5">
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-6">
-                        <div class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
-                            <div class="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-                            </div>
-                            <div>
-                                <p class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Total PIC / Cabang</p>
-                                <p class="text-xl sm:text-2xl font-bold text-slate-800" x-text="inventorySummary.length">0</p>
-                            </div>
+                <!-- Filter & Search Bar -->
+                <div class="flex flex-col sm:flex-row justify-between gap-3 items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center space-x-3 w-full sm:w-auto">
+                        <label class="text-xs font-semibold text-slate-600 whitespace-nowrap">Pilih PIC / Kota:</label>
+                        <select x-model="selectedBranch" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
+                            <option value="ALL">Semua PIC & Kota</option>
+                            <template x-for="loc in edpLocations" :key="loc.nama_edp">
+                                <option :value="loc.nama_edp" x-text="loc.nama_edp + ' — ' + (loc.kota || 'Samarinda')"></option>
+                            </template>
+                        </select>
+                    </div>
+                    <div class="relative w-full sm:w-72">
+                        <input type="text" x-model="searchQuery" placeholder="Cari nama PIC..." class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
+                        <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                </div>
+
+                <!-- Tabel Stock -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[550px]">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-500 text-[11px] uppercase font-semibold tracking-wider border-b border-slate-200">
+                                <th class="p-4">PIC (EDP)</th>
+                                <th class="p-4">Kota / Branch</th>
+                                <th class="p-4 text-center">Total Qty Stock</th>
+                                <th class="p-4 text-center">Status</th>
+                                <th class="p-4 text-center">Aksi Cepat</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-xs">
+                            <template x-if="isLoading">
+                                <tr>
+                                    <td colspan="5" class="p-8 text-center text-slate-400">
+                                        <div class="flex flex-col items-center justify-center space-y-2">
+                                            <svg class="w-7 h-7 text-indigo-600 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                            <span class="font-medium text-slate-600">Sinkronisasi data dari MySQL Server...</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </template>
+                            <template x-for="item in filteredInventory" :key="item.pic">
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="p-4 font-bold text-slate-900" x-text="item.pic"></td>
+                                    <td class="p-4 text-slate-600 font-medium" x-text="item.kota"></td>
+                                    <td class="p-4 text-center font-bold text-sm" :class="item.qty < 5 ? 'text-rose-600' : 'text-slate-800'" x-text="item.qty"></td>
+                                    <td class="p-4 text-center">
+                                        <span class="px-2.5 py-1 rounded-full text-[10px] font-semibold"
+                                              :class="item.qty >= 5 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'"
+                                              x-text="item.qty >= 5 ? 'Aman' : 'Stok Menipis'">
+                                        </span>
+                                    </td>
+                                    <td class="p-4 text-center">
+                                        <button x-show="userRole.toUpperCase() === 'ADMIN'" @click="openQuickTransfer(item)" class="text-indigo-600 hover:text-indigo-900 font-semibold text-xs bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-all shadow-sm">Top-up Qty</button>
+                                        <span x-show="userRole.toUpperCase() !== 'ADMIN'" class="text-slate-400 italic text-[11px]">View Only</span>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 2: TRANSFER / TOP-UP QTY (Admin Only) -->
+            <div x-show="activeTab === 'transfer' && userRole.toUpperCase() === 'ADMIN'" class="max-w-xl mx-auto bg-white p-6 sm:p-8 rounded-xl border border-slate-200 shadow-sm space-y-5">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800">Form Transfer / Penambahan Saldo Stock</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Kirim penambahan qty barang ke PIC tujuan.</p>
+                </div>
+                <form @submit.prevent="submitTransfer" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Pilih PIC Tujuan</label>
+                        <select x-model="transferForm.pic" class="w-full border border-slate-300 rounded-lg px-3.5 py-2 text-xs bg-white focus:ring-2 focus:ring-indigo-500" required>
+                            <option value="">-- Pilih PIC --</option>
+                            <template x-for="loc in edpLocations" :key="loc.nama_edp">
+                                <option :value="loc.nama_edp" x-text="loc.nama_edp"></option>
+                            </template>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Pilih Barang EDP</label>
+                        <select x-model="transferForm.itemCode" class="w-full border border-slate-300 rounded-lg px-3.5 py-2 text-xs bg-white focus:ring-2 focus:ring-indigo-500" required>
+                            <option value="">-- Pilih Barang dari Master --</option>
+                            <template x-for="prod in masterProducts" :key="prod.plu">
+                                <option :value="prod.plu" x-text="prod.plu + ' - ' + prod.nama_barang"></option>
+                            </template>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Jumlah Qty Ditambahkan</label>
+                        <input type="number" min="1" x-model.number="transferForm.qty" placeholder="Contoh: 10" class="w-full border border-slate-300 rounded-lg px-3.5 py-2 text-xs focus:ring-2 focus:ring-indigo-500" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Catatan / Keterangan</label>
+                        <textarea x-model="transferForm.note" rows="3" placeholder="Contoh: Pengiriman rutin..." class="w-full border border-slate-300 rounded-lg px-3.5 py-2 text-xs focus:ring-2 focus:ring-indigo-500"></textarea>
+                    </div>
+                    <button type="submit" :disabled="isSubmitting" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg text-xs shadow-md shadow-indigo-600/30 transition-all flex items-center justify-center space-x-2">
+                        <span x-show="isSubmitting">Sedang Memproses...</span>
+                        <span x-show="!isSubmitting">Proses Transfer Qty</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- TAB 3: PERMINTAAN BARANG -->
+            <div x-show="activeTab === 'request'" class="space-y-4 max-w-3xl mx-auto">
+                
+                <div x-show="userRole.toUpperCase() === 'ADMIN'" class="flex bg-slate-200/80 p-1 rounded-xl gap-1">
+                    <button type="button" @click="requestSubTab = 'form'" :class="requestSubTab === 'form' ? 'bg-white text-indigo-600 shadow-sm font-bold' : 'text-slate-600 font-medium'" class="flex-1 py-2 text-xs rounded-lg transition-all text-center">
+                        📝 Form Pengajuan Barang
+                    </button>
+                    <button type="button" @click="requestSubTab = 'pending'" :class="requestSubTab === 'pending' ? 'bg-indigo-600 text-white shadow-sm font-bold' : 'text-slate-600 font-medium'" class="flex-1 py-2 text-xs rounded-lg transition-all flex items-center justify-center gap-1.5">
+                        <span>⏳ Menunggu Approval</span>
+                        <span x-show="pendingRequests.length > 0" class="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full" x-text="pendingRequests.length"></span>
+                    </button>
+                </div>
+
+                <div x-show="requestSubTab === 'form' || userRole.toUpperCase() !== 'ADMIN'" class="bg-white p-6 sm:p-8 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                        <div>
+                            <h3 class="text-base sm:text-lg font-bold text-slate-800">Ajukan Permintaan Barang</h3>
+                            <p class="text-[11px] text-slate-500 mt-0.5">Maksimal 5 item barang sekaligus per pengajuan.</p>
                         </div>
-                        <div class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
-                            <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-                            </div>
-                            <div>
-                                <p class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Total Seluruh Stock</p>
-                                <p class="text-xl sm:text-2xl font-bold text-slate-800" x-text="inventorySummary.reduce((acc, curr) => acc + curr.qty, 0)">0</p>
-                            </div>
-                        </div>
-                        <div class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
-                            <div class="p-2.5 bg-rose-50 text-rose-600 rounded-xl">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                            </div>
-                            <div>
-                                <p class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Stok Menipis (&lt; 5)</p>
-                                <p class="text-xl sm:text-2xl font-bold text-rose-600" x-text="inventorySummary.filter(i => i.qty < 5).length">0</p>
-                            </div>
-                        </div>
+                        <button type="button" @click="addRequestRow()" x-show="requestForm.items.length < 5" class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-semibold px-3 py-1.5 rounded-lg text-xs flex items-center space-x-1 transition-all shadow-sm">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            <span>Tambah (<span x-text="requestForm.items.length"></span>/5)</span>
+                        </button>
                     </div>
 
-                    <!-- Filter & Search Bar -->
-                    <div class="flex flex-col sm:flex-row justify-between gap-3 items-center bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-                        <div class="flex items-center space-x-3 w-full sm:w-auto">
-                            <label class="text-xs font-semibold text-slate-600 whitespace-nowrap">Pilih PIC / Kota:</label>
-                            <select x-model="selectedBranch" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
-                                <option value="ALL">Semua PIC & Kota</option>
-                                <template x-for="loc in edpLocations" :key="loc.pic + loc.kota">
-                                    <option :value="loc.pic" x-text="loc.pic + ' — ' + loc.kota"></option>
-                                </template>
-                            </select>
+                    <form @submit.prevent="submitRequestBarang" class="space-y-3.5">
+                        <datalist id="list-master-barang">
+                            <template x-for="prod in masterProducts" :key="prod.plu">
+                                <option :value="prod.plu + ' - ' + prod.nama_barang"></option>
+                            </template>
+                        </datalist>
+
+                        <div class="space-y-2.5">
+                            <template x-for="(row, idx) in requestForm.items" :key="idx">
+                                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-[11px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md" x-text="'Item #' + (idx + 1)"></span>
+                                        <button type="button" @click="removeRequestRow(idx)" x-show="requestForm.items.length > 1" class="text-rose-500 hover:text-rose-700 text-[11px] font-semibold flex items-center gap-0.5">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                            <span>Hapus</span>
+                                        </button>
+                                    </div>
+
+                                    <div class="grid grid-cols-12 gap-2 items-center">
+                                        <div class="col-span-8 sm:col-span-9">
+                                            <input type="text" 
+                                                   list="list-master-barang" 
+                                                   x-model="row.itemCode" 
+                                                   placeholder="Ketik PLU atau Nama Barang..." 
+                                                   class="w-full border border-slate-300 rounded-lg px-2.5 py-2 text-xs bg-white focus:ring-2 focus:ring-indigo-500 font-medium truncate" 
+                                                   required>
+                                        </div>
+                                        <div class="col-span-4 sm:col-span-3">
+                                            <input type="number" min="1" x-model.number="row.qty" placeholder="Qty" class="w-full border border-slate-300 rounded-lg px-2.5 py-2 text-xs text-center focus:ring-2 focus:ring-indigo-500 font-bold" required>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
                         </div>
-                        <div class="relative w-full sm:w-72">
-                            <input type="text" x-model="searchQuery" placeholder="Cari nama PIC / kota..." class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50/50">
-                            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Catatan Pengajuan</label>
+                            <textarea x-model="requestForm.note" rows="2" placeholder="Contoh: Kebutuhan pergantian sparepart..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500"></textarea>
                         </div>
+
+                        <button type="submit" :disabled="isSubmitting" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg text-xs shadow-md shadow-indigo-600/30 transition-all flex items-center justify-center space-x-2">
+                            <span x-show="isSubmitting">Mengirim Pengajuan...</span>
+                            <span x-show="!isSubmitting" x-text="'Kirim ' + requestForm.items.length + ' Item ke Admin'"></span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Daftar Permintaan Pending -->
+                <div x-show="requestSubTab === 'pending' && userRole.toUpperCase() === 'ADMIN'" class="bg-white p-6 sm:p-8 rounded-xl border border-amber-200 shadow-sm space-y-3.5">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-800">Daftar Permintaan Menunggu Approval</h3>
+                            <p class="text-[11px] text-slate-500">Sesuaikan jumlah Qty realisasi untuk diproses.</p>
+                        </div>
+                        <span class="bg-amber-100 text-amber-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full" x-text="pendingRequests.length + ' Pending'"></span>
                     </div>
 
-                    <!-- Tabel Stock -->
-                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-x-auto">
-                        <table class="w-full text-left border-collapse min-w-[550px]">
-                            <thead>
-                                <tr class="bg-slate-50 text-slate-500 text-[11px] uppercase font-semibold tracking-wider border-b border-slate-200">
-                                    <th class="p-4">PIC (EDP)</th>
-                                    <th class="p-4">Kota / Branch</th>
-                                    <th class="p-4 text-center">Total Qty Stock</th>
-                                    <th class="p-4 text-center">Status</th>
-                                    <th class="p-4 text-center">Aksi Cepat</th>
+                    <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                        <table class="w-full text-left text-xs min-w-[500px]">
+                            <thead class="bg-slate-50 text-slate-500 uppercase font-semibold border-b border-slate-200">
+                                <tr>
+                                    <th class="p-3">Tanggal</th>
+                                    <th class="p-3">Pemohon</th>
+                                    <th class="p-3">Barang</th>
+                                    <th class="p-3 text-center">Qty Diminta</th>
+                                    <th class="p-3 text-center">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-100 text-xs">
-                                <template x-if="isLoading">
+                            <tbody class="divide-y divide-slate-100">
+                                <template x-if="pendingRequests.length === 0">
                                     <tr>
-                                        <td colspan="5" class="p-8 text-center text-slate-400">
-                                            <div class="flex flex-col items-center justify-center space-y-2">
-                                                <svg class="w-7 h-7 text-indigo-600 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                                <span class="font-medium text-slate-600">Sinkronisasi data dari Google Apps Script...</span>
-                                            </div>
-                                        </td>
+                                        <td colspan="5" class="p-6 text-center text-slate-400 italic">Tidak ada permintaan barang yang perlu diproses.</td>
                                     </tr>
                                 </template>
-                                <template x-for="item in filteredInventory" :key="item.pic">
-                                    <tr class="hover:bg-slate-50/80 transition-colors">
-                                        <td class="p-4 font-bold text-slate-900" x-text="item.pic"></td>
-                                        <td class="p-4 text-slate-600 font-medium" x-text="item.kota"></td>
-                                        <td class="p-4 text-center font-bold text-sm" :class="item.qty < 5 ? 'text-rose-600' : 'text-slate-800'" x-text="item.qty"></td>
-                                        <td class="p-4 text-center">
-                                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold"
-                                                  :class="item.qty >= 5 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'"
-                                                  x-text="item.qty >= 5 ? 'Aman' : 'Stok Menipis'">
-                                            </span>
-                                        </td>
-                                        <td class="p-4 text-center">
-                                            <button x-show="userRole.toUpperCase() === 'ADMIN'" @click="openQuickTransfer(item)" class="text-indigo-600 hover:text-indigo-900 font-semibold text-xs bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-all shadow-sm">Top-up Qty</button>
-                                            <span x-show="userRole.toUpperCase() !== 'ADMIN'" class="text-slate-400 italic text-[11px]">View Only</span>
+                                <template x-for="req in pendingRequests" :key="req.id_request">
+                                    <tr class="hover:bg-amber-50/50">
+                                        <td class="p-3 text-slate-600" x-text="req.tanggal"></td>
+                                        <td class="p-3 font-bold text-slate-900" x-text="req.nama_edp"></td>
+                                        <td class="p-3 font-medium text-slate-800" x-text="req.nama_barang || req.plu"></td>
+                                        <td class="p-3 text-center font-bold text-indigo-600 text-xs" x-text="req.qty_diminta"></td>
+                                        <td class="p-3 text-center">
+                                            <button @click="openApproveModal(req)" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[11px] px-3 py-1.5 rounded-lg shadow-sm">
+                                                Proses
+                                            </button>
                                         </td>
                                     </tr>
                                 </template>
@@ -270,361 +623,238 @@
                         </table>
                     </div>
                 </div>
-
-                <!-- TAB 2: TRANSFER / TOP-UP QTY (Admin Only) -->
-                <div x-show="activeTab === 'transfer' && userRole.toUpperCase() === 'ADMIN'" class="max-w-xl mx-auto bg-white p-4 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-5">
-                    <div>
-                        <h3 class="text-lg sm:text-xl font-bold text-slate-800">Form Transfer / Penambahan Saldo Stock</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Kirim penambahan qty barang dari pusat ke PIC / Kota tujuan.</p>
-                    </div>
-                    <form @submit.prevent="submitTransfer" class="space-y-3.5">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Pilih PIC / Kota Tujuan</label>
-                            <select x-model="transferForm.pic" class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs bg-white focus:ring-2 focus:ring-indigo-500" required>
-                                <option value="">-- Pilih PIC --</option>
-                                <template x-for="loc in edpLocations" :key="loc.pic">
-                                    <option :value="loc.pic" x-text="loc.pic + ' — ' + loc.kota"></option>
-                                </template>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Pilih Barang EDP</label>
-                            <select x-model="transferForm.itemCode" class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs bg-white focus:ring-2 focus:ring-indigo-500" required>
-                                <option value="">-- Pilih Barang (Dari Master) --</option>
-                                <template x-for="prod in masterProducts" :key="prod.code">
-                                    <option :value="prod.code" x-text="prod.code + ' - ' + prod.name"></option>
-                                </template>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Jumlah Qty Ditambahkan</label>
-                            <input type="number" min="1" x-model.number="transferForm.qty" placeholder="Contoh: 10" class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-indigo-500" required>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Catatan / Keterangan</label>
-                            <textarea x-model="transferForm.note" rows="2.5" placeholder="Contoh: Pengiriman rutin bulanan via ekspedisi..." class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-indigo-500"></textarea>
-                        </div>
-                        <button type="submit" :disabled="isSubmitting" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-xl text-xs shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center space-x-2">
-                            <span x-show="isSubmitting">Sedang Memproses...</span>
-                            <span x-show="!isSubmitting">Proses Transfer Qty</span>
-                        </button>
-                    </form>
-                </div>
-
-                <!-- TAB PERMINTAAN BARANG -->
-                <div x-show="activeTab === 'request'" class="space-y-4 max-w-3xl mx-auto">
-                    
-                    <div x-show="userRole.toUpperCase() === 'ADMIN'" class="flex bg-slate-200/80 p-1 rounded-xl gap-1">
-                        <button type="button" @click="requestSubTab = 'form'" :class="requestSubTab === 'form' ? 'bg-white text-indigo-600 shadow-sm font-bold' : 'text-slate-600 font-medium'" class="flex-1 py-2 text-xs rounded-lg transition-all text-center">
-                            📝 Form Pengajuan Barang
-                        </button>
-                        <button type="button" @click="requestSubTab = 'pending'" :class="requestSubTab === 'pending' ? 'bg-indigo-600 text-white shadow-sm font-bold' : 'text-slate-600 font-medium'" class="flex-1 py-2 text-xs rounded-lg transition-all flex items-center justify-center gap-1.5">
-                            <span>⏳ Menunggu Approval</span>
-                            <span x-show="pendingRequests.length > 0" class="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full" x-text="pendingRequests.length"></span>
-                        </button>
-                    </div>
-
-                    <div x-show="requestSubTab === 'form' || userRole.toUpperCase() !== 'ADMIN'" class="bg-white p-4 sm:p-7 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                        <div class="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                            <div>
-                                <h3 class="text-base sm:text-lg font-bold text-slate-800">Ajukan Permintaan Barang</h3>
-                                <p class="text-[11px] text-slate-500 mt-0.5">Maksimal 5 item barang sekaligus per pengajuan.</p>
-                            </div>
-                            <button type="button" @click="addRequestRow()" x-show="requestForm.items.length < 5" class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-semibold px-3 py-1.5 rounded-lg text-xs flex items-center space-x-1 transition-all shadow-sm">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                                <span>Tambah (<span x-text="requestForm.items.length"></span>/5)</span>
-                            </button>
-                        </div>
-
-                        <form @submit.prevent="submitRequestBarang" class="space-y-3.5">
-                            <datalist id="list-master-barang">
-                                <template x-for="prod in masterProducts" :key="prod.code">
-                                    <option :value="prod.code + ' - ' + prod.name"></option>
-                                </template>
-                            </datalist>
-
-                            <div class="space-y-2.5">
-                                <template x-for="(row, idx) in requestForm.items" :key="idx">
-                                    <div class="p-3 bg-slate-50/90 rounded-xl border border-slate-200 space-y-2">
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-[11px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md" x-text="'Item #' + (idx + 1)"></span>
-                                            <button type="button" @click="removeRequestRow(idx)" x-show="requestForm.items.length > 1" class="text-rose-500 hover:text-rose-700 text-[11px] font-semibold flex items-center gap-0.5">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                                <span>Hapus</span>
-                                            </button>
-                                        </div>
-
-                                        <div class="grid grid-cols-12 gap-2 items-center">
-                                            <div class="col-span-8 sm:col-span-9">
-                                                <input type="text" 
-                                                       list="list-master-barang" 
-                                                       x-model="row.itemCode" 
-                                                       placeholder="Ketik PLU atau Nama Barang..." 
-                                                       class="w-full border border-slate-300 rounded-lg px-2.5 py-2 text-xs bg-white focus:ring-2 focus:ring-indigo-500 font-medium truncate" 
-                                                       required>
-                                            </div>
-                                            <div class="col-span-4 sm:col-span-3">
-                                                <input type="number" min="1" x-model.number="row.qty" placeholder="Qty" class="w-full border border-slate-300 rounded-lg px-2.5 py-2 text-xs text-center focus:ring-2 focus:ring-indigo-500 font-bold" required>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </template>
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">Alasan / Catatan Pengajuan</label>
-                                <textarea x-model="requestForm.note" rows="2" placeholder="Contoh: Kebutuhan pergantian sparepart toko di Samarinda..." class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500"></textarea>
-                            </div>
-
-                            <button type="submit" :disabled="isSubmitting" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-xl text-xs shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center space-x-2">
-                                <span x-show="isSubmitting">Mengirim Pengajuan...</span>
-                                <span x-show="!isSubmitting" x-text="'Kirim ' + requestForm.items.length + ' Item Permintaan ke Admin'"></span>
-                            </button>
-                        </form>
-                    </div>
-
-                    <!-- Daftar Permintaan Pending -->
-                    <div x-show="requestSubTab === 'pending' && userRole.toUpperCase() === 'ADMIN'" class="bg-white p-4 sm:p-7 rounded-2xl border border-amber-200 shadow-sm space-y-3.5">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h3 class="text-base font-bold text-slate-800">Daftar Permintaan Menunggu Approval</h3>
-                                <p class="text-[11px] text-slate-500">Sesuaikan jumlah Qty realisasi berdasarkan historis kebutuhan pengeluaran user.</p>
-                            </div>
-                            <span class="bg-amber-100 text-amber-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full" x-text="pendingRequests.length + ' Pending'"></span>
-                        </div>
-
-                        <div class="overflow-x-auto border border-slate-200 rounded-xl">
-                            <table class="w-full text-left text-xs min-w-[500px]">
-                                <thead class="bg-slate-50 text-slate-500 uppercase font-semibold border-b border-slate-200">
-                                    <tr>
-                                        <th class="p-2.5">Tanggal</th>
-                                        <th class="p-2.5">Pemohon</th>
-                                        <th class="p-2.5">Barang</th>
-                                        <th class="p-2.5 text-center">Qty Diminta</th>
-                                        <th class="p-2.5 text-center">Pergerakan</th>
-                                        <th class="p-2.5 text-center">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100">
-                                    <template x-if="pendingRequests.length === 0">
-                                        <tr>
-                                            <td colspan="6" class="p-5 text-center text-slate-400 italic">Tidak ada permintaan barang yang perlu diproses saat ini.</td>
-                                        </tr>
-                                    </template>
-                                    <template x-for="req in pendingRequests" :key="req['ID Request'] || req['Tanggal'] + req['Nama EDP']">
-                                        <tr class="hover:bg-amber-50/50">
-                                            <td class="p-2.5 text-slate-600" x-text="req['Tanggal']"></td>
-                                            <td class="p-2.5 font-bold text-slate-900" x-text="req['Nama EDP']"></td>
-                                            <td class="p-2.5 font-medium text-slate-800" x-text="req['Nama Barang'] || req['PLU / Item']"></td>
-                                            <td class="p-2.5 text-center font-bold text-indigo-600 text-xs" x-text="req['Qty Diminta']"></td>
-                                            <td class="p-2.5 text-center">
-                                                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold"
-                                                      :class="getFastMovingLabel(req['PLU / Item']) === 'Fast Moving' ? 'bg-rose-100 text-rose-700 border border-rose-200' : 'bg-slate-100 text-slate-600'"
-                                                      x-text="getFastMovingLabel(req['PLU / Item'])">
-                                                </span>
-                                            </td>
-                                            <td class="p-2.5 text-center">
-                                                <button @click="openApproveModal(req)" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[11px] px-2.5 py-1 rounded-lg shadow-sm">
-                                                    Proses
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    </template>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- MODAL APPROVAL ADMIN -->
-                <div x-show="approveModal.show" class="fixed inset-0 modal-backdrop flex items-center justify-center p-4" x-cloak>
-                    <div class="modal-card rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl border border-slate-200">
-                        <div>
-                            <h3 class="text-base font-bold text-slate-800">Proses Permintaan Barang</h3>
-                            <p class="text-[11px] text-slate-500">Tentukan barang dan Qty realisasi yang disetujui untuk dikirim ke user.</p>
-                        </div>
-
-                        <template x-if="approveModal.item">
-                            <div class="bg-slate-50 p-3 rounded-xl space-y-1 text-xs text-slate-700 border border-slate-200">
-                                <p><strong>Pemohon:</strong> <span x-text="approveModal.item['Nama EDP']"></span></p>
-                                <p><strong>Barang Diminta:</strong> <span class="font-semibold text-slate-900" x-text="(approveModal.item['Nama Barang'] || approveModal.item['PLU / Item']) + ' (Qty: ' + approveModal.item['Qty Diminta'] + ')'"></span></p>
-                            </div>
-                        </template>
-
-                        <div class="space-y-2.5">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1">Barang Realisasi Disetujui</label>
-                                <select x-model="approveModal.itemCodeApproved" class="w-full border border-slate-300 rounded-xl px-3 py-1.5 text-xs bg-white focus:ring-2 focus:ring-emerald-500 font-medium">
-                                    <template x-for="prod in masterProducts" :key="prod.code">
-                                        <option :value="prod.code" x-text="prod.code + ' - ' + prod.name"></option>
-                                    </template>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1">Qty Realisasi Disetujui</label>
-                                <input type="number" min="1" x-model.number="approveModal.qtyApproved" class="w-full border border-slate-300 rounded-xl px-3 py-1.5 text-xs focus:ring-2 focus:ring-emerald-500 font-bold text-slate-800" required>
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1">Catatan Admin</label>
-                                <input type="text" x-model="approveModal.note" placeholder="Contoh: Disetujui tipe pengganti..." class="w-full border border-slate-300 rounded-xl px-3 py-1.5 text-xs focus:ring-2 focus:ring-emerald-500">
-                            </div>
-                        </div>
-
-                        <div class="flex space-x-2 pt-2">
-                            <button @click="approveModal.show = false" class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 rounded-xl text-xs">Batal</button>
-                            <button @click="submitApprovalAdmin()" :disabled="isSubmitting" class="w-1/2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 rounded-xl text-xs shadow-md">
-                                <span x-show="!isSubmitting">Setujui & Tambah</span>
-                                <span x-show="isSubmitting">Memproses...</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TAB 3: INPUT BKB (BUKTI KELUAR BARANG) -->
-                <div x-show="activeTab === 'bkb'" class="max-w-xl mx-auto bg-white p-4 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-5">
-                    <div>
-                        <h3 class="text-lg sm:text-xl font-bold text-slate-800">Input BKB (Bukti Keluar Barang)</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Catat pengeluaran barang, kurangi stok, dan kirim langsung ke Google Spreadsheet via GAS.</p>
-                    </div>
-
-                    <form @submit.prevent="submitBKB" class="space-y-3.5">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">PIC Pelapor</label>
-                                
-                                <!-- JIKA USER ADMIN: BISA PILIH BEBAS DROPDOWN -->
-                                <template x-if="userRole.toUpperCase() === 'ADMIN'">
-                                    <select x-model="bkbForm.pic" @change="updateKodeToko()" class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs bg-white focus:ring-2 focus:ring-indigo-500 font-medium" required>
-                                        <option value="">-- Pilih PIC --</option>
-                                        <template x-for="loc in edpLocations" :key="loc.pic">
-                                            <option :value="loc.pic" x-text="loc.pic + ' — ' + loc.kota"></option>
-                                        </template>
-                                    </select>
-                                </template>
-
-                                <!-- JIKA USER NON-ADMIN: DIPAKSA READONLY TERISI OTOMATIS -->
-                                <template x-if="userRole.toUpperCase() !== 'ADMIN'">
-                                    <input type="text" x-model="bkbForm.pic" class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs bg-slate-100 font-bold text-slate-700 cursor-not-allowed" readonly required>
-                                </template>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">Kode Toko</label>
-                                <select x-model="bkbForm.kodeToko" class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs bg-white focus:ring-2 focus:ring-indigo-500 font-medium" required>
-                                    <option value="">-- Pilih Kode Toko --</option>
-                                    <template x-for="toko in getAvailableKodeToko()" :key="toko">
-                                        <option :value="toko" x-text="toko"></option>
-                                    </template>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">Nomor Surat Jalan (SJ)</label>
-                                <input type="text" x-model="bkbForm.suratJalan" class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs bg-slate-100 font-mono text-slate-700 cursor-not-allowed" readonly required>
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">Item Barang Keluar</label>
-                                <select x-model="bkbForm.itemCode" class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs bg-white focus:ring-2 focus:ring-indigo-500 font-medium" required>
-                                    <option value="">-- Pilih Barang (Tersedia Stok) --</option>
-                                    <template x-for="prod in getAvailableBKBItems()" :key="prod.code">
-                                        <option :value="prod.code" x-text="prod.name + ' [' + prod.code + '] — Stok: ' + prod.qty + (getFastMovingLabel(prod.code) === 'Fast Moving' ? ' 🔥' : '')"></option>
-                                    </template>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">
-                                    Qty Keluar 
-                                    <span x-show="bkbForm.itemCode" class="text-[11px] text-indigo-600 font-normal">
-                                        (Maks: <span x-text="getMaxStockForItem()"></span>)
-                                    </span>
-                                </label>
-                                <input type="number" min="1" :max="getMaxStockForItem()" x-model.number="bkbForm.qty" placeholder="Jumlah barang" class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-indigo-500" required>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">Tanggal BKB</label>
-                                <input type="date" x-model="bkbForm.date" @change="generateSuratJalan()" class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs" required>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Upload Foto BKB / Fisik Barang</label>
-                            <input type="file" @change="handleFileUpload" accept="image/*" class="w-full border border-slate-300 rounded-xl px-3.5 py-1.5 text-xs bg-slate-50 text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" required>
-                            <p class="text-[10px] text-slate-400 mt-1" x-text="isCompressingPhoto ? '⏳ Mengompres foto...' : 'Format: JPG, PNG (Foto otomatis dioptimasi & dikirim ke Drive)'"></p>
-                        </div>
-
-                        <button type="submit" :disabled="isSubmitting || isCompressingPhoto || (bkbForm.itemCode && getMaxStockForItem() <= 0)" class="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white font-semibold py-2.5 rounded-xl text-xs shadow-lg shadow-emerald-600/30 transition-all flex items-center justify-center space-x-2">
-                            <span x-show="isSubmitting">Mengirim BKB via GAS...</span>
-                            <span x-show="!isSubmitting">Simpan & Kirim BKB (Rekap SJ)</span>
-                        </button>
-                    </form>
-                </div>
-
-                <!-- TAB 4: MASTER PRODUK (Admin Only) -->
-                <div x-show="activeTab === 'master' && userRole.toUpperCase() === 'ADMIN'" class="max-w-xl mx-auto bg-white p-4 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-5">
-                    <div>
-                        <h3 class="text-lg sm:text-xl font-bold text-slate-800">Upload Master Data Produk EDP</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Unggah file Excel (.xlsx/.xls) atau CSV berisi daftar master produk.</p>
-                    </div>
-                    
-                    <div class="border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center space-y-2.5 bg-slate-50/50">
-                        <svg class="w-8 h-8 text-indigo-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                        <div>
-                            <label class="cursor-pointer bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-xl text-xs shadow-md transition-all inline-block">
-                                Pilih File Master (.xlsx, .csv)
-                                <input type="file" @change="handleMasterUpload" accept=".xlsx, .xls, .csv" class="hidden">
-                            </label>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h4 class="text-xs font-bold text-slate-700 mb-2">Daftar Produk Master (<span x-text="masterProducts.length"></span> item):</h4>
-                        <div class="max-h-56 overflow-y-auto border border-slate-200 rounded-xl">
-                            <table class="w-full text-left text-xs">
-                                <thead class="bg-slate-50 text-slate-500 sticky top-0 border-b border-slate-200">
-                                    <tr>
-                                        <th class="p-2.5">Kode Barang</th>
-                                        <th class="p-2.5">Nama Produk EDP</th>
-                                        <th class="p-2.5 text-center">Pergerakan</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100">
-                                    <template x-for="prod in masterProducts" :key="prod.code">
-                                        <tr>
-                                            <td class="p-2.5 font-mono text-indigo-600 font-semibold" x-text="prod.code"></td>
-                                            <td class="p-2.5 font-medium text-slate-800" x-text="prod.name"></td>
-                                            <td class="p-2.5 text-center">
-                                                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold"
-                                                      :class="getFastMovingLabel(prod.code) === 'Fast Moving' ? 'bg-rose-100 text-rose-700 border border-rose-200' : 'bg-slate-100 text-slate-600'"
-                                                      x-text="getFastMovingLabel(prod.code)">
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    </template>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
             </div>
-        </main>
+
+            <!-- MODAL APPROVAL ADMIN -->
+            <div x-show="approveModal.show" class="fixed inset-0 modal-backdrop flex items-center justify-center p-4" x-cloak>
+                <div class="modal-card rounded-xl max-w-md w-full p-6 space-y-3 shadow-2xl border border-slate-200">
+                    <div>
+                        <h3 class="text-base font-bold text-slate-800">Proses Permintaan Barang</h3>
+                        <p class="text-[11px] text-slate-500">Tentukan Qty realisasi yang disetujui.</p>
+                    </div>
+
+                    <template x-if="approveModal.item">
+                        <div class="bg-slate-50 p-3 rounded-lg space-y-1 text-xs text-slate-700 border border-slate-200">
+                            <p><strong>Pemohon:</strong> <span x-text="approveModal.item.nama_edp"></span></p>
+                            <p><strong>Barang:</strong> <span class="font-semibold text-slate-900" x-text="(approveModal.item.nama_barang || approveModal.item.plu) + ' (Diminta: ' + approveModal.item.qty_diminta + ')'"></span></p>
+                        </div>
+                    </template>
+
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Qty Realisasi Disetujui</label>
+                            <input type="number" min="1" x-model.number="approveModal.qtyApproved" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 font-bold text-slate-800" required>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Catatan Admin</label>
+                            <input type="text" x-model="approveModal.note" placeholder="Catatan approval..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                    </div>
+
+                    <div class="flex space-x-2 pt-2">
+                        <button @click="approveModal.show = false" class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 rounded-lg text-xs">Batal</button>
+                        <button @click="submitApprovalAdmin()" :disabled="isSubmitting" class="w-1/2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 rounded-lg text-xs shadow-md">
+                            <span x-show="!isSubmitting">Setujui & Tambah</span>
+                            <span x-show="isSubmitting">Memproses...</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: INPUT BKB -->
+            <div x-show="activeTab === 'bkb'" class="max-w-xl mx-auto bg-white p-6 sm:p-8 rounded-xl border border-slate-200 shadow-sm space-y-5">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800">Input BKB (Bukti Keluar Barang)</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Catat pengeluaran barang dan simpan langsung ke database MySQL.</p>
+                </div>
+
+                <form @submit.prevent="submitBKB" class="space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">PIC Pelapor</label>
+                            <template x-if="userRole.toUpperCase() === 'ADMIN'">
+                                <select x-model="bkbForm.pic" class="w-full border border-slate-300 rounded-lg px-3.5 py-2 text-xs bg-white focus:ring-2 focus:ring-indigo-500 font-medium" required>
+                                    <option value="">-- Pilih PIC --</option>
+                                    <template x-for="loc in edpLocations" :key="loc.nama_edp">
+                                        <option :value="loc.nama_edp" x-text="loc.nama_edp"></option>
+                                    </template>
+                                </select>
+                            </template>
+                            <template x-if="userRole.toUpperCase() !== 'ADMIN'">
+                                <input type="text" x-model="bkbForm.pic" class="w-full border border-slate-300 rounded-lg px-3.5 py-2 text-xs bg-slate-100 font-bold text-slate-700 cursor-not-allowed" readonly required>
+                            </template>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Kode Toko (KDTK)</label>
+                            <select x-model="bkbForm.kodeToko" class="w-full border border-slate-300 rounded-lg px-3.5 py-2 text-xs bg-white focus:ring-2 focus:ring-indigo-500 font-medium" required>
+                                <option value="">-- Pilih Kode Toko --</option>
+                                <template x-for="store in getAvailableStores()" :key="store.id || store.toko">
+                                    <option :value="store.toko" x-text="store.toko + (store.nama_toko ? ' - ' + store.nama_toko : '')"></option>
+                                </template>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Nomor Surat Jalan (SJ)</label>
+                            <input type="text" x-model="bkbForm.suratJalan" class="w-full border border-slate-300 rounded-lg px-3.5 py-2 text-xs bg-slate-100 font-mono text-slate-700 cursor-not-allowed" readonly required>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Item Barang Keluar</label>
+                            <select x-model="bkbForm.itemCode" class="w-full border border-slate-300 rounded-lg px-3.5 py-2 text-xs bg-white focus:ring-2 focus:ring-indigo-500 font-medium" required>
+                                <option value="">-- Pilih Barang Stok Tersedia --</option>
+                                <template x-for="prod in getAvailableBKBItems()" :key="prod.plu">
+                                    <option :value="prod.plu" x-text="prod.nama_barang + ' [' + prod.plu + '] — Stok: ' + prod.qty"></option>
+                                </template>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">
+                                Qty Keluar <span x-show="bkbForm.itemCode" class="text-[11px] text-indigo-600 font-normal">(Maks: <span x-text="getMaxStockForItem()"></span>)</span>
+                            </label>
+                            <input type="number" min="1" :max="getMaxStockForItem()" x-model.number="bkbForm.qty" placeholder="Jumlah" class="w-full border border-slate-300 rounded-lg px-3.5 py-2 text-xs focus:ring-2 focus:ring-indigo-500" required>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Tanggal BKB</label>
+                            <input type="date" x-model="bkbForm.date" @change="generateSuratJalan()" class="w-full border border-slate-300 rounded-lg px-3.5 py-2 text-xs" required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Upload Foto Bukti BKB (Wajib)</label>
+                        <input type="file" @change="handleFileUpload" accept="image/*" class="w-full border border-slate-300 rounded-lg px-3.5 py-1.5 text-xs bg-slate-50 text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" required>
+                        <p class="text-[10px] text-slate-400 mt-1" x-text="isCompressingPhoto ? '⏳ Mengompres foto...' : 'Foto otomatis dioptimasi & dikirim ke Google Drive'"></p>
+                    </div>
+
+                    <button type="submit" :disabled="isSubmitting || isCompressingPhoto" class="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white font-semibold py-2.5 rounded-lg text-xs shadow-md shadow-emerald-600/30 transition-all flex items-center justify-center space-x-2">
+                        <span x-show="isSubmitting">Mengirim ke MySQL...</span>
+                        <span x-show="!isSubmitting">Simpan & Kirim BKB</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- TAB 5: MASTER PRODUK (Admin Only) -->
+            <div x-show="activeTab === 'master' && userRole.toUpperCase() === 'ADMIN'" class="max-w-xl mx-auto bg-white p-6 sm:p-8 rounded-xl border border-slate-200 shadow-sm space-y-5">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800">Manajemen Master Produk EDP</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Daftar produk master yang tersinkronisasi dengan MySQL.</p>
+                </div>
+
+                <div class="max-h-72 overflow-y-auto border border-slate-200 rounded-xl">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-50 text-slate-500 sticky top-0 border-b border-slate-200">
+                            <tr>
+                                <th class="p-3">PLU</th>
+                                <th class="p-3">Nama Produk EDP</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <template x-for="prod in masterProducts" :key="prod.plu">
+                                <tr>
+                                    <td class="p-3 font-mono text-indigo-600 font-semibold" x-text="prod.plu"></td>
+                                    <td class="p-3 font-medium text-slate-800" x-text="prod.nama_barang"></td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div class="footer-copyright">
+        Aldoni Jelang R. - EDP Samarinda (dibantu oleh Edi dan Rey) &copy; 2026
     </div>
 
     <!-- SCRIPT LOGIC -->
     <script>
-        const gasUrl = "https://script.google.com/macros/s/AKfycbz_tNHAoQAjhsEvny5l2_aUYwwdTegK3j4X-jEyS9KN06LUGV17suZkOZdYP19V_P_1/exec"; 
+        const apiUrl = "https://slouching-extrovert-frosty.ngrok-free.dev/api/data";
+        
+        // Header global untuk bypass warning halaman Ngrok pada setiap fetch
+        const ngrokHeaders = {
+            "Content-Type": "application/json",
+            "ngrok-skip-browser-warning": "true"
+        };
+
+        document.addEventListener("DOMContentLoaded", () => {
+            if (sessionStorage.getItem("isLoggedIn") !== "true") {
+                window.location.href = "login.html";
+                return;
+            }
+
+            if (window.innerWidth > 768 && localStorage.getItem("sidebarCollapsed") === "true") {
+                const sidebar = document.getElementById("sidebar");
+                const mainContent = document.querySelector(".main-content");
+                const footer = document.querySelector(".footer-copyright");
+
+                if (sidebar) sidebar.classList.add("collapsed");
+                if (mainContent) mainContent.classList.add("expanded");
+                if (footer) footer.classList.add("expanded");
+            }
+        });
+
+        async function logoutSystem() {
+            if (confirm("Apakah Anda yakin ingin keluar dari sistem?")) {
+                const userNama = sessionStorage.getItem("userNama") || "Sistem";
+                const userRole = sessionStorage.getItem("userRole") || "Pengguna";
+
+                try {
+                    await fetch(apiUrl, {
+                        method: "POST",
+                        headers: ngrokHeaders,
+                        body: JSON.stringify({
+                            action: "catatLog",
+                            user: userNama,
+                            role: userRole,
+                            aksi: "LOGOUT_SISTEM",
+                            keterangan: "Pengguna keluar dari web portal"
+                        }),
+                        keepalive: true 
+                    });
+                } catch (err) {
+                    console.warn("Gagal mencatat log logout:", err);
+                }
+
+                sessionStorage.clear();
+                window.location.href = "login.html";
+            }
+        }
+
+        function toggleSidebarMenu() {
+            const sidebar = document.getElementById("sidebar");
+            const overlay = document.getElementById("sidebar-overlay");
+            const mainContent = document.querySelector(".main-content");
+            const footer = document.querySelector(".footer-copyright");
+
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle("open");
+                overlay.classList.toggle("active");
+            } else {
+                sidebar.classList.toggle("collapsed");
+                if (mainContent) mainContent.classList.toggle("expanded");
+                if (footer) footer.classList.toggle("expanded");
+
+                const isCollapsed = sidebar.classList.contains("collapsed");
+                localStorage.setItem("sidebarCollapsed", isCollapsed ? "true" : "false");
+            }
+        }
+
+        function closeMobileSidebar() {
+            if (window.innerWidth <= 768) {
+                const sidebar = document.getElementById("sidebar");
+                const overlay = document.getElementById("sidebar-overlay");
+                if (sidebar) sidebar.classList.remove("open");
+                if (overlay) overlay.classList.remove("active");
+            }
+        }
 
         function edpApp() {
             return {
-                mobileSidebarOpen: false, 
                 activeTab: 'monitoring',
                 requestSubTab: 'form',
                 selectedBranch: 'ALL',
@@ -634,35 +864,21 @@
                 isCompressingPhoto: false,
                 loggedInUser: 'User',
                 userRole: 'EDP Cabang',
-                syncStatus: 'Terhubung',
+                syncStatus: 'Terhubung ke MySQL',
                 edpLocations: [], 
-                allEdpLocations: [],
-                sheet4Data: [],
                 inventorySummary: [], 
                 picStockDetails: {}, 
-
                 pendingRequests: [],
+                masterProducts: [],
+                mappingTokoEdp: [],
                 
                 requestForm: { 
-                    items: [
-                        { itemCode: '', qty: 1 }
-                    ], 
+                    items: [{ itemCode: '', qty: 1 }], 
                     note: '' 
                 },
                 
-                approveModal: { show: false, item: null, itemCodeApproved: '', qtyApproved: 0, note: '' },
-                fastMovingMap: {},
-
+                approveModal: { show: false, item: null, qtyApproved: 0, note: '' },
                 notification: { show: false, type: 'success', message: '' },
-
-                masterProducts: [
-                    { code: 'EDP-001', name: 'Scanner Barcode USB Omnidirectional' },
-                    { code: 'EDP-002', name: 'Thermal Receipt Printer 80mm' },
-                    { code: 'EDP-003', name: 'PDA Mobile Computer Enterprise' },
-                    { code: 'EDP-004', name: 'UPS 1200VA AVR Stabilizer' },
-                    { code: 'EDP-005', name: 'Cash Drawer RJ11 Heavy Duty' }
-                ],
-
                 transferForm: { pic: '', itemCode: '', qty: '', note: '' },
                 bkbForm: { 
                     pic: '', 
@@ -677,40 +893,18 @@
                 },
 
                 async init() {
-                    if (sessionStorage.getItem("isLoggedIn") !== "true") {
-                        window.location.href = "login.html";
-                        return;
-                    }
+                    const storedNama = sessionStorage.getItem("userNama") || "surya";
+                    const storedRole = sessionStorage.getItem("userRole") || "PENGGUNA";
 
-                    this.$watch('activeTab', () => {
-                        if (this.$refs.mainContent) {
-                            this.$refs.mainContent.scrollTop = 0;
-                        }
-                    });
-
-                    const storedNama = sessionStorage.getItem("userNama");
-                    const storedRole = sessionStorage.getItem("userRole");
-
-                    if (storedNama) {
-                        this.loggedInUser = storedNama;
-                        this.bkbForm.pic = storedNama; 
-                        this.transferForm.pic = storedNama;
-                    }
-                    if (storedRole) {
-                        this.userRole = storedRole;
-                    }
-
-                    const savedMaster = localStorage.getItem('masterProductsEDP');
-                    if (savedMaster) {
-                        try { this.masterProducts = JSON.parse(savedMaster); } catch(e){}
-                    }
+                    this.loggedInUser = storedNama;
+                    this.userRole = storedRole;
+                    this.bkbForm.pic = storedNama; 
+                    this.transferForm.pic = storedNama;
 
                     this.bkbForm.date = new Date().toISOString().slice(0, 10);
                     this.generateSuratJalan();
 
-                    await this.loadDataFromGAS();
-                    await this.calculateFastMovingItems();
-                    await this.loadPendingRequests();
+                    await this.loadDataFromServer();
                 },
 
                 showNotification(type, message) {
@@ -733,186 +927,21 @@
                 getProductName(code) {
                     if (!code) return '';
                     const cleanCode = String(code).trim().toLowerCase();
-                    const master = this.masterProducts.find(p => String(p.code).trim().toLowerCase() === cleanCode);
-                    return master ? master.name : code;
+                    const master = this.masterProducts.find(p => String(p.plu).trim().toLowerCase() === cleanCode);
+                    return master ? master.nama_barang : code;
                 },
 
-                getFastMovingLabel(code) {
-                    if (!code) return 'Slow Moving';
-                    const cleanCode = String(code).trim().toLowerCase();
-                    return this.fastMovingMap[cleanCode] || 'Slow Moving';
-                },
-
-                async calculateFastMovingItems() {
-                    try {
-                        const resRekapSJ = await fetch(`${gasUrl}?tab=${encodeURIComponent('Rekap Surat Jalan')}`);
-                        const dataSJ = await resRekapSJ.json();
-
-                        if (Array.isArray(dataSJ)) {
-                            const sixtyDaysAgo = new Date();
-                            sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
-
-                            let usageCount = {}; 
-
-                            dataSJ.forEach(row => {
-                                const tglSJ = new Date(row["Tanggal"] || row["tanggal"]);
-                                if (!isNaN(tglSJ) && tglSJ >= sixtyDaysAgo) {
-                                    let itemCode = String(row["PLU"] || row["Nama Barang"] || '').trim().toLowerCase();
-                                    let qtyOut = parseFloat(row["Qty"] || row["qty"]) || 0;
-                                    if (itemCode) {
-                                        usageCount[itemCode] = (usageCount[itemCode] || 0) + qtyOut;
-                                    }
-                                }
-                            });
-
-                            let categoryMap = {};
-                            for (let item in usageCount) {
-                                let totalOut = usageCount[item];
-                                if (totalOut >= 8) {
-                                    categoryMap[item] = "Fast Moving";
-                                } else if (totalOut >= 3) {
-                                    categoryMap[item] = "Medium Moving";
-                                } else {
-                                    categoryMap[item] = "Slow Moving";
-                                }
-                            }
-                            this.fastMovingMap = categoryMap;
-                        }
-                    } catch (e) {
-                        console.warn("Gagal menghitung kategori Fast Moving:", e);
-                    }
-                },
-
-                async submitRequestBarang() {
-                    const validItems = this.requestForm.items.filter(i => i.itemCode && Number(i.qty) > 0);
-                    if (validItems.length === 0) {
-                        this.showNotification('error', 'Pilih minimal 1 barang dengan Qty yang valid!');
-                        return;
-                    }
-
-                    this.isSubmitting = true;
-                    try {
-                        for (let item of validItems) {
-                            let rawCode = item.itemCode.trim();
-                            let plu = rawCode;
-                            let fullProductName = "";
-
-                            if (rawCode.includes(" - ")) {
-                                let parts = rawCode.split(" - ");
-                                plu = parts[0].trim();
-                                fullProductName = parts.slice(1).join(" - ").trim();
-                            } else {
-                                fullProductName = this.getProductName(plu);
-                            }
-
-                            const payload = {
-                                action: "requestBarang",
-                                tanggal: new Date().toISOString().slice(0, 10),
-                                nama_edp: this.loggedInUser,
-                                plu: plu,
-                                nama_barang: fullProductName,
-                                qty_diminta: Number(item.qty),
-                                catatan: this.requestForm.note || "-"
-                            };
-
-                            const response = await fetch(gasUrl, {
-                                method: "POST",
-                                headers: { "Content-Type": "text/plain" },
-                                body: JSON.stringify(payload)
-                            });
-                            
-                            const resJson = await response.json();
-                            if (resJson.status !== "sukses" && resJson.result !== "success") {
-                                throw new Error(resJson.message || "Gagal mengirim barang: " + plu);
-                            }
-                        }
-
-                        this.showNotification('success', `Berhasil mengajukan ${validItems.length} item barang ke Admin!`);
-                        
-                        this.requestForm = { 
-                            items: [{ itemCode: '', qty: 1 }], 
-                            note: '' 
-                        };
-                        await this.loadPendingRequests();
-                    } catch (e) {
-                        console.error(e);
-                        this.showNotification('error', 'Gagal mengirim permintaan barang: ' + e.message);
-                    } finally {
-                        this.isSubmitting = false;
-                    }
-                },
-
-                async loadPendingRequests() {
-                    try {
-                        const res = await fetch(`${gasUrl}?tab=${encodeURIComponent('Permintaan Barang')}`);
-                        const data = await res.json();
-                        if (Array.isArray(data)) {
-                            this.pendingRequests = data.filter(r => (r["Status"] || '').trim().toUpperCase() === "PENDING");
-                        }
-                    } catch (e) {
-                        console.warn("Gagal memuat permintaan barang:", e);
-                    }
-                },
-
-                openApproveModal(req) {
-                    const currentCode = req['PLU / Item'] || req['PLU'] || '';
-                    this.approveModal = {
-                        show: true,
-                        item: req,
-                        itemCodeApproved: currentCode,
-                        qtyApproved: Number(req["Qty Diminta"] || 1),
-                        note: ''
-                    };
-                },
-
-                async submitApprovalAdmin() {
-                    if (!this.approveModal.item) return;
-                    this.isSubmitting = true;
-
-                    let rawCode = this.approveModal.itemCodeApproved.trim();
-                    let plu = rawCode;
-                    let fullProductName = "";
-
-                    if (rawCode.includes(" - ")) {
-                        let parts = rawCode.split(" - ");
-                        plu = parts[0].trim();
-                        fullProductName = parts.slice(1).join(" - ").trim();
-                    } else {
-                        fullProductName = this.getProductName(plu);
-                    }
-
-                    const payload = {
-                        action: "approveRequest",
-                        id_request: this.approveModal.item["ID Request"],
-                        nama_edp: this.approveModal.item["Nama EDP"],
-                        plu: plu,
-                        nama_barang: fullProductName,
-                        qty_disetujui: Number(this.approveModal.qtyApproved),
-                        catatan_admin: this.approveModal.note || "Disetujui Admin"
-                    };
-
-                    try {
-                        const response = await fetch(gasUrl, {
-                            method: "POST",
-                            headers: { "Content-Type": "text/plain" },
-                            body: JSON.stringify(payload)
-                        });
-
-                        const resJson = await response.json();
-                        if (resJson.status !== "sukses" && resJson.result !== "success") {
-                            throw new Error(resJson.message || "Gagal menyetujui permintaan");
-                        }
-
-                        this.showNotification('success', `Permintaan disetujui! Stok ${this.approveModal.item["Nama EDP"]} berhasil ditambahkan (${this.approveModal.qtyApproved} unit).`);
-                        this.approveModal.show = false;
-                        await this.loadPendingRequests();
-                        await this.loadDataFromGAS();
-                    } catch (e) {
-                        console.error(e);
-                        this.showNotification('error', 'Gagal memproses persetujuan permintaan: ' + e.message);
-                    } finally {
-                        this.isSubmitting = false;
-                    }
+                getAvailableStores() {
+                    const selectedPic = (this.bkbForm.pic || '').toLowerCase().trim();
+                    if (this.mappingTokoEdp.length === 0) return [];
+                    if (!selectedPic) return this.mappingTokoEdp;
+                    
+                    const filtered = this.mappingTokoEdp.filter(m => {
+                        const mapPic = String(m.pic || '').toLowerCase().trim();
+                        return mapPic === selectedPic || mapPic.includes(selectedPic) || selectedPic.includes(mapPic);
+                    });
+                    
+                    return filtered.length > 0 ? filtered : this.mappingTokoEdp;
                 },
 
                 generateSuratJalan() {
@@ -921,168 +950,78 @@
                     const year = parts[0];
                     const month = parts[1];
                     const day = parts[2];
-
                     const counterKey = `edp_sj_counter_${year}_${month}_${day}`;
                     let currentCount = parseInt(localStorage.getItem(counterKey) || '0') + 1;
-                    
                     const paddedNo = String(currentCount).padStart(3, '0');
                     this.bkbForm.suratJalan = `SJ-EDP/${year}/${month}/${day}/${paddedNo}`;
                 },
 
-                async loadDataFromGAS() {
+                async loadDataFromServer() {
                     this.isLoading = true;
-                    this.syncStatus = 'Menghubungkan ke GAS...';
                     try {
-                        const currentNama = this.loggedInUser;
-                        const currentRole = this.userRole.toUpperCase();
-
-                        const [resStockCabang, resUserData, resSheet4] = await Promise.allSettled([
-                            fetch(`${gasUrl}?tab=${encodeURIComponent('STOCK_CABANG')}`).then(r => r.json()),
-                            fetch(`${gasUrl}?tab=${encodeURIComponent('user_data')}`).then(r => r.json()),
-                            fetch(`${gasUrl}?tab=${encodeURIComponent('Sheet4')}`).then(r => r.json())
+                        const [resUsers, resMaster, resReq, resMapping] = await Promise.all([
+                            fetch(`${apiUrl}?tab=user_data`, { headers: ngrokHeaders }).then(r => r.json()),
+                            fetch(`${apiUrl}?tab=master_produk`, { headers: ngrokHeaders }).then(r => r.json()),
+                            fetch(`${apiUrl}?tab=Permintaan Barang`, { headers: ngrokHeaders }).then(r => r.json()),
+                            fetch(`${apiUrl}?tab=mapping_toko_edp`, { headers: ngrokHeaders }).then(r => r.json())
                         ]);
 
-                        if (resStockCabang.status === 'fulfilled' && Array.isArray(resStockCabang.value) && resStockCabang.value.length > 0) {
-                            const dataStockCabang = resStockCabang.value;
-                            const masterMapped = dataStockCabang.map(row => {
-                                const keys = Object.keys(row);
-                                const pluKey = keys.find(k => k.trim().toUpperCase() === 'PLU') || keys.find(k => /plu|kode/i.test(k));
-                                const nameKey = keys.find(k => k.trim().toUpperCase() === 'NAMA BARANG') || keys.find(k => /nama.*barang|nama|produk/i.test(k));
-
-                                return {
-                                    code: (pluKey && row[pluKey] !== undefined) ? String(row[pluKey]).trim() : '',
-                                    name: (nameKey && row[nameKey] !== undefined) ? String(row[nameKey]).trim() : ''
-                                };
-                            }).filter(p => p.code !== '' && p.name !== '');
-
-                            if (masterMapped.length > 0) {
-                                this.masterProducts = masterMapped;
-                                localStorage.setItem('masterProductsEDP', JSON.stringify(masterMapped));
-                            }
+                        if (Array.isArray(resMaster)) this.masterProducts = resMaster;
+                        if (Array.isArray(resMapping)) this.mappingTokoEdp = resMapping;
+                        if (Array.isArray(resReq)) {
+                            this.pendingRequests = resReq.filter(r => String(r.status || '').toUpperCase() === "PENDING");
                         }
 
-                        let allLocations = [];
-                        if (resUserData.status === 'fulfilled' && Array.isArray(resUserData.value) && resUserData.value.length > 0) {
-                            const dataUserData = resUserData.value;
-                            allLocations = dataUserData.map(item => {
-                                const keys = Object.keys(item);
-                                const picKey = keys.find(k => /pic|user|nama.*edp|nama/i.test(k)) || keys[0];
-                                const kotaKey = keys.find(k => /kota|branch|lokasi|area/i.test(k)) || keys[1];
-                                const bacaStockKey = keys.find(k => /baca.*stock|stock|tab|sheet/i.test(k)) || keys[2];
-
-                                return {
-                                    pic: (item[picKey] || '').toString().trim(),
-                                    kota: kotaKey ? (item[kotaKey] || '').toString().trim() : '',
-                                    bacaStock: bacaStockKey ? (item[bacaStockKey] || '').toString().trim() : '',
-                                    kodeToko: ''
-                                };
-                            }).filter(x => x.pic !== '');
+                        let locations = [];
+                        if (Array.isArray(resUsers)) {
+                            locations = resUsers.map(u => ({
+                                nama_edp: u.nama_edp || u.username,
+                                kota: 'Samarinda'
+                            }));
                         }
+                        this.edpLocations = locations;
 
-                        if (resSheet4.status === 'fulfilled' && Array.isArray(resSheet4.value) && resSheet4.value.length > 0) {
-                            const dataSheet4 = resSheet4.value;
-                            this.sheet4Data = dataSheet4;
-
-                            allLocations = allLocations.map(loc => {
-                                const rowKeys = Object.keys(dataSheet4[0] || {});
-                                const rowPicKey = rowKeys.find(k => /pic|user|nama/i.test(k)) || rowKeys[0];
-                                const tokoKey = rowKeys.find(k => /kode.*toko|toko|store|kode|branch|cabang/i.test(k) && !/role|peran|pass|email/i.test(k));
-
-                                const foundRow = dataSheet4.find(row => {
-                                    const rowPicVal = (row[rowPicKey] || '').toString().trim().toLowerCase();
-                                    return rowPicVal.includes(loc.pic.toLowerCase()) || loc.pic.toLowerCase().includes(rowPicVal);
-                                });
-
-                                if (foundRow && tokoKey) {
-                                    loc.kodeToko = (foundRow[tokoKey] || '').toString().trim();
-                                }
-                                return loc;
-                            });
+                        let targetLocs = locations;
+                        if (this.userRole.toUpperCase() !== "ADMIN") {
+                            targetLocs = locations.filter(l => l.nama_edp.toLowerCase() === this.loggedInUser.toLowerCase());
+                            if (targetLocs.length === 0) targetLocs = [{ nama_edp: this.loggedInUser, kota: 'Samarinda' }];
+                            this.bkbForm.pic = targetLocs[0].nama_edp;
                         }
-
-                        this.allEdpLocations = allLocations;
-
-                        let targetLocations = allLocations;
-                        if (currentRole !== "ADMIN") {
-                            targetLocations = allLocations.filter(loc => {
-                                const dbPic = loc.pic.toLowerCase().trim();
-                                const loginPic = currentNama.toLowerCase().trim();
-                                return dbPic.includes(loginPic) || loginPic.includes(dbPic);
-                            });
-
-                            if (targetLocations.length === 0) {
-                                targetLocations = [{ pic: currentNama, kota: 'Samarinda', bacaStock: '', kodeToko: '' }];
-                            }
-
-                            this.edpLocations = targetLocations;
-                            this.selectedBranch = targetLocations[0].pic;
-                            this.bkbForm.pic = targetLocations[0].pic || currentNama;
-                        } else {
-                            this.edpLocations = allLocations;
-                            if (!this.bkbForm.pic && allLocations.length > 0) {
-                                this.bkbForm.pic = allLocations[0].pic;
-                            }
-                        }
-
-                        const stockPromises = targetLocations.map(async (loc) => {
-                            let targetSource = loc.bacaStock || `Stock ${loc.pic}`;
-                            try {
-                                let fetchUrl = `${gasUrl}?tab=${encodeURIComponent(targetSource)}`;
-                                const resStock = await fetch(fetchUrl);
-                                const dataStock = await resStock.json();
-                                
-                                let totalQty = 0;
-                                let itemMap = {};
-                                
-                                if (Array.isArray(dataStock)) {
-                                    dataStock.forEach(row => {
-                                        const keys = Object.keys(row);
-                                        const qtyKey = keys.find(k => k.trim().toUpperCase() === 'QTY');
-                                        const pluKey = keys.find(k => /plu|kode|item|produk/i.test(k));
-                                        
-                                        if (qtyKey && row[qtyKey] !== undefined && row[qtyKey] !== null) {
-                                            let val = parseFloat(row[qtyKey].toString().replace(/"/g, '')) || 0;
-                                            totalQty += val;
-
-                                            if (pluKey && row[pluKey]) {
-                                                let itemCode = row[pluKey].toString().trim();
-                                                itemMap[itemCode] = (itemMap[itemCode] || 0) + val;
-                                            }
-                                        }
-                                    });
-                                }
-                                return { pic: loc.pic, kota: loc.kota || 'Samarinda', qty: totalQty, itemMap };
-                            } catch (err) {
-                                console.warn(`Gagal ambil stock untuk ${loc.pic}:`, err);
-                                return { pic: loc.pic, kota: loc.kota || 'Samarinda', qty: 0, itemMap: {} };
-                            }
-                        });
-
-                        const stockResults = await Promise.all(stockPromises);
 
                         let summaries = [];
                         let stockDetailsTemp = {};
 
-                        stockResults.forEach(res => {
-                            summaries.push({
-                                pic: res.pic,
-                                kota: res.kota,
-                                qty: res.qty
-                            });
-                            stockDetailsTemp[res.pic.toLowerCase()] = res.itemMap;
-                        });
+                        for (const loc of targetLocs) {
+                            try {
+                                const resStock = await fetch(`${apiUrl}?tab=Stock%20${encodeURIComponent(loc.nama_edp)}`, { headers: ngrokHeaders });
+                                const stockRows = await resStock.json();
+                                let totalQty = 0;
+                                let itemMap = {};
+
+                                if (Array.isArray(stockRows)) {
+                                    stockRows.forEach(row => {
+                                        let val = Number(row.qty) || 0;
+                                        totalQty += val;
+                                        let pluKey = row.plu || row.nama_barang;
+                                        if (pluKey) {
+                                            itemMap[pluKey] = (itemMap[pluKey] || 0) + val;
+                                        }
+                                    });
+                                }
+                                summaries.push({ pic: loc.nama_edp, kota: loc.kota, qty: totalQty });
+                                stockDetailsTemp[loc.nama_edp.toLowerCase()] = itemMap;
+                            } catch (e) {
+                                summaries.push({ pic: loc.nama_edp, kota: loc.kota, qty: 0 });
+                                stockDetailsTemp[loc.nama_edp.toLowerCase()] = {};
+                            }
+                        }
 
                         this.inventorySummary = summaries;
                         this.picStockDetails = stockDetailsTemp;
-                        this.syncStatus = 'Terhubung & Sinkron (GAS)';
-
-                        this.updateKodeToko();
-
-                    } catch (error) {
-                        console.error("Gagal sinkronisasi GAS:", error);
-                        this.syncStatus = 'Gagal Sinkron (Mode Offline)';
-                        this.showNotification('error', 'Gagal memuat data dari Spreadsheet. Periksa koneksi API GAS Anda.');
-                        this.inventorySummary = [{ pic: this.loggedInUser, kota: 'Samarinda', qty: 0 }];
+                        this.syncStatus = 'Terhubung ke MySQL';
+                    } catch (err) {
+                        console.error(err);
+                        this.showNotification('error', 'Gagal memuat data dari server MySQL.');
                     } finally {
                         this.isLoading = false;
                     }
@@ -1090,140 +1029,160 @@
 
                 getAvailableBKBItems() {
                     const selectedPic = (this.bkbForm.pic || '').toLowerCase().trim();
-                    if (!selectedPic || !this.picStockDetails[selectedPic]) {
-                        return [];
-                    }
-
+                    if (!selectedPic || !this.picStockDetails[selectedPic]) return [];
                     const itemMap = this.picStockDetails[selectedPic];
-                    let availableList = [];
-
-                    for (let code in itemMap) {
-                        let currentQty = itemMap[code];
-                        if (currentQty > 0) {
-                            let name = this.getProductName(code);
-                            availableList.push({
-                                code: code,
-                                name: name,
-                                qty: currentQty
+                    let list = [];
+                    for (let plu in itemMap) {
+                        if (itemMap[plu] > 0) {
+                            list.push({
+                                plu: plu,
+                                nama_barang: this.getProductName(plu),
+                                qty: itemMap[plu]
                             });
                         }
                     }
-                    return availableList;
+                    return list;
                 },
 
                 getMaxStockForItem() {
                     const items = this.getAvailableBKBItems();
-                    const found = items.find(i => i.code === this.bkbForm.itemCode);
+                    const found = items.find(i => i.plu === this.bkbForm.itemCode);
                     return found ? found.qty : 0;
                 },
 
-                getAvailableKodeToko() {
-                    const selectedPic = this.bkbForm.pic;
-                    if (!selectedPic) return [];
-                    
-                    if (this.sheet4Data && Array.isArray(this.sheet4Data)) {
-                        const rowKeys = Object.keys(this.sheet4Data[0] || {});
-                        const rowPicKey = rowKeys.find(k => /pic|user|nama/i.test(k)) || rowKeys[0];
-                        const tokoKey = rowKeys.find(k => /kode.*toko|toko|store|kode|branch|cabang/i.test(k) && !/role|peran|pass|email/i.test(k));
-
-                        if (tokoKey) {
-                            const matches = this.sheet4Data.filter(row => {
-                                const rowPicVal = (row[rowPicKey] || '').toString().trim().toLowerCase();
-                                return rowPicVal.includes(selectedPic.toLowerCase()) || selectedPic.toLowerCase().includes(rowPicVal);
-                            });
-                            return [...new Set(matches.map(row => (row[tokoKey] || '').toString().trim()).filter(Boolean))];
-                        }
-                    }
-
-                    const source = this.allEdpLocations.length > 0 ? this.allEdpLocations : this.edpLocations;
-                    const matches = source.filter(l => l.pic.toLowerCase() === selectedPic.toLowerCase() && l.kodeToko);
-                    return [...new Set(matches.map(l => l.kodeToko))];
-                },
-
-                updateKodeToko() {
-                    this.bkbForm.itemCode = ''; 
-                    const tokos = this.getAvailableKodeToko();
-                    if (tokos.length === 1) {
-                        this.bkbForm.kodeToko = tokos[0];
-                    } else if (!tokos.includes(this.bkbForm.kodeToko)) {
-                        this.bkbForm.kodeToko = '';
-                    }
-                },
-
                 getPageTitle() {
-                    if (this.activeTab === 'monitoring') return 'Monitoring Stock EDP per PIC & Kota';
-                    if (this.activeTab === 'transfer') return 'Top-up / Transfer Qty Saldo Stock';
+                    if (this.activeTab === 'monitoring') return 'Monitoring Stock EDP (MySQL)';
+                    if (this.activeTab === 'transfer') return 'Top-up / Transfer Qty';
                     if (this.activeTab === 'request') return 'Pengajuan & Approval Permintaan Barang';
                     if (this.activeTab === 'bkb') return 'Input Bukti Keluar Barang (BKB)';
-                    if (this.activeTab === 'master') return 'Manajemen Master Produk EDP';
+                    if (this.activeTab === 'master') return 'Manajemen Master Produk';
                 },
 
                 getUserInitials() {
                     if (!this.loggedInUser) return 'US';
                     const parts = this.loggedInUser.trim().split(' ');
-                    if (parts.length >= 2) {
-                        return (parts[0][0] + parts[1][0]).toUpperCase();
-                    }
-                    return this.loggedInUser.substring(0, 2).toUpperCase();
+                    return parts.length >= 2 ? (parts[0][0] + parts[1][0]).toUpperCase() : this.loggedInUser.substring(0, 2).toUpperCase();
                 },
 
                 get filteredInventory() {
                     return this.inventorySummary.filter(item => {
-                        const itemPic = item.pic.toLowerCase().trim();
-                        const branch = this.selectedBranch.toLowerCase().trim();
-                        
-                        let matchBranch = this.selectedBranch === 'ALL' || 
-                                          itemPic === branch || 
-                                          itemPic.includes(branch) || 
-                                          branch.includes(itemPic);
-                                          
-                        let matchSearch = item.pic.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
-                                          item.kota.toLowerCase().includes(this.searchQuery.toLowerCase());
-                                          
+                        let matchBranch = this.selectedBranch === 'ALL' || item.pic.toLowerCase() === this.selectedBranch.toLowerCase();
+                        let matchSearch = item.pic.toLowerCase().includes(this.searchQuery.toLowerCase());
                         return matchBranch && matchSearch;
                     });
                 },
 
                 openQuickTransfer(item) {
-                    if (this.userRole.toUpperCase() !== 'ADMIN') return;
                     this.activeTab = 'transfer';
                     this.transferForm.pic = item.pic;
                 },
 
                 async submitTransfer() {
-                    if (this.userRole.toUpperCase() !== 'ADMIN') return;
                     this.isSubmitting = true;
-                    
-                    const targetPic = this.transferForm.pic;
-                    const addQty = Number(this.transferForm.qty);
-                    
-                    const targetLoc = this.edpLocations.find(l => l.pic.toLowerCase() === targetPic.toLowerCase());
-                    const targetTab = targetLoc && targetLoc.bacaStock ? targetLoc.bacaStock : `Stock ${targetPic}`;
-
                     try {
-                        const response = await fetch(gasUrl, {
+                        const res = await fetch(apiUrl, {
                             method: "POST",
-                            headers: { "Content-Type": "text/plain" },
+                            headers: ngrokHeaders,
                             body: JSON.stringify({
                                 action: "updateStock",
-                                tab: targetTab,
+                                tab: `Stock ${this.transferForm.pic}`,
                                 PLU: this.transferForm.itemCode,
-                                QTY: addQty,
+                                QTY: Number(this.transferForm.qty),
                                 Keterangan: this.transferForm.note || "Top-up dari Pusat",
                                 Tanggal: new Date().toISOString().slice(0, 10)
                             })
                         });
-
-                        const resData = await response.json();
-                        if (resData.status !== "sukses" && resData.result !== "success") throw new Error(resData.message || "Gagal mengupdate stok");
-
-                        this.showNotification('success', `Sukses! Qty berhasil ditambahkan ke saldo PIC ${targetPic}`);
+                        const json = await res.json();
+                        if (json.status !== "sukses") throw new Error(json.message);
+                        this.showNotification('success', 'Top-up stok berhasil disimpan!');
                         this.transferForm = { pic: '', itemCode: '', qty: '', note: '' };
                         this.activeTab = 'monitoring';
-                        await this.loadDataFromGAS();
+                        await this.loadDataFromServer();
                     } catch (e) {
-                        console.error(e);
-                        this.showNotification('error', 'Gagal mengirim data Top-up ke Google Spreadsheet via GAS.');
+                        this.showNotification('error', 'Gagal top-up stok: ' + e.message);
+                    } finally {
+                        this.isSubmitting = false;
+                    }
+                },
+
+                async submitRequestBarang() {
+                    const validItems = this.requestForm.items.filter(i => i.itemCode && Number(i.qty) > 0);
+                    if (validItems.length === 0) {
+                        this.showNotification('error', 'Pilih minimal 1 barang dengan Qty valid!');
+                        return;
+                    }
+
+                    this.isSubmitting = true;
+                    try {
+                        for (let item of validItems) {
+                            let rawCode = item.itemCode.trim();
+                            let plu = rawCode;
+                            let namaBarang = "";
+
+                            if (rawCode.includes(" - ")) {
+                                let parts = rawCode.split(" - ");
+                                plu = parts[0].trim();
+                                namaBarang = parts.slice(1).join(" - ").trim();
+                            } else {
+                                namaBarang = this.getProductName(plu);
+                            }
+
+                            await fetch(apiUrl, {
+                                method: "POST",
+                                headers: ngrokHeaders,
+                                body: JSON.stringify({
+                                    action: "requestBarang",
+                                    tanggal: new Date().toISOString().slice(0, 10),
+                                    nama_edp: this.loggedInUser,
+                                    plu: plu,
+                                    nama_barang: namaBarang,
+                                    qty_diminta: Number(item.qty),
+                                    catatan: this.requestForm.note || "-"
+                                })
+                            });
+                        }
+                        this.showNotification('success', 'Permintaan barang berhasil diajukan ke Admin!');
+                        this.requestForm = { items: [{ itemCode: '', qty: 1 }], note: '' };
+                        await this.loadDataFromServer();
+                    } catch (e) {
+                        this.showNotification('error', 'Gagal mengajukan permintaan.');
+                    } finally {
+                        this.isSubmitting = false;
+                    }
+                },
+
+                openApproveModal(req) {
+                    this.approveModal = {
+                        show: true,
+                        item: req,
+                        qtyApproved: Number(req.qty_diminta || 1),
+                        note: ''
+                    };
+                },
+
+                async submitApprovalAdmin() {
+                    if (!this.approveModal.item) return;
+                    this.isSubmitting = true;
+                    try {
+                        const res = await fetch(apiUrl, {
+                            method: "POST",
+                            headers: ngrokHeaders,
+                            body: JSON.stringify({
+                                action: "approveRequest",
+                                id_request: this.approveModal.item.id_request,
+                                nama_edp: this.approveModal.item.nama_edp,
+                                plu: this.approveModal.item.plu,
+                                qty_disetujui: Number(this.approveModal.qtyApproved),
+                                catatan_admin: this.approveModal.note || "Disetujui Admin"
+                            })
+                        });
+                        const json = await res.json();
+                        if (json.status !== "sukses") throw new Error(json.message);
+                        this.showNotification('success', 'Permintaan disetujui dan stok ditambahkan.');
+                        this.approveModal.show = false;
+                        await this.loadDataFromServer();
+                    } catch (e) {
+                        this.showNotification('error', 'Gagal memproses approval: ' + e.message);
                     } finally {
                         this.isSubmitting = false;
                     }
@@ -1269,13 +1228,11 @@
                         this.isCompressingPhoto = true;
                         this.bkbForm.photoName = file.name;
                         this.bkbForm.mimeType = "image/jpeg";
-
                         try {
                             const fullBase64 = await this.kompresGambar(file, 800, 0.6);
                             this.bkbForm.base64File = fullBase64.includes(",") ? fullBase64.split(",")[1] : fullBase64;
                         } catch (err) {
-                            console.error("Gagal memproses foto:", err);
-                            this.showNotification('error', 'Gagal memproses foto. Silakan coba pilih foto lain.');
+                            this.showNotification('error', 'Gagal memproses foto.');
                         } finally {
                             this.isCompressingPhoto = false;
                         }
@@ -1284,135 +1241,59 @@
 
                 async submitBKB() {
                     this.isSubmitting = true;
-                    const targetPic = this.bkbForm.pic;
                     const outQty = Number(this.bkbForm.qty);
                     const maxQty = this.getMaxStockForItem();
-
                     const fullProductName = this.getProductName(this.bkbForm.itemCode);
 
                     if (outQty > maxQty) {
-                        this.showNotification('error', `Gagal! Stok ${fullProductName} tidak mencukupi (Maksimal: ${maxQty}).`);
+                        this.showNotification('error', `Stok ${fullProductName} tidak mencukupi (Maksimal: ${maxQty}).`);
                         this.isSubmitting = false;
                         return;
                     }
 
-                    const targetLoc = this.edpLocations.find(l => l.pic.toLowerCase() === targetPic.toLowerCase());
-                    const targetTab = targetLoc && targetLoc.bacaStock ? targetLoc.bacaStock : `Stock ${targetPic}`;
-
                     try {
-                        const resStock = await fetch(gasUrl, {
+                        const res = await fetch(apiUrl, {
                             method: "POST",
-                            headers: { "Content-Type": "text/plain" },
+                            headers: ngrokHeaders,
                             body: JSON.stringify({
-                                action: "updateStock",
-                                tab: targetTab,
-                                PLU: this.bkbForm.itemCode,
-                                QTY: -outQty,
-                                Keterangan: `BKB SJ: ${this.bkbForm.suratJalan} (${fullProductName} - Toko: ${this.bkbForm.kodeToko})`,
-                                Tanggal: this.bkbForm.date
+                                action: "inputBKB",
+                                surat_jalan: this.bkbForm.suratJalan,
+                                tanggal: this.bkbForm.date,
+                                nama_barang: fullProductName,
+                                kdtk: this.bkbForm.kodeToko,
+                                nama_edp: this.bkbForm.pic,
+                                qty: outQty,
+                                foto: this.bkbForm.base64File
                             })
                         });
-
-                        const resStockJson = await resStock.json();
-                        if (resStockJson.status !== "sukses" && resStockJson.result !== "success") throw new Error(resStockJson.message || "Gagal mengupdate saldo stok");
-
-                        const payloadGAS = {
-                            action: "inputBKB",
-                            surat_jalan: this.bkbForm.suratJalan,
-                            tanggal: this.bkbForm.date,
-                            nama_barang: fullProductName,
-                            kdtk: this.bkbForm.kodeToko,
-                            nama_edp: this.bkbForm.pic,
-                            qty: outQty,
-                            base64File: this.bkbForm.base64File || "",
-                            mimeType: this.bkbForm.mimeType || "",
-                            foto: this.bkbForm.photoName || "-"
-                        };
-
-                        const resBkb = await fetch(gasUrl, {
-                            method: "POST",
-                            headers: { "Content-Type": "text/plain" },
-                            body: JSON.stringify(payloadGAS)
-                        });
-
-                        const resBkbJson = await resBkb.json();
-                        if (resBkbJson.status !== "sukses" && resBkbJson.result !== "success") throw new Error(resBkbJson.message || "Gagal menyimpan BKB");
+                        const json = await res.json();
+                        if (json.status !== "sukses") throw new Error(json.message);
 
                         const parts = this.bkbForm.date.split('-');
                         const counterKey = `edp_sj_counter_${parts[0]}_${parts[1]}_${parts[2]}`;
                         let currentCount = parseInt(localStorage.getItem(counterKey) || '0');
                         localStorage.setItem(counterKey, currentCount + 1);
 
-                        this.showNotification('success', `Surat Jalan ${this.bkbForm.suratJalan} berhasil disimpan & dikirim ke Rekap!`);
-                        
+                        this.showNotification('success', `BKB ${this.bkbForm.suratJalan} berhasil disimpan ke MySQL & Drive!`);
                         this.bkbForm = { 
-                            pic: targetPic, 
+                            pic: this.loggedInUser, 
                             kodeToko: '', 
                             suratJalan: '', 
                             itemCode: '', 
                             qty: '', 
                             date: new Date().toISOString().slice(0, 10), 
-                            photoName: '',
-                            base64File: '',
-                            mimeType: ''
+                            photoName: '', 
+                            base64File: '', 
+                            mimeType: '' 
                         };
                         this.generateSuratJalan();
                         this.activeTab = 'monitoring';
-
-                        await this.loadDataFromGAS();
-                        await this.calculateFastMovingItems();
-
+                        await this.loadDataFromServer();
                     } catch (e) {
-                        console.error(e);
-                        this.showNotification('error', 'Terjadi kesalahan saat memproses BKB: ' + e.message);
+                        this.showNotification('error', 'Gagal menyimpan BKB: ' + e.message);
                     } finally {
                         this.isSubmitting = false;
                     }
-                },
-
-                handleMasterUpload(event) {
-                    if (this.userRole.toUpperCase() !== 'ADMIN') return;
-                    const file = event.target.files[0];
-                    if (!file) return;
-
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        try {
-                            const data = new Uint8Array(e.target.result);
-                            const workbook = XLSX.read(data, { type: 'array' });
-                            const firstSheetName = workbook.SheetNames[0];
-                            const worksheet = workbook.Sheets[firstSheetName];
-                            const json = XLSX.utils.sheet_to_json(worksheet);
-
-                            if (json.length === 0) {
-                                this.showNotification('error', "File kosong atau format tidak sesuai!");
-                                return;
-                            }
-
-                            const newProducts = json.map(row => {
-                                const keys = Object.keys(row);
-                                const codeKey = keys.find(k => /kode|code|id|plu/i.test(k)) || keys[0];
-                                const nameKey = keys.find(k => /nama|name|item|produk/i.test(k)) || keys[1];
-
-                                return {
-                                    code: (row[codeKey] || '').toString().trim(),
-                                    name: (row[nameKey] || '').toString().trim()
-                                };
-                            }).filter(p => p.code && p.name);
-
-                            if (newProducts.length > 0) {
-                                this.masterProducts = newProducts;
-                                localStorage.setItem('masterProductsEDP', JSON.stringify(newProducts));
-                                this.showNotification('success', `Sukses! ${newProducts.length} data master produk berhasil diimpor.`);
-                            } else {
-                                this.showNotification('error', "Gagal mendeteksi kolom kode dan nama produk.");
-                            }
-                        } catch (err) {
-                            console.error(err);
-                            this.showNotification('error', "Terjadi kesalahan saat membaca file.");
-                        }
-                    };
-                    reader.readAsArrayBuffer(file);
                 }
             }
         }
