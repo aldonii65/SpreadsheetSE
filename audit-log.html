@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Log Audit Sistem - EDP Samarinda</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            -webkit-tap-highlight-color: transparent;
+            background-color: #f8fafc;
+            color: #1e293b;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        [x-cloak] { display: none !important; }
+
+        .sidebar, .main-content, .footer-copyright {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* --- SIDEBAR STYLING --- */
+        .sidebar {
+            width: 260px;
+            background-color: #0f172a;
+            color: #cbd5e1;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0; bottom: 0; left: 0;
+            z-index: 1000;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.08);
+            border-right: 1px solid #1e293b;
+        }
+
+        .sidebar-header {
+            padding: 20px 18px;
+            background-color: #090d16;
+            border-bottom: 1px solid #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar-header h3 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #60a5fa;
+            line-height: 1.3;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 16px 12px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            overflow-y: auto;
+        }
+
+        .sidebar-menu::-webkit-scrollbar {
+            width: 4px;
+        }
+        .sidebar-menu::-webkit-scrollbar-thumb {
+            background-color: #334155;
+            border-radius: 4px;
+        }
+
+        .sidebar-menu button, .sidebar-menu a {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 14px;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 13.5px;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        .sidebar-menu button span:first-child, .sidebar-menu a span:first-child {
+            font-size: 16px;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-menu button:hover, .sidebar-menu a:hover {
+            background-color: #1e293b;
+            color: #f1f5f9;
+        }
+
+        .sidebar-menu button.active, .sidebar-menu a.active {
+            background-color: #2563eb;
+            color: #ffffff;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+        }
+
+        .sidebar-footer {
+            padding: 14px 12px;
+            border-top: 1px solid #1e293b;
+            background-color: #090d16;
+        }
+
+        .btn-sidebar-logout {
+            width: 100%;
+            padding: 10px 14px;
+            background-color: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 13.5px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: background-color 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 6px rgba(220, 38, 38, 0.2);
+        }
+
+        .btn-sidebar-logout:hover { 
+            background-color: #b91c1c; 
+            box-shadow: 0 4px 10px rgba(220, 38, 38, 0.3);
+        }
+
+        .btn-toggle-sidebar {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            font-size: 18px;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s;
+            margin-left: auto;
+        }
+        .btn-toggle-sidebar:hover {
+            background-color: #1e293b;
+            color: #ffffff;
+        }
+
+        /* --- COLLAPSED STATE --- */
+        .sidebar.collapsed { width: 70px; }
+        .sidebar.collapsed .sidebar-header { padding: 16px 0; justify-content: center; }
+        .sidebar.collapsed .sidebar-header > div > span:first-child,
+        .sidebar.collapsed .sidebar-header h3 { display: none; }
+        .sidebar.collapsed .btn-toggle-sidebar { margin-left: 0; }
+        .sidebar.collapsed .sidebar-menu { padding: 16px 8px; align-items: center; }
+        .sidebar.collapsed .sidebar-menu button, 
+        .sidebar.collapsed .sidebar-menu a { width: 44px; height: 44px; padding: 0; justify-content: center; border-radius: 10px; }
+        .sidebar.collapsed .sidebar-menu button span:nth-child(2),
+        .sidebar.collapsed .sidebar-menu a span:nth-child(2) { display: none; }
+        .sidebar.collapsed .sidebar-footer { padding: 14px 8px; display: flex; justify-content: center; }
+        .sidebar.collapsed .btn-sidebar-logout { width: 44px; height: 44px; padding: 0; justify-content: center; border-radius: 10px; }
+        .sidebar.collapsed .btn-sidebar-logout span:nth-child(2) { display: none; }
+
+        /* --- MOBILE TOPBAR & OVERLAY --- */
+        .mobile-topbar {
+            display: none;
+            background-color: #0f172a;
+            color: #fff;
+            padding: 14px 18px;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 900;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .mobile-topbar h3 { font-size: 15px; color: #60a5fa; font-weight: 700; }
+
+        .btn-mobile-menu {
+            background: #1e293b;
+            border: none;
+            color: #fff;
+            font-size: 18px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(2px);
+            z-index: 999;
+        }
+        .sidebar-overlay.active { display: block; }
+
+        /* --- MAIN CONTENT & LAYOUT --- */
+        .main-content {
+            margin-left: 260px;
+            flex: 1;
+            padding: 24px;
+            padding-bottom: 70px;
+            width: calc(100% - 260px);
+            min-height: 100vh;
+            overflow-y: auto;
+        }
+
+        .main-content.expanded { margin-left: 70px; width: calc(100% - 70px); }
+
+        select, option {
+            background-color: #ffffff;
+            color: #1e293b;
+        }
+
+        .footer-copyright {
+            position: fixed;
+            bottom: 0; left: 260px;
+            width: calc(100% - 260px);
+            background-color: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+            font-size: 12px;
+            color: #64748b;
+            padding: 10px 0;
+            z-index: 999;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.02);
+        }
+        .footer-copyright.expanded { left: 70px; width: calc(100% - 70px); }
+
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .mobile-topbar { display: flex; }
+            .sidebar { transform: translateX(-100%); width: 260px !important; }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0 !important; width: 100% !important; padding: 12px; padding-bottom: 70px; }
+            .footer-copyright { left: 0 !important; width: 100% !important; }
+        }
+    </style>
+</head>
+<body x-data="auditApp()" x-cloak>
+
+    <div class="mobile-topbar">
+        <h3>📋 Log Audit Sistem</h3>
+        <button class="btn-mobile-menu" onclick="toggleSidebarMenu()" title="Buka Menu">☰</button>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebarMenu()"></div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div>
+            <div class="sidebar-header">
+                <div class="flex items-center space-x-3">
+                    <span style="font-size: 24px;">📦</span>
+                    <div>
+                        <h3 class="text-sm font-bold text-blue-400">Stock Control</h3>
+                        <span class="text-[11px] text-slate-400">MySQL Branch v3.0</span>
+                    </div>
+                </div>
+                <button class="btn-toggle-sidebar" onclick="toggleSidebarMenu()" title="Buka/Tutup Sidebar">☰</button>
+            </div>
+            
+            <nav class="sidebar-menu">
+                <a href="index.html" title="Dashboard Utama">
+                    <span>📈</span> <span>Dashboard Utama</span>
+                </a>
+                <button class="active" title="Log Aktivitas (Audit)">
+                    <span>📋</span> <span>Log Aktivitas (Audit)</span>
+                </button>
+            </nav>
+        </div>
+
+        <div class="sidebar-footer">
+            <button class="btn-sidebar-logout" onclick="logoutSystem()" title="Logout">
+                <span>🚪</span> <span>Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="main-content">
+        
+        <!-- Top Header -->
+        <header class="bg-white border border-slate-200 rounded-xl px-6 py-4 flex justify-between items-center shadow-sm mb-6">
+            <div>
+                <h1 class="text-base sm:text-lg font-bold text-slate-800">Rekam Jejak Aktivitas (Audit Log)</h1>
+                <p class="text-xs text-slate-500">Pantau seluruh aktivitas pengguna dan sistem secara real-time via MySQL</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="hidden sm:flex items-center space-x-2 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-semibold border border-emerald-200">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span x-text="syncStatus">Terhubung ke MySQL (Laragon)</span>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs sm:text-sm font-bold text-slate-700" x-text="loggedInUser">Admin</p>
+                    <p class="text-[10px] sm:text-xs text-rose-600 font-bold uppercase tracking-wider" x-text="userRole">ADMINISTRATOR</p>
+                </div>
+                <div class="w-9 h-9 bg-rose-600 text-white font-bold rounded-xl flex items-center justify-center text-sm shadow-md shadow-rose-600/20">AD</div>
+            </div>
+        </header>
+
+        <!-- Content Body -->
+        <div class="space-y-5 max-w-7xl mx-auto w-full">
+
+            <!-- 3 KOTAK RINGKASAN -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                    <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    </div>
+                    <div>
+                        <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Semua Log</p>
+                        <p class="text-xl sm:text-2xl font-bold text-slate-800" x-text="logs.length">0</p>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                    <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <div>
+                        <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Aktivitas Hari Ini</p>
+                        <p class="text-xl sm:text-2xl font-bold text-emerald-600" x-text="getTodayLogCount()">0</p>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                    <div class="p-3 bg-rose-50 text-rose-600 rounded-xl">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    </div>
+                    <div>
+                        <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Aktivitas Sistem / Admin</p>
+                        <p class="text-xl sm:text-2xl font-bold text-rose-600" x-text="getAdminLogCount()">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FILTER & PENCARIAN -->
+            <div class="flex flex-col sm:flex-row justify-between gap-3 items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <div class="flex items-center space-x-3 w-full sm:w-auto">
+                    <select x-model="filterAksi" class="w-full sm:w-48 border border-slate-300 rounded-lg px-3 py-2 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
+                        <option value="ALL">Semua Jenis Aksi</option>
+                        <option value="UPLOAD_REPORT">Upload Report</option>
+                        <option value="INPUT_BKB">Input BKB</option>
+                        <option value="REQUEST_BARANG">Request Barang</option>
+                        <option value="APPROVE_REQUEST">Approve Request</option>
+                        <option value="UPDATE_STOCK">Update Stock</option>
+                        <option value="LOGOUT_SISTEM">Logout Sistem</option>
+                        <option value="WHATSAPP_ACTION">WhatsApp Bot</option>
+                    </select>
+                    <input type="date" x-model="filterDate" class="w-full sm:w-40 border border-slate-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-600">
+                </div>
+                <div class="relative w-full sm:w-80">
+                    <input type="text" x-model="searchQuery" placeholder="Cari nama user atau keterangan..." class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
+                    <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+            </div>
+
+            <!-- TABEL LOG AUDIT -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
+                <table class="w-full text-left border-collapse min-w-[700px]">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-500 text-[11px] uppercase font-semibold tracking-wider border-b border-slate-200">
+                            <th class="p-4 w-40">Waktu (WITA)</th>
+                            <th class="p-4 w-48">Pengguna</th>
+                            <th class="p-4 w-32">Role</th>
+                            <th class="p-4 w-40">Jenis Aksi</th>
+                            <th class="p-4">Keterangan Detail</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-xs">
+                        <template x-if="isLoading">
+                            <tr>
+                                <td colspan="5" class="p-10 text-center text-slate-400">
+                                    <div class="flex flex-col items-center justify-center space-y-3">
+                                        <svg class="w-8 h-8 text-indigo-600 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                        <span class="font-medium text-slate-600 text-sm">Menarik Log Audit dari MySQL Server...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </template>
+                        
+                        <template x-if="!isLoading && filteredLogs.length === 0">
+                            <tr>
+                                <td colspan="5" class="p-8 text-center text-slate-500 font-medium bg-slate-50/50">
+                                    Tidak ada catatan aktivitas yang sesuai dengan filter pencarian.
+                                </td>
+                            </tr>
+                        </template>
+
+                        <template x-for="(log, idx) in filteredLogs" :key="idx">
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="p-4 font-mono text-[11px] text-slate-500 whitespace-nowrap" x-text="log.Timestamp"></td>
+                                <td class="p-4 font-bold text-slate-900" x-text="log.User"></td>
+                                <td class="p-4">
+                                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border"
+                                          :class="getRoleColorClass(log.Role)"
+                                          x-text="log.Role">
+                                    </span>
+                                </td>
+                                <td class="p-4">
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold text-white shadow-sm"
+                                          :class="getActionColorClass(log.Aksi)"
+                                          x-text="log.Aksi">
+                                    </span>
+                                </td>
+                                <td class="p-4 text-slate-600 font-medium leading-relaxed" x-text="log.Keterangan"></td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </main>
+
+    <div class="footer-copyright" id="footer-copyright">
+        Aldoni Jelang R. - EDP Samarinda (dibantu oleh Edi dan Rey) &copy; 2026
+    </div>
+
+<script>
+    const apiUrl = "https://slouching-extrovert-frosty.ngrok-free.dev/api/data";
+
+    document.addEventListener("DOMContentLoaded", () => {
+        if (sessionStorage.getItem("isLoggedIn") !== "true") {
+            window.location.href = "login.html";
+            return;
+        }
+
+        if (window.innerWidth > 768 && localStorage.getItem("sidebarCollapsed") === "true") {
+            const sidebar = document.getElementById("sidebar");
+            const mainContent = document.querySelector(".main-content");
+            const footer = document.querySelector(".footer-copyright");
+
+            if (sidebar) sidebar.classList.add("collapsed");
+            if (mainContent) mainContent.classList.add("expanded");
+            if (footer) footer.classList.add("expanded");
+        }
+    });
+
+    async function logoutSystem() {
+        if (confirm("Apakah Anda yakin ingin keluar dari sistem?")) {
+            const userNama = sessionStorage.getItem("userNama") || "Admin";
+            const userRole = sessionStorage.getItem("userRole") || "ADMIN";
+
+            try {
+                await fetch(apiUrl, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "ngrok-skip-browser-warning": "true"
+                    },
+                    body: JSON.stringify({
+                        action: "catatLog",
+                        user: userNama,
+                        role: userRole,
+                        aksi: "LOGOUT_SISTEM",
+                        keterangan: "Pengguna keluar dari web portal"
+                    }),
+                    keepalive: true 
+                });
+            } catch (err) {
+                console.warn("Gagal mencatat log logout:", err);
+            }
+
+            sessionStorage.clear();
+            window.location.href = "login.html";
+        }
+    }
+
+    function toggleSidebarMenu() {
+        const sidebar = document.getElementById("sidebar");
+        const overlay = document.getElementById("sidebar-overlay");
+        const mainContent = document.querySelector(".main-content");
+        const footer = document.querySelector(".footer-copyright");
+
+        if (window.innerWidth <= 768) {
+            sidebar.classList.toggle("open");
+            overlay.classList.toggle("active");
+        } else {
+            sidebar.classList.toggle("collapsed");
+            if (mainContent) mainContent.classList.toggle("expanded");
+            if (footer) footer.classList.toggle("expanded");
+
+            const isCollapsed = sidebar.classList.contains("collapsed");
+            localStorage.setItem("sidebarCollapsed", isCollapsed ? "true" : "false");
+        }
+    }
+
+    function auditApp() {
+        return {
+            isLoading: true,
+            syncStatus: 'Terhubung ke MySQL',
+            loggedInUser: 'Admin',
+            userRole: 'ADMIN',
+            
+            logs: [],
+            
+            searchQuery: '',
+            filterAksi: 'ALL',
+            filterDate: '',
+
+            init() {
+                if (sessionStorage.getItem("isLoggedIn") !== "true") {
+                    window.location.href = "login.html";
+                    return;
+                }
+                const currentRole = (sessionStorage.getItem("userRole") || "").toUpperCase();
+                this.userRole = currentRole;
+                if (currentRole !== "ADMIN") {
+                    alert("⛔ Akses Ditolak! Halaman ini khusus Administrator.");
+                    window.location.href = "index.html";
+                    return;
+                }
+
+                this.loggedInUser = sessionStorage.getItem("userNama") || 'Admin';
+                this.loadDataFromServer();
+            },
+
+            async loadDataFromServer() {
+                this.isLoading = true;
+                this.syncStatus = 'Menyinkronkan...';
+                try {
+                    const response = await fetch(`${apiUrl}?tab=log_audit`, {
+                        headers: { "ngrok-skip-browser-warning": "true" }
+                    });
+                    const data = await response.json();
+                    
+                    if (Array.isArray(data)) {
+                        this.logs = data.map(item => ({
+                            Timestamp: item.timestamp || '-',
+                            User: item.user || '-',
+                            Role: item.role || '-',
+                            Aksi: item.aksi || '-',
+                            Keterangan: item.keterangan || '-'
+                        }));
+                    }
+                    this.syncStatus = 'Terhubung ke MySQL';
+                } catch (error) {
+                    console.error("Gagal menarik data log:", error);
+                    this.syncStatus = 'Gagal Terhubung';
+                    alert("Gagal memuat log dari server MySQL.");
+                } finally {
+                    this.isLoading = false;
+                }
+            },
+
+            get filteredLogs() {
+                return this.logs.filter(log => {
+                    const matchAksi = this.filterAksi === 'ALL' || log.Aksi === this.filterAksi;
+                    
+                    let matchDate = true;
+                    if (this.filterDate) {
+                        const logDate = (log.Timestamp || "").substring(0, 10);
+                        matchDate = logDate === this.filterDate;
+                    }
+
+                    const searchLower = this.searchQuery.toLowerCase().trim();
+                    const matchSearch = searchLower === '' || 
+                                        (log.User && log.User.toLowerCase().includes(searchLower)) ||
+                                        (log.Keterangan && log.Keterangan.toLowerCase().includes(searchLower)) ||
+                                        (log.Aksi && log.Aksi.toLowerCase().includes(searchLower));
+
+                    return matchAksi && matchDate && matchSearch;
+                });
+            },
+
+            getTodayLogCount() {
+                const todayStr = new Date().toISOString().slice(0, 10);
+                return this.logs.filter(log => (log.Timestamp || "").startsWith(todayStr)).length;
+            },
+
+            getAdminLogCount() {
+                return this.logs.filter(log => {
+                    const role = (log.Role || "").toUpperCase();
+                    return role === "ADMIN" || role === "SISTEM BOT" || role === "-";
+                }).length;
+            },
+
+            getActionColorClass(aksi) {
+                const action = (aksi || "").toUpperCase();
+                if (action.includes('UPLOAD')) return 'bg-sky-500';
+                if (action.includes('BKB')) return 'bg-indigo-500';
+                if (action.includes('REQUEST')) return 'bg-amber-500';
+                if (action.includes('APPROVE')) return 'bg-emerald-500';
+                if (action.includes('STOCK')) return 'bg-rose-500';
+                if (action.includes('WHATSAPP') || action.includes('BOT')) return 'bg-green-600';
+                if (action.includes('LOGOUT') || action.includes('LOGIN')) return 'bg-purple-600';
+                return 'bg-slate-500';
+            },
+
+            getRoleColorClass(role) {
+                const r = (role || "").toUpperCase();
+                if (r === 'ADMIN') return 'text-rose-700 bg-rose-50 border-rose-200';
+                if (r.includes('SISTEM') || r.includes('BOT')) return 'text-slate-600 bg-slate-100 border-slate-300';
+                return 'text-indigo-700 bg-indigo-50 border-indigo-200';
+            }
+        }
+    }
+</script>
+</body>
+</html>
