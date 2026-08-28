@@ -11,112 +11,134 @@
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f7fa;
-            color: #333;
+            background-color: #f8fafc;
+            color: #1e293b;
             display: flex;
             min-height: 100vh;
         }
 
-        /* --- TRANSISI HALUS --- */
         .sidebar, .main-content, .footer-copyright {
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* --- SIDEBAR STYLES --- */
+        /* --- SIDEBAR STYLING --- */
         .sidebar {
-            width: 250px;
-            background-color: #1e293b;
-            color: #fff;
+            width: 260px;
+            background-color: #0f172a;
+            color: #cbd5e1;
             display: flex;
             flex-direction: column;
             position: fixed;
             top: 0; bottom: 0; left: 0;
             z-index: 1000;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.08);
+            border-right: 1px solid #1e293b;
         }
 
         .sidebar-header {
-            padding: 20px 15px;
-            background-color: #0f172a;
-            border-bottom: 1px solid #334155;
+            padding: 20px 18px;
+            background-color: #090d16;
+            border-bottom: 1px solid #1e293b;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
 
         .sidebar-header h3 {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
             color: #60a5fa;
-            line-height: 1.2;
+            line-height: 1.3;
         }
 
         .sidebar-menu {
             list-style: none;
-            padding: 15px 10px;
+            padding: 16px 12px;
             flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 6px;
+            overflow-y: auto;
+        }
+
+        .sidebar-menu::-webkit-scrollbar {
+            width: 4px;
+        }
+        .sidebar-menu::-webkit-scrollbar-thumb {
+            background-color: #334155;
+            border-radius: 4px;
         }
 
         .sidebar-menu li a {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 12px 15px;
+            padding: 11px 14px;
             color: #94a3b8;
             text-decoration: none;
-            font-size: 14px;
-            font-weight: 600;
-            border-radius: 6px;
+            font-size: 13.5px;
+            font-weight: 500;
+            border-radius: 8px;
             transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .sidebar-menu li a span:first-child {
+            font-size: 16px;
+            min-width: 20px;
+            text-align: center;
         }
 
         .sidebar-menu li a:hover {
-            background-color: #334155;
-            color: #f8fafc;
+            background-color: #1e293b;
+            color: #f1f5f9;
         }
 
         .sidebar-menu li.active a {
             background-color: #2563eb;
             color: #ffffff;
-            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
         }
 
         .sidebar-footer {
-            padding: 15px 10px;
-            border-top: 1px solid #334155;
+            padding: 14px 12px;
+            border-top: 1px solid #1e293b;
+            background-color: #090d16;
         }
 
         .btn-sidebar-logout {
             width: 100%;
-            padding: 10px;
-            background-color: #ef4444;
+            padding: 10px 14px;
+            background-color: #dc2626;
             color: white;
             border: none;
-            border-radius: 6px;
-            font-size: 14px;
+            border-radius: 8px;
+            font-size: 13.5px;
             font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 10px;
+            transition: background-color 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 6px rgba(220, 38, 38, 0.2);
         }
 
-        .btn-sidebar-logout:hover { background-color: #dc2626; }
+        .btn-sidebar-logout:hover { 
+            background-color: #b91c1c; 
+            box-shadow: 0 4px 10px rgba(220, 38, 38, 0.3);
+        }
 
-        /* TOMBOL TOGGLE SIDEBAR */
         .btn-toggle-sidebar {
-            background: none;
+            background: transparent;
             border: none;
             color: #94a3b8;
             font-size: 18px;
             cursor: pointer;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -124,90 +146,93 @@
             margin-left: auto;
         }
         .btn-toggle-sidebar:hover {
-            background-color: #334155;
+            background-color: #1e293b;
             color: #ffffff;
         }
 
-        /* SIDEBAR MODE DITUTUP (COLLAPSED) */
-        .sidebar.collapsed { width: 56px; }
-
-        .sidebar.collapsed .sidebar-header {
-            padding: 12px 0;
-            justify-content: center;
-        }
-        .sidebar.collapsed .sidebar-header span:first-child,
+        /* --- COLLAPSED STATE --- */
+        .sidebar.collapsed { width: 70px; }
+        .sidebar.collapsed .sidebar-header { padding: 16px 0; justify-content: center; }
+        .sidebar.collapsed .sidebar-header > span:first-child,
         .sidebar.collapsed .sidebar-header h3 { display: none; }
         .sidebar.collapsed .btn-toggle-sidebar { margin-left: 0; }
-
-        .sidebar.collapsed .sidebar-menu {
-            padding: 15px 0;
-            align-items: center;
-        }
-        .sidebar.collapsed .sidebar-menu li {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-        }
-        .sidebar.collapsed .sidebar-menu li a {
-            width: 40px;
-            height: 40px;
-            padding: 0;
-            justify-content: center;
-            border-radius: 50%;
-            font-size: 18px;
-        }
+        .sidebar.collapsed .sidebar-menu { padding: 16px 8px; align-items: center; }
+        .sidebar.collapsed .sidebar-menu li { width: 100%; display: flex; justify-content: center; }
+        .sidebar.collapsed .sidebar-menu li a { width: 44px; height: 44px; padding: 0; justify-content: center; border-radius: 10px; }
         .sidebar.collapsed .sidebar-menu li a span:nth-child(2) { display: none; }
-
-        .sidebar.collapsed .sidebar-footer {
-            padding: 12px 0;
-            display: flex;
-            justify-content: center;
-        }
-        .sidebar.collapsed .btn-sidebar-logout {
-            width: 40px;
-            height: 40px;
-            padding: 0;
-            justify-content: center;
-            border-radius: 50%;
-        }
+        .sidebar.collapsed .sidebar-footer { padding: 14px 8px; display: flex; justify-content: center; }
+        .sidebar.collapsed .btn-sidebar-logout { width: 44px; height: 44px; padding: 0; justify-content: center; border-radius: 10px; }
         .sidebar.collapsed .btn-sidebar-logout span:nth-child(2) { display: none; }
 
-        /* --- MAIN CONTENT --- */
-        .main-content {
-            margin-left: 250px;
-            flex: 1;
-            padding: 20px;
-            padding-bottom: 70px;
-            width: calc(100% - 250px);
+        /* --- MOBILE TOPBAR & OVERLAY --- */
+        .mobile-topbar {
+            display: none;
+            background-color: #0f172a;
+            color: #fff;
+            padding: 14px 18px;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 900;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
 
-        .main-content.expanded {
-            margin-left: 56px;
-            width: calc(100% - 56px);
+        .mobile-topbar h3 { font-size: 15px; color: #60a5fa; font-weight: 700; }
+
+        .btn-mobile-menu {
+            background: #1e293b;
+            border: none;
+            color: #fff;
+            font-size: 18px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
         }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(2px);
+            z-index: 999;
+        }
+        .sidebar-overlay.active { display: block; }
+
+        /* --- MAIN CONTENT & LAYOUT --- */
+        .main-content {
+            margin-left: 260px;
+            flex: 1;
+            padding: 24px;
+            padding-bottom: 70px;
+            width: calc(100% - 260px);
+        }
+
+        .main-content.expanded { margin-left: 70px; width: calc(100% - 70px); }
 
         .card-upload {
             background: #ffffff;
-            border-radius: 8px;
-            padding: 25px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
             margin-bottom: 20px;
         }
 
         .card-title {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 700;
             color: #1e293b;
-            margin-bottom: 15px;
+            margin-bottom: 16px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
 
-        /* UPLOAD BOX DROPZONE */
         .dropzone {
             border: 2px dashed #cbd5e1;
-            border-radius: 8px;
+            border-radius: 10px;
             padding: 35px 20px;
             text-align: center;
             background-color: #f8fafc;
@@ -216,20 +241,12 @@
         }
 
         .dropzone:hover, .dropzone.dragover {
-            border-color: #3182ce;
-            background-color: #ebf8ff;
+            border-color: #2563eb;
+            background-color: #eff6ff;
         }
 
-        .dropzone-icon {
-            font-size: 42px;
-            margin-bottom: 10px;
-        }
-
-        .dropzone-text {
-            font-size: 14px;
-            color: #4a5568;
-            font-weight: 600;
-        }
+        .dropzone-icon { font-size: 40px; margin-bottom: 8px; }
+        .dropzone-text { font-size: 13.5px; color: #475569; font-weight: 600; }
 
         .file-info-badge {
             margin-top: 15px;
@@ -238,14 +255,13 @@
             padding: 6px 12px;
             border-radius: 20px;
             font-size: 13px;
-            color: #2d3748;
+            color: #1e293b;
             font-weight: 600;
         }
 
-        /* FORM BATCH CONTROLS */
         .form-row {
             display: flex;
-            gap: 15px;
+            gap: 16px;
             margin-top: 20px;
             flex-wrap: wrap;
             align-items: flex-end;
@@ -254,165 +270,152 @@
         .form-group {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 6px;
             flex: 1;
             min-width: 180px;
         }
 
-        label {
-            font-size: 13px;
-            font-weight: 600;
-            color: #4a5568;
-        }
+        label { font-size: 13px; font-weight: 600; color: #475569; }
 
         select, input[type="date"], input[type="text"] {
             padding: 9px 12px;
             border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            font-size: 14px;
-            outline: none;
+            border-radius: 8px;
             background-color: #fff;
+            font-size: 13.5px;
+            color: #1e293b;
+            outline: none;
+            width: 100%;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
 
-        select:focus, input:focus { border-color: #3182ce; }
+        select:focus, input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
 
         .btn-process {
-            padding: 10px 20px;
-            background-color: #2f855a;
+            padding: 9px 18px;
+            background-color: #16a34a;
             color: #fff;
             border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 700;
+            border-radius: 8px;
+            font-size: 13.5px;
+            font-weight: 600;
             cursor: pointer;
-            height: 40px;
+            height: 39px;
             display: inline-flex;
             align-items: center;
             gap: 8px;
             transition: background 0.2s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
-        .btn-process:hover { background-color: #276749; }
-        .btn-process:disabled { background-color: #a0aec0; cursor: not-allowed; }
+        .btn-process:hover { background-color: #15803d; }
+        .btn-process:disabled { background-color: #94a3b8; cursor: not-allowed; }
 
-        /* PROGRESS BAR */
-        .progress-container {
-            margin-top: 20px;
-            display: none;
-        }
+        .progress-container { margin-top: 20px; display: none; }
+        .progress-bar-bg { background-color: #e2e8f0; border-radius: 8px; height: 16px; width: 100%; overflow: hidden; }
+        .progress-bar-fill { background-color: #2563eb; height: 100%; width: 0%; transition: width 0.3s ease; }
+        .progress-text { font-size: 12.5px; color: #475569; margin-top: 6px; font-weight: 600; text-align: right; }
 
-        .progress-bar-bg {
-            background-color: #e2e8f0;
-            border-radius: 8px;
-            height: 18px;
-            width: 100%;
-            overflow: hidden;
-        }
-
-        .progress-bar-fill {
-            background-color: #3182ce;
-            height: 100%;
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-
-        .progress-text {
-            font-size: 12px;
-            color: #4a5568;
-            margin-top: 6px;
-            font-weight: 600;
-            text-align: right;
-        }
-
-        /* PREVIEW TABLE */
         .table-responsive {
             background: #fff;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             overflow-x: auto;
-            padding: 15px;
-            margin-top: 20px;
+            border: 1px solid #e2e8f0;
+            margin-top: 12px;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-            font-size: 13px;
-        }
-
-        th, td {
-            padding: 10px 12px;
-            border-bottom: 1px solid #e2e8f0;
-            white-space: nowrap;
-        }
-
-        th {
-            background-color: #edf2f7;
-            color: #4a5568;
-            font-weight: 600;
-        }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13.5px; }
+        th, td { padding: 10px 14px; border-bottom: 1px solid #f1f5f9; border-right: 1px solid #f1f5f9; white-space: nowrap; background-color: #fff; }
+        th { background-color: #f8fafc; color: #475569; font-weight: 600; }
 
         .footer-copyright {
             position: fixed;
-            bottom: 0; left: 250px;
-            width: calc(100% - 250px);
-            background-color: #edf2f7;
-            border-top: 1px solid #cbd5e1;
+            bottom: 0; left: 260px;
+            width: calc(100% - 260px);
+            background-color: #ffffff;
+            border-top: 1px solid #e2e8f0;
             text-align: center;
             font-size: 12px;
-            color: #4a5568;
-            padding: 8px 0;
-            z-index: 9999;
+            color: #64748b;
+            padding: 10px 0;
+            z-index: 999;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.02);
         }
-
-        .footer-copyright.expanded {
-            left: 56px;
-            width: calc(100% - 56px);
-        }
+        .footer-copyright.expanded { left: 70px; width: calc(100% - 70px); }
 
         @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); }
-            .main-content { margin-left: 0; width: 100%; }
-            .footer-copyright { left: 0; width: 100%; }
+            body { flex-direction: column; }
+            .mobile-topbar { display: flex; }
+            .sidebar { transform: translateX(-100%); width: 260px !important; }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0 !important; width: 100% !important; padding: 12px; padding-bottom: 70px; }
+            .footer-copyright { left: 0 !important; width: 100% !important; }
+            .form-group { min-width: 100%; }
         }
     </style>
 </head>
 <body>
 
-    <!-- SIDEBAR NAVIGASI -->
+    <div class="mobile-topbar">
+        <h3>📊 Monitoring Toko EDP</h3>
+        <button class="btn-mobile-menu" onclick="toggleSidebar()" title="Buka Menu">☰</button>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <span style="font-size: 24px;">📊</span>
-            <h3>Monitoring Toko<br><span style="font-size: 12px; color: #94a3b8; font-weight: normal;">EDP Samarinda</span></h3>
+            <h3>Monitoring Toko<br><span style="font-size: 11.5px; color: #94a3b8; font-weight: normal;">EDP Samarinda</span></h3>
             <button class="btn-toggle-sidebar" onclick="toggleSidebar()" title="Buka/Tutup Sidebar">☰</button>
         </div>
 
         <ul class="sidebar-menu">
-            <li><a href="index.html" title="Monitoring Toko & Follow UP"><span>📈</span> <span>Monitoring Toko & Follow UP</span></a></li>
-            <li class="active"><a href="upload-data.html" title="Upload Data"><span>📤</span> <span>Upload Data</span></a></li>
-            <li><a href="filter-item.html" title="Filter Data Per Item"><span>🔍</span> <span>Filter Data Per Item</span></a></li>
+            <li>
+                <a href="index.html" title="Monitoring Toko & Follow UP">
+                    <span>📈</span> <span>Monitoring Toko & Follow UP</span>
+                </a>
+            </li>
+            <li class="active">
+                <a href="upload-data.html" title="Upload Data">
+                    <span>📤</span> <span>Upload Data</span>
+                </a>
+            </li>
+            <li>
+                <a href="filter-item.html" title="Filter Data Per Item">
+                    <span>🔍</span> <span>Filter Data Per Item</span>
+                </a>
+            </li>
+            <li>
+                <a href="bkb.html" title="Monitoring Stock EDP">
+                    <span>📦</span> <span>Monitoring Stock EDP</span>
+                </a>
+            </li>
+            <li>
+                <a href="audit-log.html" title="Audit Log Web">
+                    <span>📋</span> <span>Audit Log Web</span>
+                </a>
+            </li>
         </ul>
 
         <div class="sidebar-footer">
-            <button class="btn-sidebar-logout" onclick="logout()" title="Logout"><span>🚪</span> <span>Logout</span></button>
+            <button class="btn-sidebar-logout" onclick="logout()" title="Logout">
+                <span>🚪</span> <span>Logout</span>
+            </button>
         </div>
     </aside>
 
-    <!-- MAIN CONTENT AREA -->
     <main class="main-content">
-
         <div class="card-upload">
             <div class="card-title">
-                <span>📂</span> Form Import Data Laporan (.xlsx) ke BANK DATA SE
+                <span>📂</span> Form Import Data Laporan (.xlsx) ke BANK DATA SE (MySQL Lokal)
             </div>
 
             <div class="form-group" style="margin-bottom: 15px;">
-                <label for="web-app-url">URL Web App Apps Script:</label>
-                <input type="text" id="web-app-url" value="https://script.google.com/macros/s/AKfycbz_tNHAoQAjhsEvny5l2_aUYwwdTegK3j4X-jEyS9KN06LUGV17suZkOZdYP19V_P_1/exec" placeholder="https://script.google.com/macros/s/.../exec">
+                <label for="web-app-url">URL Server API Lokal:</label>
+                <input type="text" id="web-app-url" value="https://slouching-extrovert-frosty.ngrok-free.dev/api/data" readonly style="background-color: #f1f5f9;">
             </div>
 
-            <!-- Dropzone Drag and Drop -->
             <div class="dropzone" id="dropzone" onclick="document.getElementById('file-input').click()">
                 <div class="dropzone-icon">📄</div>
                 <div class="dropzone-text">Klik di sini atau seret file <strong>Report Excel (.xlsx)</strong></div>
@@ -452,7 +455,6 @@
                 </button>
             </div>
 
-            <!-- Progress Bar -->
             <div class="progress-container" id="progress-box">
                 <div class="progress-bar-bg">
                     <div class="progress-bar-fill" id="progress-fill"></div>
@@ -461,7 +463,6 @@
             </div>
         </div>
 
-        <!-- Tabel Preview Data -->
         <div class="card-upload" id="preview-card" style="display: none;">
             <div class="card-title">
                 <span>👁️</span> Preview 5 Baris Pertama Data Hasil Olahan
@@ -475,7 +476,6 @@
                 </table>
             </div>
         </div>
-
     </main>
 
     <div class="footer-copyright">
@@ -483,41 +483,84 @@
     </div>
 
     <script>
-        // --- 1. VERIFIKASI SESI & ROLE ADMIN ---
-        if (sessionStorage.getItem("isLoggedIn") !== "true") {
-            window.location.href = "login.html";
-        }
+        const API_URL = "https://slouching-extrovert-frosty.ngrok-free.dev/api/data";
 
-        const currentRole = (sessionStorage.getItem("userRole") || "").toUpperCase();
-        if (currentRole !== "ADMIN") {
-            alert("⛔ Akses Ditolak! Halaman ini hanya dapat diakses oleh Admin.");
-            window.location.href = "index.html";
-        }
+        document.addEventListener("DOMContentLoaded", () => {
+            if (sessionStorage.getItem("isLoggedIn") !== "true") {
+                window.location.href = "login.html";
+                return;
+            }
 
-        function logout() {
+            const currentRole = (sessionStorage.getItem("userRole") || "").toUpperCase();
+            if (currentRole !== "ADMIN") {
+                alert("⛔ Akses Ditolak! Halaman ini hanya dapat diakses oleh Admin.");
+                window.location.href = "index.html";
+                return;
+            }
+
+            if (window.innerWidth > 768 && localStorage.getItem("sidebarCollapsed") === "true") {
+                const sidebar = document.getElementById("sidebar");
+                const mainContent = document.querySelector(".main-content");
+                const footer = document.querySelector(".footer-copyright");
+
+                if (sidebar) sidebar.classList.add("collapsed");
+                if (mainContent) mainContent.classList.add("expanded");
+                if (footer) footer.classList.add("expanded");
+            }
+
+            const today = new Date().toISOString().slice(0, 10);
+            document.getElementById("tanggal-upload").value = today;
+        });
+
+        async function logout() {
             if (confirm("Apakah Anda yakin ingin keluar dari sistem?")) {
-                sessionStorage.removeItem("isLoggedIn");
-                sessionStorage.removeItem("userNama");
-                sessionStorage.removeItem("userRole");
+                const userNama = sessionStorage.getItem("userNama") || "Sistem";
+                const userRole = sessionStorage.getItem("userRole") || "Pengguna";
+
+                try {
+                    await fetch(API_URL, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "ngrok-skip-browser-warning": "true"
+                        },
+                        body: JSON.stringify({
+                            action: "catatLog",
+                            user: userNama,
+                            role: userRole,
+                            aksi: "LOGOUT_SISTEM",
+                            keterangan: "Pengguna keluar dari web portal"
+                        }),
+                        keepalive: true 
+                    });
+                } catch (err) {
+                    console.warn("Gagal mencatat log logout:", err);
+                }
+
+                sessionStorage.clear();
                 window.location.href = "login.html";
             }
         }
 
-        // --- 2. MANAJEMEN TOGGLE SIDEBAR ---
         function toggleSidebar() {
             const sidebar = document.getElementById("sidebar");
+            const overlay = document.getElementById("sidebar-overlay");
             const mainContent = document.querySelector(".main-content");
             const footer = document.querySelector(".footer-copyright");
 
-            sidebar.classList.toggle("collapsed");
-            if (mainContent) mainContent.classList.toggle("expanded");
-            if (footer) footer.classList.toggle("expanded");
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle("open");
+                overlay.classList.toggle("active");
+            } else {
+                sidebar.classList.toggle("collapsed");
+                if (mainContent) mainContent.classList.toggle("expanded");
+                if (footer) footer.classList.toggle("expanded");
 
-            const isCollapsed = sidebar.classList.contains("collapsed");
-            localStorage.setItem("sidebarCollapsed", isCollapsed ? "true" : "false");
+                const isCollapsed = sidebar.classList.contains("collapsed");
+                localStorage.setItem("sidebarCollapsed", isCollapsed ? "true" : "false");
+            }
         }
 
-        // Pemetaan 57 Kolom di Sheet BANK DATA SE (sesuai struktur Report Service)
         const HEADERS = [
             'CLICK_FOR_ACTION', 'KODE', 'KETERANGAN', 'REQUEST', 'RESPONSE', 'KDCAB', 
             'KDTK', 'NAMA', 'STATION', 'IP', 'OS', 'ARSITEKTUR', 'CPU_INFO', 
@@ -538,39 +581,6 @@
         let currentFileName = "";
         let currentFileSize = 0;
 
-        document.addEventListener("DOMContentLoaded", () => {
-            if (localStorage.getItem("sidebarCollapsed") === "true") {
-                const sidebar = document.getElementById("sidebar");
-                const mainContent = document.querySelector(".main-content");
-                const footer = document.querySelector(".footer-copyright");
-
-                if (sidebar) sidebar.classList.add("collapsed");
-                if (mainContent) mainContent.classList.add("expanded");
-                if (footer) footer.classList.add("expanded");
-            }
-
-            const today = new Date().toISOString().slice(0, 10);
-            document.getElementById("tanggal-upload").value = today;
-
-            // Handlers Drag & Drop File
-            const dropzone = document.getElementById("dropzone");
-            ['dragenter', 'dragover'].forEach(eventName => {
-                dropzone.addEventListener(eventName, (e) => { e.preventDefault(); dropzone.classList.add('dragover'); }, false);
-            });
-            ['dragleave', 'drop'].forEach(eventName => {
-                dropzone.addEventListener(eventName, (e) => { e.preventDefault(); dropzone.classList.remove('dragover'); }, false);
-            });
-            dropzone.addEventListener('drop', (e) => {
-                const dt = e.dataTransfer;
-                const files = dt.files;
-                if (files.length > 0) {
-                    document.getElementById('file-input').files = files;
-                    prosesFileExcel({ target: { files: files } });
-                }
-            });
-        });
-
-        // --- 3. PENGOLAHAN FILE EXCEL & LOGIKA FILTER + AUTO DETECT NAMA FILE ---
         function gantiTipeLaporan() {
             if (currentFileBuffer) {
                 bacaDanOlahExcel(currentFileBuffer);
@@ -587,7 +597,6 @@
             const nameLower = currentFileName.toLowerCase().trim();
             const tipeSelect = document.getElementById("tipe-laporan");
 
-            // JAGAAN OTOMATIS BERDASARKAN NAMA FILE
             if (nameLower.startsWith("report service excellent") || nameLower.includes("report service excellent")) {
                 tipeSelect.value = "SE";
             } else if (nameLower.startsWith("report station") || nameLower.includes("report station")) {
@@ -610,7 +619,6 @@
             const tipeLaporan = document.getElementById("tipe-laporan").value;
 
             if (tipeLaporan === "SE") {
-                // Report Service Excellent: Upload semua data (2D Array tanpa header)
                 const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
                 if (rawData.length <= 1) {
                     alert("⚠️ File Excel Report Service kosong atau hanya berisi header!");
@@ -618,7 +626,6 @@
                 }
                 parsedRowsArray = rawData.slice(1).filter(r => r && r.length > 0 && r.some(cell => cell !== "" && cell !== null && cell !== undefined));
             } else {
-                // Report Station: Filter HANYA STATION DVR & DVR2, petakan ke 57 Kolom BANK DATA SE
                 const jsonStn = XLSX.utils.sheet_to_json(sheet);
                 const filteredStn = jsonStn.filter(row => {
                     const st = String(row.STATION || '').trim().toUpperCase();
@@ -627,19 +634,16 @@
 
                 parsedRowsArray = filteredStn.map(row => {
                     let newRow = new Array(HEADERS.length).fill('');
-                    
                     newRow[HEADERS.indexOf('RESPONSE')] = row.ADDTIME !== undefined ? String(row.ADDTIME) : '';
                     newRow[HEADERS.indexOf('KDTK')] = row.TOKO !== undefined ? String(row.TOKO) : '';
                     newRow[HEADERS.indexOf('NAMA')] = row.NAMA !== undefined ? String(row.NAMA) : '';
                     newRow[HEADERS.indexOf('IP')] = row.IP !== undefined ? String(row.IP) : '';
                     newRow[HEADERS.indexOf('STATION')] = row.STATION !== undefined ? String(row.STATION) : '';
                     newRow[HEADERS.indexOf('KETERANGAN')] = row.STATUS_NETWORK !== undefined ? String(row.STATUS_NETWORK) : '';
-
                     return newRow;
                 });
             }
 
-            // Update Badge & UI Info
             const badge = document.getElementById("file-badge");
             if (tipeLaporan === "CCTV") {
                 const totalStnData = XLSX.utils.sheet_to_json(sheet).length;
@@ -652,11 +656,10 @@
             document.getElementById("total-baris-info").value = `${parsedRowsArray.length} Baris Data`;
             document.getElementById("btn-upload-bank").disabled = (parsedRowsArray.length === 0);
 
-            tampilkanPreviewData(parsedRowsArray, tipeLaporan);
+            tampilkanPreviewData(parsedRowsArray);
         }
 
-        // --- 4. TAMPILKAN PREVIEW DATA ---
-        function tampilkanPreviewData(rows, tipe) {
+        function tampilkanPreviewData(rows) {
             const card = document.getElementById("preview-card");
             const thead = document.getElementById("preview-header");
             const tbody = document.getElementById("preview-body");
@@ -665,10 +668,7 @@
             thead.innerHTML = "";
             tbody.innerHTML = "";
 
-            if (rows.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:#ef4444;">⚠️ Tidak ada baris data yang memenuhi kriteria filter.</td></tr>`;
-                return;
-            }
+            if (rows.length === 0) return;
 
             let previewCols = [
                 { name: 'RESPONSE', idx: HEADERS.indexOf('RESPONSE') },
@@ -697,17 +697,10 @@
             });
         }
 
-        // --- 5. PENGIRIMAN DATA BERTAHAP (CHUNK UPLOAD WITH TIMPA / APPEND MODE) ---
         async function kirimKeBankData() {
-            const webAppUrl = document.getElementById("web-app-url").value.trim();
-            if (!webAppUrl) {
-                alert("⚠️ Harap masukkan URL Web App Google Apps Script terlebih dahulu!");
-                return;
-            }
-
             if (parsedRowsArray.length === 0) return;
 
-            const modeUpload = document.getElementById("mode-upload").value; // "replace" atau "append"
+            const modeUpload = document.getElementById("mode-upload").value;
             const modeText = modeUpload === "replace" ? "MENIMPA / HAPUS DATA LAMA" : "MENAMBAHKAN DATA BARU";
 
             const btnUpload = document.getElementById("btn-upload-bank");
@@ -715,7 +708,7 @@
             const progressFill = document.getElementById("progress-fill");
             const progressLabel = document.getElementById("progress-label");
 
-            if (!confirm(`Apakah Anda yakin ingin mengunggah ${parsedRowsArray.length} baris data ke BANK DATA SE dengan mode ${modeText}?`)) {
+            if (!confirm(`Apakah Anda yakin ingin mengunggah ${parsedRowsArray.length} baris data ke BANK DATA SE (MySQL) dengan mode ${modeText}?`)) {
                 return;
             }
 
@@ -723,29 +716,34 @@
             btnUpload.innerText = "⏳ Sedang Mengunggah...";
             progressBox.style.display = "block";
 
-            const chunkSize = 100; // Dikirim per batch 100 baris
+            const chunkSize = 100;
             const totalData = parsedRowsArray.length;
             let diproses = 0;
 
             try {
                 for (let i = 0; i < totalData; i += chunkSize) {
                     const chunk = parsedRowsArray.slice(i, i + chunkSize);
-                    const isLastChunk = (i + chunkSize) >= totalData;
                     const isFirstChunk = (i === 0);
 
                     const payload = {
                         action: "uploadReport",
-                        sheetName: "BANK DATA SE",
                         data: chunk,
-                        skipCache: !isLastChunk, // Warm-up cache hanya dipicu pada chunk terakhir
-                        clearData: (isFirstChunk && modeUpload === "replace") // Timpa data lama hanya di batch pertama
+                        clearData: (isFirstChunk && modeUpload === "replace")
                     };
 
-                    await fetch(webAppUrl, {
+                    const response = await fetch(API_URL, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'ngrok-skip-browser-warning': 'true'
+                        },
                         body: JSON.stringify(payload)
                     });
+
+                    const resData = await response.json();
+                    if (resData.status !== "sukses") {
+                        throw new Error(resData.message || "Gagal menyimpan batch data.");
+                    }
 
                     diproses += chunk.length;
                     const persen = Math.min(Math.round((diproses / totalData) * 100), 100);
@@ -753,8 +751,8 @@
                     progressLabel.innerText = `Mengunggah: ${persen}% (${diproses}/${totalData} baris)`;
                 }
 
-                alert(`✅ Berhasil! Sebanyak ${totalData} baris data diunggah ke BANK DATA SE (Mode: ${modeUpload.toUpperCase()}) & Cache otomatis diperbarui.`);
-                location.reload();
+                alert(`✅ Berhasil! Sebanyak ${totalData} baris data diunggah ke BANK DATA SE MySQL (Mode: ${modeUpload.toUpperCase()}).`);
+                window.location.href = "index.html";
             } catch (err) {
                 console.error("Error upload data:", err);
                 alert("❌ Terjadi kesalahan saat mengunggah data: " + err.message);
