@@ -198,7 +198,7 @@
         </div>
     </div>
 
-<script>
+    <script>
         const GAS_URL = "https://script.google.com/macros/s/AKfycbz_tNHAoQAjhsEvny5l2_aUYwwdTegK3j4X-jEyS9KN06LUGV17suZkOZdYP19V_P_1/exec";
 
         function togglePasswordVisibility() {
@@ -208,39 +208,34 @@
 
         async function prosesLogin(e) {
             e.preventDefault();
-            
-            const alertError = document.getElementById("alert-error");
-            const btnSubmit = document.getElementById("btn-submit");
-            const btnText = document.getElementById("btn-text");
-
-            alertError.style.display = "none";
-            btnSubmit.disabled = true;
-            btnText.innerText = "Memproses...";
-
             const userIn = document.getElementById("username").value.trim();
             const passIn = document.getElementById("password").value.trim();
+            const btnSubmit = document.getElementById("btn-submit");
+            const btnText = document.getElementById("btn-text");
+            const alertError = document.getElementById("alert-error");
+
+            alertError.style.display = "none";
+            alertError.innerText = "";
+
+            btnSubmit.disabled = true;
+            btnText.innerHTML = '<span class="spinner-login"></span> Memeriksa...';
 
             try {
-                // Ambil data dari server via fetch dengan header ngrok bypass
-                const response = await fetch(`${GAS_URL}?tab=${encodeURIComponent('user_data')}`, {
-                    headers: {
-                        "ngrok-skip-browser-warning": "true"
-                    }
-                });
+                // 1. Ambil data dari GAS endpoint dengan tab user_data
+                const response = await fetch(`${GAS_URL}?tab=${encodeURIComponent('user_data')}`);
+                if (!response.ok) throw new Error("Gagal mengambil data dari server GAS.");
+
+                // 2. Parse hasil JSON dari server
                 const dataUser = await response.json();
 
-                // Debugging di Console F12
-                console.log("👉 Yang diketik User:", { username: userIn, password: passIn });
-                console.log("👉 Data yang diterima dari Database:", dataUser);
-
                 if (!Array.isArray(dataUser) || dataUser.length === 0) {
-                    throw new Error("Data pengguna tidak ditemukan pada database user_data.");
+                    throw new Error("Data pengguna tidak ditemukan pada sheet user_data.");
                 }
 
-                // Proses pencocokan data yang fleksibel
+                // 3. Cari pengguna secara fleksibel (pencocokan nama kolom otomatis)
                 const userValid = dataUser.find(u => {
                     const keys = Object.keys(u);
-                    const userKey = keys.find(k => /username|user|nik/i.test(k));
+                    const userKey = keys.find(k => /username|user|nik|id/i.test(k));
                     const passKey = keys.find(k => /password|pass|pin/i.test(k));
 
                     const usernameVal = userKey && u[userKey] !== undefined ? String(u[userKey]).trim().toLowerCase() : "";
@@ -257,43 +252,18 @@
                     const namaUser = namaKey && userValid[namaKey] ? String(userValid[namaKey]).trim() : userIn;
                     const roleUser = roleKey && userValid[roleKey] ? String(userValid[roleKey]).trim() : "EDP Cabang";
 
-                    // Simpan sesi login
                     sessionStorage.setItem("isLoggedIn", "true");
                     sessionStorage.setItem("userNama", namaUser);
                     sessionStorage.setItem("userRole", roleUser);
 
-                    console.log("✅ Login Berhasil, data cocok:", userValid);
-                // Kirim log aktivitas menggunakan fetch agar header ngrok terbawa dan menunggu hingga selesai
-                try {
-                    await fetch(GAS_URL, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "ngrok-skip-browser-warning": "true"
-                        },
-                        body: JSON.stringify({
-                            action: "catatLog",
-                            user: namaUser,
-                            role: roleUser,
-                            aksi: "LOGIN_SISTEM",
-                            keterangan: "Pengguna berhasil masuk ke web portal"
-                        })
-                    });
-                } catch (errLog) {
-                    console.warn("Gagal mencatat log:", errLog);
-                }
-
-                // Pindah ke halaman utama setelah log sukses terkirim ke server
-                window.location.href = "index.html";
-
+                    window.location.href = "index.html";
                 } else {
-                    console.log("❌ Gagal mencocokkan data!");
                     alertError.innerText = "Username atau Password salah!";
                     alertError.style.display = "block";
                 }
             } catch (err) {
                 console.error("Login error:", err);
-                alertError.innerText = err.message || "Gagal terhubung ke server lokal.";
+                alertError.innerText = err.message || "Gagal terhubung ke database user.";
                 alertError.style.display = "block";
             } finally {
                 btnSubmit.disabled = false;
