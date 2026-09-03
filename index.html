@@ -126,7 +126,7 @@
         }
 
         .btn-sidebar-logout:hover { 
-            background-color: b91c1c; 
+            background-color: #b91c1c; 
             box-shadow: 0 4px 10px rgba(220, 38, 38, 0.3);
         }
 
@@ -812,6 +812,7 @@
         let semuaData = [];
         let dataAktifTerfilter = [];
         let mappingTokoEdp = {};
+        let cctvMap = {};
 
         const KOLOM_KODE_TOKO   = "KDTK";
         const KOLOM_NAMA_TOKO   = "NAMA";
@@ -991,6 +992,45 @@
                 console.warn("Gagal memuat tabel mapping toko EDP:", e);
             }
 
+            try {
+                const resCctv = await fetch(`${API_URL}?tab=bank_data_cctv`, {
+                    headers: { "ngrok-skip-browser-warning": "true" }
+                });
+                const dataCctv2D = await resCctv.json();
+
+                cctvMap = {};
+                if (Array.isArray(dataCctv2D) && dataCctv2D.length > 1) {
+                    const headersCctv = dataCctv2D[0].map(h => String(h || "").trim().toUpperCase());
+                    const idxToko    = headersCctv.indexOf('TOKO');
+                    const idxStation = headersCctv.indexOf('STATION');
+                    const idxIp      = headersCctv.indexOf('IP');
+                    const idxStatus  = headersCctv.indexOf('STATUS_NETWORK');
+                    const idxAddtime = headersCctv.indexOf('ADDTIME');
+
+                    dataCctv2D.slice(1).forEach(row => {
+                        const kdtk    = (row[idxToko] || "").toString().trim().toUpperCase();
+                        const station = (row[idxStation] || "").toString().trim().toUpperCase();
+                        if (!kdtk || (station !== 'DVR' && station !== 'DVR2')) return;
+
+                        const addtime = (idxAddtime !== -1 ? row[idxAddtime] : "") || "";
+
+                        if (!cctvMap[kdtk]) cctvMap[kdtk] = {};
+                        const existing = cctvMap[kdtk][station];
+
+                        // Ambil hanya data terbaru per toko+station (berdasarkan ADDTIME)
+                        if (!existing || String(addtime) > String(existing.addtime || "")) {
+                            cctvMap[kdtk][station] = {
+                                ip: row[idxIp] || '-',
+                                status: row[idxStatus] || '-',
+                                addtime: addtime
+                            };
+                        }
+                    });
+                }
+            } catch (e) {
+                console.warn("Gagal memuat data bank_data_cctv:", e);
+            }
+
             let serverFuMap = {};
             try {
                 const resFu = await fetch(`${API_URL}?tab=follow_up_lapangan`, {
@@ -1067,17 +1107,18 @@
                     const kdtk = (item[KOLOM_KODE_TOKO] || "").trim().toUpperCase();
                     const assignedPic = mappingTokoEdp[kdtk] || "-";
 
-                    const dvr1Status = item["DVR"] || item[KOLOM_DVR] || "-";
-                    let dvr2Status = item["DVR2"] || item[KOLOM_DVR2] || "-";
-                    
-                    if (!dvr2Status || dvr2Status === "-" || dvr2Status === "") {
-                        dvr2Status = "Tidak Ada DVR";
-                    }
+                    const cctvToko = cctvMap[kdtk] || {};
+                    const dvrInfo  = cctvToko.DVR  || null;
+                    const dvr2Info = cctvToko.DVR2 || null;
+
+                    const ipDvrVal   = dvrInfo ? dvrInfo.ip : "-";
+                    const dvr1Status = dvrInfo ? dvrInfo.status : "-";
+                    const dvr2Status = dvr2Info ? dvr2Info.status : "Tidak Ada DVR";
 
                     return {
                         ...item,
                         MAPPED_NAMA_EDP: assignedPic,
-                        MAPPED_IP_DVR: item["IP_DVR"] || item[KOLOM_IP_DVR] || "-",
+                        MAPPED_IP_DVR: ipDvrVal,
                         MAPPED_STATUS_DVR: dvr1Status,
                         MAPPED_STATUS_DVR2: dvr2Status,
                         FOLLOW_UP_HISTORY: item.FOLLOW_UP_HISTORY || []
