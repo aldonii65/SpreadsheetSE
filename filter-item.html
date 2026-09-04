@@ -577,6 +577,7 @@
 
         const apiUrl = "https://slouching-extrovert-frosty.ngrok-free.dev/api/data";
         let semuaDataRaw = [];
+        let semuaCctvRaw = [];
         let dataTerfilter = [];
         let mappingEdpMap = {};
 
@@ -752,7 +753,7 @@
                         const tglItem = formatTanggalRapi(item["REQUEST"] || item["TANGGAL"] || item["TANGGAL RESPON IDM LISTENER"] || "");
                         return tglItem === tglPilihan;
                     });
-
+                
                     await simpanKeIndexedDB(dataObjek);
 
                     if (semuaDataRaw.length > 0) {
@@ -763,6 +764,20 @@
                         updateCounters(0, 0, 0);
                     }
                 }
+
+                // Ambil data CCTV dari database
+                try {
+                    const resCctv = await fetch(`${apiUrl}?tab=BANK DATA CCTV`, {
+                        headers: { "ngrok-skip-browser-warning": "true" }
+                    });
+                    const dataCctvRes = await resCctv.json();
+                    if (Array.isArray(dataCctvRes) && dataCctvRes.length > 1) {
+                        semuaCctvRaw = convert2DToObjects(dataCctvRes);
+                    }
+                } catch (cctvErr) {
+                    console.warn("Gagal memuat bank_data_cctv:", cctvErr);
+                }
+
             } catch (err) {
                 console.warn("Gagal terhubung ke server:", err);
                 if (!dataBerhasilDimuat) {
@@ -956,14 +971,35 @@
                 }
 
                 if (selectedCategories.includes("DVR")) {
-                    const dvr1 = (item["DVR"] || "").toString().trim().toUpperCase();
-                    const dvr2 = (item["DVR2"] || "").toString().trim().toUpperCase();
-                    if ((dvr1 === "DOWN" || dvr1 === "OFFLINE" || dvr1 === "NOK") || (dvr2 === "DOWN" || dvr2 === "OFFLINE" || dvr2 === "NOK")) {
-                        isOverallOK = false;
-                        listProblem.push("DVR Down");
+                    const kdtkItem = (item["KDTK"] || "").toString().trim().toUpperCase();
+                    const tglPilihan = document.getElementById("filter-tanggal").value;
+
+                    const cctvMatches = semuaCctvRaw.filter(c => {
+                        const tokoCctv = (c["TOKO"] || "").toString().trim().toUpperCase();
+                        const tglCctv = formatTanggalRapi(c["ADDTIME"] || "");
+                        return tokoCctv === kdtkItem && tglCctv === tglPilihan;
+                    });
+
+                    if (cctvMatches.length > 0) {
+                        let isDvrOk = true;
+                        let dvrIssues = [];
+
+                        cctvMatches.forEach(cctv => {
+                            const statusNet = (cctv["STATUS_NETWORK"] || cctv["KONEKSI"] || "").toString().trim().toUpperCase();
+                            const stationCctv = (cctv["STATION"] || "DVR").toString().trim();
+                            
+                            if (statusNet.includes("DOWN") || statusNet.includes("OFFLINE") || statusNet.includes("NOK")) {
+                                isDvrOk = false;
+                                dvrIssues.push(`${stationCctv} ${statusNet}`);
+                            }
+                        });
+
+                        if (!isDvrOk) {
+                            isOverallOK = false;
+                            listProblem.push(...dvrIssues);
+                        }
                     }
                 }
-
                 const detailKeterangan = isOverallOK ? "Semua Parameter Dipilih OK" : listProblem.join(", ");
                 return { ...item, _valRaw: detailKeterangan, _isOK: isOverallOK };
             });
