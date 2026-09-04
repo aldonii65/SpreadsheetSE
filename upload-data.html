@@ -408,7 +408,7 @@
     <main class="main-content">
         <div class="card-upload">
             <div class="card-title">
-                <span>📂</span> Form Import Data Laporan (.xlsx) ke BANK DATA SE (MySQL Lokal)
+                <span>📂</span> Form Import Data Laporan (.xlsx) ke BANK DATA SE & CCTV (MySQL Lokal)
             </div>
 
             <div class="form-group" style="margin-bottom: 15px;">
@@ -435,8 +435,8 @@
                 <div class="form-group">
                     <label for="mode-upload">Mode Penulisan Data:</label>
                     <select id="mode-upload">
-                        <option value="replace" selected>🔄 Timpa / Hapus Data Lama (Replace)</option>
-                        <option value="append">➕ Data Baru / Tambahkan (Append)</option>
+                        <option value="append" selected>➕ Data Baru / Tambahkan (Append)</option>
+                        <option value="replace">🔄 Timpa Berdasarkan Data Terbaru (Replace)</option>
                     </select>
                 </div>
 
@@ -576,6 +576,11 @@
             'PREVIOUS_TIME', 'NEW_TIME', 'PROCESS_NAME', 'METODE', 'id'
         ];
 
+        const CCTV_HEADERS = [
+            'ADDTIME', 'TIMEROUTER', 'KDCAB', 'TOKO', 'NAMA', 
+            'IP', 'STATION', 'KONEKSI', 'STATUS_NETWORK', 'UPTIME', 'DOWNTIME', 'SLA'
+        ];
+
         let parsedRowsArray = [];
         let currentFileBuffer = null;
         let currentFileName = "";
@@ -633,13 +638,12 @@
                 });
 
                 parsedRowsArray = filteredStn.map(row => {
-                    let newRow = new Array(HEADERS.length).fill('');
-                    newRow[HEADERS.indexOf('RESPONSE')] = row.ADDTIME !== undefined ? String(row.ADDTIME) : '';
-                    newRow[HEADERS.indexOf('KDTK')] = row.TOKO !== undefined ? String(row.TOKO) : '';
-                    newRow[HEADERS.indexOf('NAMA')] = row.NAMA !== undefined ? String(row.NAMA) : '';
-                    newRow[HEADERS.indexOf('IP')] = row.IP !== undefined ? String(row.IP) : '';
-                    newRow[HEADERS.indexOf('STATION')] = row.STATION !== undefined ? String(row.STATION) : '';
-                    newRow[HEADERS.indexOf('KETERANGAN')] = row.STATUS_NETWORK !== undefined ? String(row.STATUS_NETWORK) : '';
+                    let newRow = new Array(CCTV_HEADERS.length).fill('');
+                    CCTV_HEADERS.forEach((h, idx) => {
+                        if (row[h] !== undefined && row[h] !== null) {
+                            newRow[idx] = String(row[h]);
+                        }
+                    });
                     return newRow;
                 });
             }
@@ -656,10 +660,10 @@
             document.getElementById("total-baris-info").value = `${parsedRowsArray.length} Baris Data`;
             document.getElementById("btn-upload-bank").disabled = (parsedRowsArray.length === 0);
 
-            tampilkanPreviewData(parsedRowsArray);
+            tampilkanPreviewData(parsedRowsArray, tipeLaporan);
         }
 
-        function tampilkanPreviewData(rows) {
+        function tampilkanPreviewData(rows, tipeLaporan) {
             const card = document.getElementById("preview-card");
             const thead = document.getElementById("preview-header");
             const tbody = document.getElementById("preview-body");
@@ -670,14 +674,26 @@
 
             if (rows.length === 0) return;
 
-            let previewCols = [
-                { name: 'RESPONSE', idx: HEADERS.indexOf('RESPONSE') },
-                { name: 'KDTK', idx: HEADERS.indexOf('KDTK') },
-                { name: 'NAMA', idx: HEADERS.indexOf('NAMA') },
-                { name: 'STATION', idx: HEADERS.indexOf('STATION') },
-                { name: 'IP', idx: HEADERS.indexOf('IP') },
-                { name: 'KETERANGAN', idx: HEADERS.indexOf('KETERANGAN') }
-            ];
+            let previewCols = [];
+            if (tipeLaporan === "CCTV") {
+                previewCols = [
+                    { name: 'ADDTIME', idx: CCTV_HEADERS.indexOf('ADDTIME') },
+                    { name: 'TOKO', idx: CCTV_HEADERS.indexOf('TOKO') },
+                    { name: 'NAMA', idx: CCTV_HEADERS.indexOf('NAMA') },
+                    { name: 'STATION', idx: CCTV_HEADERS.indexOf('STATION') },
+                    { name: 'IP', idx: CCTV_HEADERS.indexOf('IP') },
+                    { name: 'STATUS_NETWORK', idx: CCTV_HEADERS.indexOf('STATUS_NETWORK') }
+                ];
+            } else {
+                previewCols = [
+                    { name: 'RESPONSE', idx: HEADERS.indexOf('RESPONSE') },
+                    { name: 'KDTK', idx: HEADERS.indexOf('KDTK') },
+                    { name: 'NAMA', idx: HEADERS.indexOf('NAMA') },
+                    { name: 'STATION', idx: HEADERS.indexOf('STATION') },
+                    { name: 'IP', idx: HEADERS.indexOf('IP') },
+                    { name: 'KETERANGAN', idx: HEADERS.indexOf('KETERANGAN') }
+                ];
+            }
 
             previewCols.forEach(col => {
                 const th = document.createElement("th");
@@ -700,15 +716,17 @@
         async function kirimKeBankData() {
             if (parsedRowsArray.length === 0) return;
 
+            const tipeLaporan = document.getElementById("tipe-laporan").value;
+            const targetTableName = tipeLaporan === "CCTV" ? "BANK DATA CCTV" : "BANK DATA SE";
             const modeUpload = document.getElementById("mode-upload").value;
-            const modeText = modeUpload === "replace" ? "MENIMPA / HAPUS DATA LAMA" : "MENAMBAHKAN DATA BARU";
+            const modeText = modeUpload === "replace" ? "MENIMPA BERDASARKAN DATA TERBARU" : "MENAMBAHKAN DATA BARU (APPEND)";
 
             const btnUpload = document.getElementById("btn-upload-bank");
             const progressBox = document.getElementById("progress-box");
             const progressFill = document.getElementById("progress-fill");
             const progressLabel = document.getElementById("progress-label");
 
-            if (!confirm(`Apakah Anda yakin ingin mengunggah ${parsedRowsArray.length} baris data ke BANK DATA SE (MySQL) dengan mode ${modeText}?`)) {
+            if (!confirm(`Apakah Anda yakin ingin mengunggah ${parsedRowsArray.length} baris data ke ${targetTableName} (MySQL) dengan mode ${modeText}?`)) {
                 return;
             }
 
@@ -727,6 +745,7 @@
 
                     const payload = {
                         action: "uploadReport",
+                        targetTable: (tipeLaporan === "CCTV" ? "bank_data_cctv" : "bank_data_se"),
                         data: chunk,
                         clearData: (isFirstChunk && modeUpload === "replace")
                     };
@@ -751,8 +770,8 @@
                     progressLabel.innerText = `Mengunggah: ${persen}% (${diproses}/${totalData} baris)`;
                 }
 
-                alert(`✅ Berhasil! Sebanyak ${totalData} baris data diunggah ke BANK DATA SE MySQL (Mode: ${modeUpload.toUpperCase()}).`);
-                window.location.href = "index.html";
+                alert(`✅ Berhasil! Sebanyak ${totalData} baris data diunggah ke ${targetTableName} MySQL (Mode: ${modeUpload.toUpperCase()}).`);
+                window.location.href = "upload-data.html";
             } catch (err) {
                 console.error("Error upload data:", err);
                 alert("❌ Terjadi kesalahan saat mengunggah data: " + err.message);
